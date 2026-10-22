@@ -1,0 +1,343 @@
+# AIDLC Audit Log — Airlock .NET Rebuild
+
+Append-only. Timestamps are UTC (ISO 8601). Entries dated before 2026-10-20T16:58:35Z were captured during the
+planning session (plan mode, when no project files could be written) and transcribed verbatim from the approved plan
+and the raw question/answer records of that session.
+
+---
+
+## Workspace Detection — Initial Request
+**Timestamp**: 2026-10-20T15:20:40Z
+**User Input**: "/mattpocock-skills:grill-with-docs I built a program in college called Airlock (https://github.com/JJWren/Airlock) which is a python API with a javascript-based frontend and is essentially a rudimentary SAST. I would like to rebuild this in the latest long term .NET Core. If possible, I would like the frontend converted to Blazor, but I want it to keep the same functionalities."
+**AI Response**: "Entered INCEPTION. Workspace Detection: the target folder is empty and not a git repository (greenfield target); the system being rebuilt is the remote repository JJWren/Airlock @ master 0a62ba3 (brownfield source). .NET SDK 10.0.303 installed; .NET 10 is the current LTS. Reverse Engineering performed read-only via the GitHub API on all four branches: Airlock is SCA (Syft SBOM -> NVD CVE correlation), not SAST; the frontend entry files (web/index.html, src/main.jsx, src/App.jsx, vite.config.js) were never committed on any branch and no local checkout exists; 18 verified defects or documentation drifts found. Proceeding to Requirements Analysis as a grilling session; plan mode is active, so findings were recorded in the plan file only."
+**Context**: INCEPTION — Workspace Detection and Reverse Engineering
+
+---
+
+## Requirements Analysis — Grilling Round 1
+**Timestamp**: 2026-10-20T15:45:56Z (answers recorded)
+**User Input**: "Your questions have been answered: "Q1 — The code does SBOM→NVD correlation (SCA), not source-pattern SAST. Should the rebuild be a faithful SCA port with SAST out of scope?"="A) SCA port only (Recommended)", "Q2 — Should "same functionalities" mean feature parity: every UI feature and API capability kept, idiomatic .NET internals, verified defects fixed, no new features?"="A) Parity + fixes (Recommended)", "Q3 — Should it be one ASP.NET Core host: a Blazor Web App in Interactive Server mode plus the /api/v1 Minimal API in the same process?"="A) One host, Interactive Server (Recommended)" selected preview:
+Browser ──SignalR──▶ Airlock.Web (ASP.NET Core 10)
+                      ├─ Blazor components (Interactive Server)
+                      ├─ /api/v1/* Minimal API ◀── curl / CI / API docs
+                      └─ Airlock.Core services ──▶ syft (child process)
+                                               └──▶ NVD CVE API 2.0
+
+1 container · no CORS · logs pushed over the circuit
+UI does NOT go through HTTP API (API tested separately), "Q4 — Is the reverse-engineering summary (plan file) accurate, and should I reconstruct the never-committed app shell exactly as described (items 1–6)?"="A) Accurate — rebuild as described (Recommended)"."
+**AI Response**: "Recorded answers. Derived: no persistence, no authentication, one container (same-origin, no CORS). Drafted ADR-0001 (single host, Interactive Server). Reverse-engineering summary approved by Q4. Opened round 2."
+**Context**: INCEPTION — Requirements Analysis (also the Reverse Engineering approval via Q4)
+
+---
+
+## Requirements Analysis — Grilling Round 2, Dialog 1
+**Timestamp**: 2026-10-20T16:39:01Z (round answers recorded)
+**User Input**: "Your questions have been answered: "Q5 — Which fix groups should go in? (multi-select; recommended: all four)"="UI correctness (Recommended),Engine robustness (Recommended),Input hardening (Recommended),Data consistency (Recommended)", "Q6 — Should packages whose NVD lookups fail (after retries) be marked Unverified, with the scan finishing as Incomplete instead of reporting them clean?"="A) Mark & continue (Recommended)", "Q7 — Should the NVD keyword fallback stay but be made trustworthy (product-verified, low-confidence label)?"="A) Trustworthy fallback (Recommended)", "Q8 — Should an NVD API key be required (scans refuse to start with a clear message when it's missing)?"="A) Required (Recommended)"."
+**AI Response**: "Recorded: all four fix groups; fail closed with Unverified/Incomplete; trustworthy keyword fallback; NVD key required. Continued to dialog 2."
+**Context**: INCEPTION — Requirements Analysis
+
+---
+
+## Requirements Analysis — Grilling Round 2, Dialog 2
+**Timestamp**: 2026-10-20T16:39:01Z (round answers recorded)
+**User Input**: "Your questions have been answered: "Q9 — Should there be one active scan server-wide (second start → 'already in progress' / HTTP 409; Emergency Stop cancels it from any client; results go to whoever started it; log stream stays global)?"="A) One at a time (Recommended)", "Q10 — Should the five /api/v1 routes and their snake_case JSON stay compatible (additive fields only, errors as ProblemDetails, POST /scan/ stays synchronous)?"="C) Redesign (breaking)", "Q11 — Should uploads accept any text manifest/lock file Syft understands (README corrected to say 'manifests')?"="C) Also binary artifacts", "Q12 — Should the dark tactical look be ported exactly with Tailwind CSS v4's standalone CLI (no Node.js), keeping your class names, theme tokens, fonts and Material Symbols?"="C) Component library"."
+**AI Response**: "Q10, Q11 and Q12 diverged from the recommendations and opened new branches (API resource model, upload transport, artifact handling, library choice). Revised Q15 before asking it, because binary artifacts make 'Artifact' a real term and the API redesign makes JSON renames free. Continued to dialog 3."
+**Context**: INCEPTION — Requirements Analysis
+
+---
+
+## Requirements Analysis — Grilling Round 2, Dialog 3
+**Timestamp**: 2026-10-20T16:39:01Z (round answers recorded)
+**User Input**: "Your questions have been answered: "Q13 — Should there be ONE server-side PDF generator (richer jsPDF layout: title+timestamp, summary table, findings table) behind both the UI's Export PDF and the API's report endpoint?"="A) One generator, QuestPDF (Recommended)", "Q14 — Should 'Scan' be the one canonical term in code, API and docs, with your tactical UI copy ('Execute Security Audit', 'Vetting Sequence Active…') kept and listed as UI synonyms?"="A) Scan; keep UI copy (Recommended)", "Q15 (revised) — Adopt the vocabulary Artifact (any uploaded file) ⊃ Manifest (text dependency file); Scan Target; Package (SBOM entry); Finding (one CVE on one package); Vulnerable/Clean/Unverified Package — with JSON names following it (vulnerablePackages[].findings[], criticalFindings, …)?"="A) Adopt terms + JSON names (Recommended)", "Q16 — Should the solution be two production projects: Airlock.Core (domain + scan pipeline, no ASP.NET dependency) and Airlock.Web (Blazor UI + Minimal API host), each with a test project?"="B) Clean Architecture"."
+**AI Response**: "Recorded: QuestPDF single generator; Scan as canonical term with tactical UI copy kept; glossary vocabulary with matching JSON names; Clean Architecture (diverged from recommendation; opened conventions question for round 3). Continued to dialog 4."
+**Context**: INCEPTION — Requirements Analysis
+
+---
+
+## Requirements Analysis — Grilling Round 2, Dialog 4
+**Timestamp**: 2026-10-20T16:39:01Z (round answers recorded)
+**User Input**: "Your questions have been answered: "Q17 — Accept the engineering defaults: .NET 10/C# 14, .slnx, Central Package Mgmt, nullable + warnings-as-errors; Syft pinned v1.55.0 (+ install-tools.ps1/.sh); typed NVD HttpClient + Http.Resilience + 50/30s sliding-window limiter; built-in ILogger + live-log provider; built-in OpenAPI + Scalar at /docs; xUnit v3 + NSubstitute + bUnit + WebApplicationFactory (Syft tests tagged integration, NVD faked); original env var names kept + user-secrets; severity threshold stays HIGH+CRITICAL?"="A) Accept (Recommended)", "Q18 — Set up delivery as: git init here, new GitHub repo JJWren/Airlock-DotNet (you create it; no push without your OK), MIT license carried over, main + feature branches, GitHub Actions (build/test/Docker build) + CodeQL C# + Dependabot, one multi-stage Dockerfile (Syft stage + SDK build + ASP.NET runtime) + docker-compose with the /uploads mount?"="A) Accept (Recommended)"."
+**AI Response**: "Recorded engineering defaults and delivery setup. Updated plan: design tree, glossary drafts, ADR-0002 (fail closed), ADR-0003 (API redesign), ADR-0004 (Clean Architecture). Verified facts for round 3: Syft v1.55 auto-detects and unpacks archives and container image tarballs; MudBlazor 9.11, Fluent UI Blazor 5.0 and Radzen 12.1 target net10.0 under MIT; MediatR is now RPL-1.5 or commercial. Opened round 3."
+**Context**: INCEPTION — Requirements Analysis
+
+---
+
+## Requirements Analysis — Grilling Round 3, Dialog 1
+**Timestamp**: 2026-10-20T16:47:33Z (round answers recorded)
+**User Input**: "Your questions have been answered: "N1 — Adopt the proposed /api/v2 resource model (POST /scans → 202; GET /scans/{id}; SSE /scans/{id}/events; GET /scans/{id}/report.pdf; POST /scans/{id}/cancel; POST /system/stop; GET /system/health; SSE /logs/stream), finished scans kept in memory 24 h / max 20, and Reports at /reports/{id}?"="A) As proposed (Recommended)", "N2 — Should the UI upload over plain HTTP (small JS module posts to POST /api/v2/scans with a progress bar; the page then follows the scan in-process by id; path-only scans use the same entry point)? This amends ADR-0001."="A) HTTP via the API (Recommended)", "N3 — Use these configurable defaults: ≤ 2 GB and ≤ 25 files per scan request; Syft run timeout 15 min; whole-scan timeout 60 min; per-scan staging folder deleted when the scan ends; directory scans limited only by AllowedScanRoots?"="A) These defaults (Recommended)", "N4 — Which component library should the Blazor UI use?"="A) MudBlazor 9 (Recommended)"."
+**AI Response**: "Recorded: /api/v2 resource model with in-memory retention and /reports/{id}; HTTP upload transport (ADR-0001 amended); default limits; MudBlazor 9. Surfaced without a question (no objection raised): artifact type detection delegated to Syft; registry image references out of scope. Continued to dialog 2."
+**Context**: INCEPTION — Requirements Analysis
+
+---
+
+## Requirements Analysis — Grilling Round 3, Dialog 2
+**Timestamp**: 2026-10-20T16:47:33Z (round answers recorded)
+**User Input**: "Your questions have been answered: "N5 — Should the MudBlazor theme carry your original tactical identity (palette #09090B / #18181B / #3B82F6 / #EF4444 / #71717A, Inter + JetBrains Mono, uppercase mono labels, same layout: top bar, left nav, Control Center cards, Terminal panel, Reports split pane)?"="A) Original identity (Recommended)", "N6 — Should the status pill show ONLINE (all checks pass) / DEGRADED (Syft missing or NVD key missing — Execute disabled, tooltip explains) / OFFLINE (circuit lost/reconnecting) / LOADING, with /api/v2/system/health returning the same checks as JSON and no periodic NVD probe?"="A) As described (Recommended)", "N7 — Clean Architecture conventions: plain use-case classes (StartScan, CancelScan, GetScan, RenderScanReport) injected directly — no mediator — plus per-layer test projects and an Architecture.Tests project (ArchUnitNET) enforcing inward-only dependencies?"="A) Plain handlers + arch tests (Recommended)", "N8 — After approval, run the lean AIDLC path: persist this session's artifacts, skip User Stories, plan = Application Design, 6 units (Domain → Application → Infrastructure → Web API → Web UI → Delivery) each with a Request Changes / Continue gate, Functional Design only for the correlation engine, then Build & Test docs?"="B) Full"."
+**AI Response**: "Recorded: original visual identity on MudBlazor; ONLINE/DEGRADED/OFFLINE/LOADING status pill; plain use-case classes plus ArchUnitNET architecture tests; Full AIDLC path. Frontier empty at requirements level. Wrote the implementation plan and verification, drafted ADR-0005, and requested approval of the plan (approval = Requirements Analysis sign-off)."
+**Context**: INCEPTION — Requirements Analysis
+
+---
+
+## Requirements Analysis — Approval
+**Timestamp**: 2026-10-20T16:58:35Z
+**User Input**: "(Approved the plan in the plan-approval dialog; no additional text.)"
+**AI Response**: "Requirements Analysis signed off. Initialized git repository (branch main, no commits). Persisting inception artifacts: aidlc-state.md, workspace detection, reverse engineering, requirements, verification questions, GLOSSARY.md, docs/adr/0001-0005. Next: User Stories Part 1 (planning questions)."
+**Context**: INCEPTION — Requirements Analysis complete; transition to User Stories
+
+---
+
+## Inception Artifacts Persisted
+**Timestamp**: 2026-10-20T17:07:00Z
+**User Input**: "(none — continuation after plan approval)"
+**AI Response**: "Wrote aidlc-state.md, inception/plans/workspace-detection.md, inception/reverse-engineering/ (architecture, code-structure, api-documentation, component-inventory, technology-stack, dependencies, code-quality-assessment, reverse-engineering-timestamp), inception/requirements/ (requirements, requirement-verification-questions), GLOSSARY.md and docs/adr/0001-0005. Validated all six Mermaid diagrams with the Mermaid 11.4.1 parser (all parse). Recorded two further defect details found while documenting: Emergency Stop targets the server's own process group (Syft is not spawned in its own group), and the live-log queue is fed from worker threads."
+**Context**: INCEPTION — Requirements Analysis artifacts
+
+---
+
+## User Stories — Part 1 Planning (approval prompt)
+**Timestamp**: 2026-10-20T17:07:00Z
+**User Input**: "(pending)"
+**AI Response**: "Assessment: EXECUTE (Full path, N8; user-facing changes, redesigned API, several user types). Created inception/plans/story-generation-plan.md with questions Q1-Q8 (personas, organization, format, NFR stories, prioritization, traceability, granularity, plan approval) and asked them in two dialogs."
+**Context**: INCEPTION — User Stories, Part 1
+
+---
+
+## User Stories — Part 1 Planning, Dialog 1
+**Timestamp**: 2026-10-21T00:39:19Z (answers recorded)
+**User Input**: "Your questions have been answered: "Story Q1 — Which personas should the user stories use?"="A) Three personas (Recommended)", "Story Q2 — How should the stories be organized?"="A) Feature area (Recommended)", "Story Q3 — Which story and acceptance-criteria format?"="A) User story + Gherkin (Recommended)", "Story Q4 — Should non-functional requirements become stories?"="A) User-visible NFRs only (Recommended)"."
+**AI Response**: "Recorded answers Q1-Q4 in story-generation-plan.md. Continued to dialog 2."
+**Context**: INCEPTION — User Stories, Part 1
+
+---
+
+## User Stories — Part 1 Planning, Dialog 2 (includes plan approval)
+**Timestamp**: 2026-10-21T00:39:19Z (answers recorded)
+**User Input**: "Your questions have been answered: "Story Q5 — How should stories be prioritized?"="A) MoSCoW, ordering only (Recommended)", "Story Q6 — What traceability should each story carry?"="A) Full traceability (Recommended)", "Story Q7 — How fine-grained should the stories be?"="B) Coarse epics", "Story Q8 — Approve the story plan with these answers and generate the personas and stories now?"="A) Approve and generate (Recommended)"."
+**AI Response**: "Recorded answers Q5-Q8; story plan approved (Q8-A). Resolved one formatting ambiguity (coarse epics with Gherkin and MoSCoW): one story sentence plus capability bullets and 3-7 Gherkin scenarios per epic; priority per epic with lower-priority items tagged; security hardening counted as Must."
+**Context**: INCEPTION — User Stories, Part 1 complete
+
+---
+
+## User Stories — Part 2 Generation
+**Timestamp**: 2026-10-21T00:39:19Z
+**User Input**: "(none — generation after plan approval)"
+**AI Response**: "Generated inception/user-stories/personas.md (Vetting Analyst, Pipeline Integrator, Platform Operator) and inception/user-stories/stories.md: 15 epics in 6 feature areas (Scan intake E01-E04, Correlation results E05-E06, Monitoring and control E07-E09, Reports and exports E10-E11, Health and configuration E12-E13, Delivery E14-E15), each with a user-story sentence, capabilities, Gherkin acceptance criteria, MoSCoW priority (14 Must, 1 Should) and traceability; coverage tables show every FR and every user-visible NFR mapped to at least one epic and every original defect 1-18 covered."
+**Context**: INCEPTION — User Stories, Part 2
+
+---
+
+## User Stories — Approval Prompt
+**Timestamp**: 2026-10-21T00:39:19Z
+**User Input**: "(pending)"
+**AI Response**: "Asked: User stories complete. Do you want to request changes or continue to the next stage?"
+**Context**: INCEPTION — User Stories gate
+
+---
+
+## User Stories — Approval
+**Timestamp**: 2026-10-21T00:41:37Z
+**User Input**: "Continue to the next stage (Workflow Planning)."
+**AI Response**: "User Stories approved and marked complete. Entering Workflow Planning: loading reverse engineering, requirements and user stories to determine stage applicability and depth per unit."
+**Context**: INCEPTION — User Stories complete; transition to Workflow Planning
+
+---
+
+## Workflow Planning — Approval Prompt
+**Timestamp**: 2026-10-21T00:41:37Z
+**User Input**: "(pending)"
+**AI Response**: "Created inception/plans/workflow-planning.md: Application Design and Units Generation at Standard depth; S0 spikes (Syft v1.55.0 per artifact class, NVD unknown-CPE and throttling behaviour) before U1, with permission to be asked before downloading Syft; per-unit depths U1 Standard/Minimal/Minimal/skip/Standard, U2 Comprehensive/Standard/Standard/skip/Comprehensive, U3 Comprehensive/Standard/Standard/skip/Comprehensive, U4 Standard/Standard/Standard/Minimal/Standard, U5 Standard/Standard/Standard/skip/Comprehensive, U6 Minimal/Standard/Minimal/Standard/Standard (Functional Design / NFR Requirements / NFR Design / Infrastructure Design / Code Generation); Build and Test Standard; sequence U1 to U6 strictly in order; one feature branch per unit, commits only on request; about 35 approval checkpoints. Workflow diagram validated with the Mermaid 11.4.1 parser and renderer. Asked whether to approve the plan as proposed, noting that any stage or depth can be overridden."
+**Context**: INCEPTION — Workflow Planning gate
+
+---
+
+## Workflow Planning — Approval
+**Timestamp**: 2026-10-21T00:48:27Z
+**User Input**: "Approve the workflow plan as proposed and continue to Application Design."
+**AI Response**: "Workflow plan approved as proposed and marked complete. Entering Application Design at Standard depth: components, component methods, services and component dependencies for Domain, Application, Infrastructure and Web."
+**Context**: INCEPTION — Workflow Planning complete; transition to Application Design
+
+---
+
+## Application Design — Approval Prompt
+**Timestamp**: 2026-10-21T00:48:27Z
+**User Input**: "(pending)"
+**AI Response**: "Created inception/application-design/components.md, component-methods.md, services.md and component-dependency.md. Key design choices: immutable Scan aggregate with a single writer per scan; StartScan reserves the single active slot before an upload body is read (ScanReservation), so an aborted upload records no scan; expected refusals are Outcome values mapped to HTTP codes; added streaming use cases WatchScan (snapshot first), WatchActiveScan and WatchLiveLog and an IHostFileSystem port; OFFLINE status applied in the browser; 60-minute limit ends as Failed, server shutdown as Cancelled. Proposed refinement of ADR-0001: Export PDF and Export JSON become plain download links to the API. All four diagrams validated with the Mermaid 11.4.1 parser and renderer. Asked: Application design complete. Do you want to request changes or continue to the next stage?"
+**Context**: INCEPTION — Application Design gate
+
+---
+
+## Application Design — Approval
+**Timestamp**: 2026-10-21T12:41:19Z
+**User Input**: "Continue to the next stage (Units Generation), including the ADR-0001 refinement for exports."
+**AI Response**: "Application Design approved and marked complete. Applied the ADR-0001 refinement (Export PDF and Export JSON are plain download links to the API) to docs/adr/0001-single-host-interactive-server.md and component-dependency.md. Entering Units Generation at Standard depth."
+**Context**: INCEPTION — Application Design complete; transition to Units Generation
+
+---
+
+## Units Generation — Approval Prompt
+**Timestamp**: 2026-10-21T12:41:19Z
+**User Input**: "(pending)"
+**AI Response**: "Created inception/plans/unit-of-work-plan.md and inception/application-design/unit-of-work.md (S0 spikes plus U1 Domain, U2 Application, U3 Infrastructure, U4 Web API, U5 Web UI, U6 Delivery with scope, deliverables, tests and done criteria), unit-of-work-dependency.md (strict sequence, dependency matrix, contracts frozen per unit, change policy, risks) and unit-of-work-story-map.md (15 epics x 6 units; all 65 Gherkin scenarios assigned to the unit that automates them, verified by script). Refinements: Syft install scripts move from U6 to U3; Architecture.Tests created in U1 and extended per unit; minimal README in U1. Dependency diagram validated with the Mermaid 11.4.1 parser and renderer. Asked: Units generation complete. Do you want to request changes or continue to the next stage?"
+**Context**: INCEPTION — Units Generation gate
+
+---
+
+## Units Generation — Approval
+**Timestamp**: 2026-10-21T22:02:29Z
+**User Input**: "Continue to the next stage (Construction, starting with the S0 spikes)."
+**AI Response**: "Units Generation approved; INCEPTION complete. Entering CONSTRUCTION with the S0 spikes: probing NVD behaviour (unknown cpeName, keyword search, throttling) with a few keyless read-only requests, then asking permission to download the official Syft v1.55.0 release before running it against each artifact class."
+**Context**: INCEPTION complete; CONSTRUCTION — S0 spikes started
+
+---
+
+## S0 Spikes — NVD probes and download permission prompt
+**Timestamp**: 2026-10-21T22:05:00Z
+**User Input**: "(pending)"
+**AI Response**: "Ran 17 keyless read-only NVD requests (responses kept in the session scratchpad) and recorded findings N1-N10 in construction/spikes/spike-results.md: unknown cpeName returns 200 with no results; malformed cpeName returns 404 with a message header; cpeName applies version ranges; the 'requests 2.25.1' keyword search returns exactly the Laminas and GeoServer false positives; CVSS entries come as Primary (NVD) and Secondary (CNA) and can disagree (question Q-S0-1); CVSS v4.0 and SSVC metrics appear; throttling is Cloudflare HTTP 429 with Retry-After 0. Asked permission to download syft_1.55.0_windows_amd64.zip (30,025,255 bytes) and syft_1.55.0_checksums.txt (2,690 bytes) from github.com/anchore/syft/releases/download/v1.55.0/, and how to obtain a container-image sample (pull alpine:3.20, use an existing local image, or skip)."
+**Context**: CONSTRUCTION — S0 spikes
+
+---
+
+## S0 Spikes — Download permission
+**Timestamp**: 2026-10-21T22:08:00Z
+**User Input**: "Your questions have been answered: "May I download Syft v1.55.0 for Windows — syft_1.55.0_windows_amd64.zip (30,025,255 bytes ≈ 28.6 MB) and syft_1.55.0_checksums.txt (2,690 bytes) from github.com/anchore/syft/releases/download/v1.55.0/ — verify its SHA-256, and run it only against sample files in the session scratchpad?"="A) Yes, download and run (Recommended)", "For the container-image sample (a `docker save` tarball), where should the image come from?"="A) Pull alpine:3.20 (Recommended)"."
+**AI Response**: "Downloading the two release files into a new scratchpad folder, verifying the SHA-256 against both the checksums file and GitHub's asset digest, extracting syft.exe to a separate folder, pulling alpine:3.20 and saving it as a tarball, then running Syft against one sample per artifact class."
+**Context**: CONSTRUCTION — S0 spikes
+
+---
+
+## S0 Spikes — Findings and review prompt
+**Timestamp**: 2026-10-21T22:32:07Z
+**User Input**: "(pending)"
+**AI Response**: "Syft v1.55.0 verified (SHA-256 matched the checksums file and GitHub's digest) and run against 14 sample configurations: manifests, lock file, manifest folder, .jar, .zip, .tar.gz, docker-save image (Alpine 3.20, 14 apk packages), Go binary (281 packages) and .NET assembly all cataloged; .whl and .nupkg yield nothing unless given a .zip extension. Syft's candidate CPEs often omit NVD's real CPE (flask, jinja2, minimist) or rank it last (pyyaml 12th of 12). Further NVD probes (24 requests in total): keyword search missed minimist 1.2.5's CVE-2021-44906; virtualMatchString with any vendor found it and matched flask's and requests' CVEs exactly with no false positives; Alpine revisions such as 1.36.1-r31 are compared as newer versions. Findings recorded in construction/spikes/spike-results.md. Asked review questions Q-S0-1 (CVSS source when NVD and CNA disagree), Q-S0-2 (product matching instead of keyword search), Q-S0-3 (.whl and .nupkg handling), Q-S0-4 (packages with unknown versions)."
+**Context**: CONSTRUCTION — S0 spikes review
+
+---
+
+## S0 Spikes — Review answers
+**Timestamp**: 2026-10-21T22:35:25Z
+**User Input**: "Your questions have been answered: "Q-S0-1 — When NVD's own (Primary) CVSS score and the reporting CNA's (Secondary) score disagree, which should Airlock use?"="A) NVD first, CNA fallback (Recommended)", "Q-S0-2 — When no candidate CPE has records, should product matching (any vendor, NVD virtualMatchString) replace keyword search?"="A) Replace with product match (Recommended)", "Q-S0-3 — Syft finds nothing in .whl or .nupkg files unless they carry a .zip extension. How should Airlock handle them?"="B) A + read the .nuspec", "Q-S0-4 — How should Airlock treat packages Syft reports without a known version (e.g. a Go binary's own module, syft@UNKNOWN)?"="A) Unverified (Recommended)"."
+**AI Response**: "Applying the decisions as a change to approved inception artifacts (no unit contract is frozen yet): requirements FR-05, FR-06, FR-08, FR-09, FR-10, FR-11, FR-13, FR-28 and traceability; GLOSSARY (Match Method, Unverified Package); stories E02, E05, E06, E10; application and unit design documents; new ADR-0006 (product matching replaces keyword search, superseding the fallback part of Q7); requirement-verification-questions.md gains the S0 round."
+**Context**: CONSTRUCTION — S0 spikes review; change to INCEPTION artifacts
+
+---
+
+## S0 Spikes — Completion prompt
+**Timestamp**: 2026-10-21T22:35:25Z
+**User Input**: "(pending)"
+**AI Response**: "Applied the S0 decisions: requirements FR-05, FR-06, FR-08, FR-09, FR-10 (product match), FR-11, FR-13, FR-28 and the traceability table; GLOSSARY Match Method (CPE match / product match; keyword match retired) and Unverified Package; stories E02 (+2 scenarios), E05 (rewritten, 7 scenarios), E06 (+1), E10 (label); components, component methods, unit definitions and story map (70 scenarios, verified by script); ADR-0006 added; S0 round added to requirement-verification-questions.md. Asked: S0 spikes complete. Choose: A) Request Changes  B) Continue to Next Stage"
+**Context**: CONSTRUCTION — S0 spikes gate
+
+---
+
+## S0 Spikes — Approval
+**Timestamp**: 2026-10-21T23:07:27Z
+**User Input**: "B) Continue to Next Stage (U1 Functional Design)."
+**AI Response**: "S0 approved and closed. Entering U1 Domain — Functional Design (Standard depth): domain entities, business rules and the business logic model, built on FR-07 to FR-15, E05, E06, E10 and the S0 findings."
+**Context**: CONSTRUCTION — S0 complete; U1 Functional Design started
+
+---
+
+## U1 Functional Design — Questions prompt
+**Timestamp**: 2026-10-21T23:07:27Z
+**User Input**: "(pending)"
+**AI Response**: "Created construction/plans/u1-domain-functional-design-plan.md and asked Q-U1-1 (CVEs without any CVSS score: warning, Unverified, or an UNSCORED severity) and Q-U1-2 (several Secondary scores and no Primary: highest or first)."
+**Context**: CONSTRUCTION — U1 Functional Design
+
+---
+
+## U1 Functional Design — Answers
+**Timestamp**: 2026-10-22T00:10:49Z
+**User Input**: "Your questions have been answered: "Q-U1-1 — How should Airlock treat a matched CVE that NVD has not scored at all yet (e.g. CVE-2025-60876 for busybox, awaiting analysis)?"="A) Warning, not a finding (Recommended)", "Q-U1-2 — A CVE has several CNA (Secondary) scores for the same CVSS version and no NVD (Primary) score. Which one wins?"="A) Highest Secondary (Recommended)"."
+**AI Response**: "Recorded both answers in the functional design plan; writing domain entities, business rules and the business logic model; adding FR-12 and FR-13 wording and one E05 scenario for unscored CVEs."
+**Context**: CONSTRUCTION — U1 Functional Design
+
+---
+
+## U1 Functional Design — Completion prompt
+**Timestamp**: 2026-10-22T00:10:49Z
+**User Input**: "(pending)"
+**AI Response**: "Created construction/u1-domain/functional-design/domain-entities.md, business-rules.md (BR-01 to BR-18) and business-logic-model.md (scan state machine and finding-selection diagrams, both validated with the Mermaid 11.4.1 parser and renderer; worked examples from S0 data; rule-to-test map). Refinements carried into the design documents: ScanPhase without Staging; ProductMatch carries the matched product; UnverifiedReason, ScanWarningCode and ScanFailureCode; PackageVersion, SeverityScale and FindingSelection. Requirements FR-10, FR-12, FR-13, ADR-0006, story E05 (+1 scenario) and the story map (71 scenarios, verified) updated. Asked: Functional design complete. Choose: A) Request Changes  B) Continue to Next Stage"
+**Context**: CONSTRUCTION — U1 Functional Design gate
+
+---
+
+## U1 Functional Design — Approval
+**Timestamp**: 2026-10-22T00:19:46Z
+**User Input**: "B) Continue to Next Stage (U1 NFR Requirements)."
+**AI Response**: "U1 Functional Design approved and marked complete. Entering U1 NFR Requirements at Minimal depth: only the quality requirements and tech-stack decisions specific to the Domain project."
+**Context**: CONSTRUCTION — U1 Functional Design complete; U1 NFR Requirements started
+
+---
+
+## U1 NFR Requirements — Completion prompt
+**Timestamp**: 2026-10-22T00:19:46Z
+**User Input**: "(pending)"
+**AI Response**: "Created construction/plans/u1-domain-nfr-requirements-plan.md and construction/u1-domain/nfr-requirements/nfr-requirements.md (U1-NFR-01 to U1-NFR-08: no dependencies, immutability and thread safety, determinism and culture independence, bounded control-character-free untrusted text, linear performance, coverage of at least 95% lines and 90% branches, glossary naming with BR ids, exception semantics) and tech-stack-decisions.md (SDK 10.0.303 pinned, C# 14, .slnx, Directory.Build.props settings, Central Package Management, xUnit v3 on Microsoft Testing Platform, code coverage extension, ScanId as GUID version 7). Asked: NFR requirements complete. Choose: A) Request Changes  B) Continue to Next Stage"
+**Context**: CONSTRUCTION — U1 NFR Requirements gate
+
+---
+
+## U1 NFR Requirements — Approval
+**Timestamp**: 2026-10-22T00:21:57Z
+**User Input**: "B) Continue to Next Stage (U1 NFR Design)."
+**AI Response**: "U1 NFR Requirements approved and marked complete. Entering U1 NFR Design at Minimal depth: the patterns and internal components that realize U1-NFR-01 to U1-NFR-08."
+**Context**: CONSTRUCTION — U1 NFR Requirements complete; U1 NFR Design started
+
+---
+
+## U1 NFR Design — Completion prompt
+**Timestamp**: 2026-10-22T00:21:57Z
+**User Input**: "(pending)"
+**AI Response**: "Created construction/plans/u1-domain-nfr-design-plan.md and construction/u1-domain/nfr-design/nfr-design-patterns.md (one pattern per U1 NFR: package-free project; records without public setters, init included, plus factories and ImmutableArray lists; banned clock, environment, I/O, network, process and console use checked by architecture tests; a single DomainText guard with public DomainLimits; single-pass algorithms; table-driven tests; glossary namespaces with BR comments; standard exceptions through throw helpers) and logical-components.md (namespaces Scanning, Targets, Intelligence, Results, Text; checks introduced in U1). Refined nfr-requirements.md: U1-NFR-02 now forbids public init setters (with expressions could bypass validation); U1-NFR-04 also rejects bidirectional formatting characters. Asked: NFR design complete. Choose: A) Request Changes  B) Continue to Next Stage"
+**Context**: CONSTRUCTION — U1 NFR Design gate
+
+---
+
+## U1 NFR Design — Approval
+**Timestamp**: 2026-10-22T00:39:25Z
+**User Input**: "B) Continue to Next Stage (U1 Code Generation)."
+**AI Response**: "U1 NFR Design approved and marked complete. Entering U1 Code Generation, Part 1 (planning): verifying current package versions and tool behaviour, then writing a checkbox plan for approval before any code is generated."
+**Context**: CONSTRUCTION — U1 NFR Design complete; U1 Code Generation Part 1 started
+
+---
+
+## U1 Code Generation — Plan approval prompt
+**Timestamp**: 2026-10-22T00:39:25Z
+**User Input**: "(pending)"
+**AI Response**: "Verified on nuget.org: xunit.v3 4.0.2 (MTP v2), Microsoft.Testing.Extensions.CodeCoverage 18.12.0, TngTech.ArchUnitNET.xUnitV3 0.13.4 (NotCallAny supported). Created construction/plans/u1-domain-code-generation-plan.md with 23 checkbox steps in six groups (scaffold, Domain, Domain tests, architecture tests, verification, documentation). Asked Q-CG-1 (LICENSE copyright line; the original reads 'Copyright (c) 2026 Joshua Mykitta, Francisco Encinas') and for plan approval (A Request Changes / B Approve and generate)."
+**Context**: CONSTRUCTION — U1 Code Generation Part 1
+
+---
+
+## U1 Code Generation — Plan approval
+**Timestamp**: 2026-10-22T00:48:01Z
+**User Input**: "Your questions have been answered: "Q-CG-1 — What copyright line should the new LICENSE (MIT) carry? The original reads "Copyright (c) 2026 Joshua Mykitta, Francisco Encinas"."="B) Joshua Mykitta only", "Approve the U1 code generation plan (23 steps: scaffold, Domain, Domain tests, architecture tests, verification, docs) and generate the code now?"="B) Approve and generate (Recommended)"."
+**AI Response**: "Recorded Q-CG-1 = B (LICENSE: Copyright (c) 2026 Joshua Mykitta) and plan approval. Starting Part 2: generating the scaffold, Airlock.Domain, Airlock.Domain.Tests and Airlock.Architecture.Tests, ticking plan steps as they finish."
+**Context**: CONSTRUCTION — U1 Code Generation Part 2 started
+
+---
+
+## U1 Code Generation — Part 2 complete
+**Timestamp**: 2026-10-22T01:17:45Z
+**User Input**: "(none — generation ran under the plan approval of 2026-10-22T00:48:01Z)"
+**AI Response**: "Generated the scaffold (global.json, Directory.Build.props, Directory.Packages.props, .editorconfig, .gitignore, .gitattributes, LICENSE, README.md, Airlock.slnx), src/Airlock.Domain (23 source files, no package or project references), tests/Airlock.Domain.Tests (17 test files and the A builders) and tests/Airlock.Architecture.Tests (3 files). Verification: build 0 warnings, 0 errors; 203 Domain tests and 15 architecture tests pass; coverage of hand-written Domain code 100% of lines (564/564) and 100% of branches (250/250), 98.9% / 97.6% with the generated regex code; a temporary probe breaking every architecture rule made all 7 matching tests fail and was then deleted; the pyyaml and flask candidate orders were re-checked against Syft v1.55.0. Deviations, recorded in construction/u1-domain/code/code-generation-summary.md: CvssVersion members V20/V30/V31/V40 (CA1707); DateTime.Today added to the banned clock reads; DomainText's bidirectional characters as named constants; A.* builders instead of a static import; SmallValueTests added; two ArchUnitNET 0.13.4 behaviours worked around (calls read from dependencies, types selected by full name); coverage extension added to Architecture.Tests. Updated domain-entities.md, component-methods.md and nfr-design-patterns.md. Ticked all 25 plan steps (the approval prompt counted 23)."
+**Context**: CONSTRUCTION — U1 Code Generation Part 2 complete
+
+---
+
+## U1 Code Generation — Completion prompt
+**Timestamp**: 2026-10-22T01:19:31Z
+**User Input**: "(pending)"
+**AI Response**: "Asked two questions: the stage gate 'Code generation complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U2 Application — Functional Design), and, as the plan's ground rules promised, whether to make the two proposed commits: the inception and U1 design documents as the first commit on main, then branch feature/u1-domain with the scaffold, Domain, tests and code summary. Nothing is pushed."
+**Context**: CONSTRUCTION — U1 Code Generation approval gate
+
+---
+
+## U1 Code Generation — Approval
+**Timestamp**: 2026-10-22T01:21:27Z
+**User Input**: "Your questions have been answered: "Code generation complete. Choose: A) Request Changes  B) Continue to Next Stage (U2 Application — Functional Design)?"="B) Continue to Next Stage", "Make the two commits the plan proposed? Nothing is pushed."="A) Make both (Recommended)". You can now continue with these answers in mind."
+**AI Response**: "Recorded approval of U1 Code Generation (U1 Domain complete) and of the commit plan. Committing: 1) on main, the inception and U1 design documents (aidlc-docs except construction/u1-domain/code/, GLOSSARY.md, docs/adr); 2) on new branch feature/u1-domain, the scaffold, src/, tests/ and the U1 code summary. Nothing pushed. Next: U2 Application — Functional Design."
+**Context**: CONSTRUCTION — U1 approved; commits; U2 Functional Design next
+
+---

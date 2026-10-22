@@ -1,0 +1,115 @@
+# Services
+
+**Stage**: INCEPTION — Application Design (Standard depth)
+
+How the components cooperate at run time: lifetimes, the scan lifecycle, concurrency, cancellation, outcomes and
+streams. Values that still need tuning (correlation parallelism, buffer sizes, cache intervals) are fixed in the NFR
+Design stages.
+
+## Service catalogue
+
+| Service | Project | DI lifetime | State |
+|---|---|---|---|
+| Use cases (`StartScan`, `CancelScan`, `EmergencyStop`, `GetScan`, `WatchScan`, `WatchActiveScan`, `RenderScanReport`, `GetSystemHealth`, `WatchLiveLog`) | Application | Singleton | None |
+| `ScanCoordinator` | Application | Singleton | Active slot, each running scan's cancellation source and event hub |
+| `ScanPipeline`, `PackageCorrelator` | Application | Singleton | None — a run's state lives in its `Scan` and `ScanEventHub` |
+| `ScanEventHub` | Application | One per scan, owned by `ScanCoordinator` | Subscribers, latest snapshot |
+| `InMemoryScanRegistry` | Infrastructure | Singleton | Latest version of each scan |
+| `LiveLogBroadcaster`, `LiveLogLoggerProvider` | Infrastructure | Singleton | Subscribers |
+| `SyftSbomGenerator`, `DiskArtifactStaging`, `QuestPdfScanReportRenderer`, `HostFileSystem` | Infrastructure | Singleton | Syft tool status, cached briefly |
+| `NvdApiClient` | Infrastructure | Typed HttpClient (handlers managed by the factory) | Shared rate limiter (singleton) |
+| `ScanSession`, `AirlockJs` | Web | Scoped — one per circuit (browser tab) | The tab's inputs, current scan, terminal lines |
+
+## Scan lifecycle
+
+1. **Reserve** — `POST /api/v2/scans` calls `StartScan.ReserveAsync` *before* reading the body. The NVD key must be
+   configured and Syft available (otherwise NotReady → 503), and `ScanCoordinator.TryReserve` must claim the single
+   active slot (otherwise ScanInProgress → 409). From here every tab sees an active scan receiving its upload, so a
+   2 GB upload is never accepted only to be rejected afterwards.
+2. **Stage** — `MultipartScanReader` streams each `artifacts` section into the reservation's staging area; count and
+   byte limits are enforced while streaming (TooManyArtifacts → 400, TooLarge → 413). If the request fails or the
+   client disconnects, disposing the reservation releases the slot and deletes the staging area; no scan is recorded.
+3. **Start** — `ScanReservation.StartAsync` validates the target (the directory exists and lies inside
+   `AllowedScanRoots` when that is set, or at least one artifact was staged), records a Running `Scan` and hands it
+   to `ScanCoordinator.Launch`, which starts `ScanPipeline.RunAsync` on a background task. The API answers 202 with
+   the id; in the UI, `airlock.js` returns the same id and the page starts following the scan in-process.
+4. **Run** — the pipeline is the only writer of its scan. It enters each phase, runs Syft (all manifests in one
+   `dir:` run and each other artifact in its own run, or the directory in one run), merges and de-duplicates
+   packages, correlates them through `PackageCorrelator`, builds the summary and finishes. Every transition goes
+   through `IScanRegistry.Update` and is published on the scan's `ScanEventHub`.
+5. **End** — Completed, or Incomplete when any package is unverified; Failed on a Syft failure, unparseable output or
+   the 60-minute limit; Cancelled on cancel, Emergency Stop or server shutdown. In every case the staging area is
+   disposed, the event hub completes, the active slot is released and retention pruning runs.
+
+## Concurrency
+
+- One active scan at a time, enforced by `ScanCoordinator` with an atomic claim of the slot.
+- A scan has a single writer (its pipeline). Readers get immutable `Scan` instances, so nothing is locked while a
+  page renders or an endpoint serializes.
+- Correlation processes packages in parallel up to `Correlation.MaxParallelism`. All NVD traffic passes one app-wide
+  sliding-window limiter (50 requests / 30 s), so parallelism bounds in-flight work, not the request rate.
+- `ScanEventHub` and `LiveLogBroadcaster` give every subscriber its own bounded buffer. A slow subscriber loses its
+  oldest log and progress items; snapshot and finished events are never dropped.
+
+## Cancellation and time limits
+
+| Source | Mechanism | Resulting status |
+|---|---|---|
+| `POST /scans/{id}/cancel`; Emergency Stop from the UI or `POST /system/stop` | The scan's own cancellation source | Cancelled |
+| 60-minute scan limit | Cancellation source linked to a timer | Failed — "Scan exceeded the 60-minute limit" |
+| 15-minute Syft run limit | `SyftProcessRunner` timeout | Failed, naming the input |
+| Server shutdown | Host stopping token linked into every running scan | Cancelled — "Server shutting down" |
+| HTTP request aborted during upload | Request token; the reservation is disposed | No scan recorded |
+
+The pipeline's token is independent of the HTTP request that started it, which ends at 202. Cancelling it kills the
+Syft process tree and abandons pending NVD calls; the pipeline then records the resulting status itself.
+
+## Outcomes and errors
+
+Expected refusals are values (`Outcome<T>` carrying a `Refusal`), never exceptions. The API maps them through
+`RefusalProblemDetails`; the UI shows the message inline.
+
+| Refusal | HTTP | Typical message |
+|---|---|---|
+| ScanInProgress | 409 | A scan is already in progress |
+| NotReady | 503 | NVD API key not configured · Syft not found at `<path>` |
+| InvalidTarget | 400 | Target path does not exist · Path is outside the allowed scan roots · Choose a directory or upload at least one artifact |
+| TooManyArtifacts | 400 | At most 25 files per scan |
+| TooLarge | 413 | Uploads are limited to 2 GB per scan |
+| ScanNotFound | 404 | Scan not found or no longer retained |
+| ScanNotFinished | 409 | The scan is still running |
+| ScanAlreadyFinished | 409 | The scan has already finished |
+
+Unexpected exceptions become a 500 ProblemDetails with no internal details. Inside a scan they make it Failed with a
+generic reason; the full error goes to the console log.
+
+## Streams
+
+- **Scan events** — `WatchScan` yields a `ScanSnapshot` first, so late subscribers (including SSE clients that
+  connect after the 202) see the current state; then phase, progress and scan-scoped log events; and ends with
+  `ScanFinished`. For a finished scan the stream is just its snapshot and the finished event.
+- **Live Log** — `LiveLogLoggerProvider` captures entries from Airlock's own logging categories at Debug and above.
+  The pipeline wraps its work in a logging scope carrying the scan id, which is how log lines become scan-scoped
+  events. Console verbosity follows `LOG_LEVEL` independently.
+- **Active scan** — `WatchActiveScan` pushes every change of the active slot (reserved, running, released) to all
+  tabs, so Execute and Emergency Stop are enabled correctly everywhere.
+
+## Health
+
+`GetSystemHealth` combines `ISbomGenerator.GetStatusAsync` (Syft resolvable and its `syft version`, cached for a
+short interval) with `IVulnerabilityCatalog.IsConfigured`. It never calls NVD. The status pill re-reads it every 10
+seconds, as the original did. OFFLINE is applied in the browser when the circuit drops, because the server cannot
+update a page it is no longer connected to.
+
+## Retention
+
+`IScanRegistry.Prune` removes finished scans older than 24 hours and keeps at most 20 finished scans, dropping the
+oldest first. It runs whenever a scan finishes and before lookups; running scans are never pruned. Nothing survives a
+restart.
+
+## Startup and configuration
+
+Options bind from `appsettings.json`, environment variables and, in Development, user-secrets; the original names
+`NVD_API_KEY`, `SYFT_BINARY_PATH` and `LOG_LEVEL` map onto the `Airlock:*` options. Invalid values stop startup with a
+message naming the option. A missing NVD key or Syft binary does not stop startup; Airlock starts DEGRADED. The NVD
+key is never written to any log, including HTTP client logging.
