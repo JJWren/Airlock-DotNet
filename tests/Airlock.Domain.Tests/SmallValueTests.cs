@@ -45,6 +45,9 @@ public sealed class SmallValueTests
         var warning = new ScanWarning(ScanWarningCode.CvesWithoutSeverity, "CVE-2025-60876 has no CVSS score yet.", "busybox 1.36.1-r31");
         Assert.Equal("busybox 1.36.1-r31", warning.Input);
         Assert.Null(new ScanWarning(ScanWarningCode.NoPackagesIdentified, "No packages identified in notes.docx.").Input);
+        Assert.Equal(
+            ScanWarningCode.NotProductMatched,
+            new ScanWarning(ScanWarningCode.NotProductMatched, "Not product-matched, name too generic: auth v0.23.3").Code);
         Assert.Throws<ArgumentOutOfRangeException>(() => new ScanWarning((ScanWarningCode)42, "x"));
         Assert.Throws<ArgumentException>(() => new ScanWarning(ScanWarningCode.NoPackagesIdentified, ""));
 

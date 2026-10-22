@@ -7,6 +7,9 @@ public enum ScanWarningCode
     NoPackagesIdentified,
     DistributionBackportsNotConsidered,
     CvesWithoutSeverity,
+
+    /// <summary>Packages without CPE records whose names are too generic to product-match (U2 Q-U2-3).</summary>
+    NotProductMatched,
 }
 
 /// <summary>A note about a scan that does not change its status.</summary>

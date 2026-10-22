@@ -22,12 +22,18 @@ internal static class DomainModel
     public static GivenTypesConjunction DomainTypes() =>
         Types().That().ResideInNamespaceMatching("^Airlock[.]Domain([.].+)?$");
 
-    /// <summary>
-    /// The methods the assembly calls whose full name contains the given text. ArchUnitNET records calls into other
-    /// assemblies only as dependencies, not as members of the referenced types, so they are read from there.
-    /// </summary>
     public static IEnumerable<MethodMember> CalledMethods(string fullNameContaining) =>
-        Architecture.Types
+        ArchitectureQueries.CalledMethods(Architecture, fullNameContaining);
+}
+
+internal static class ArchitectureQueries
+{
+    /// <summary>
+    /// The methods an architecture's types call whose full name contains the given text. ArchUnitNET records calls into
+    /// other assemblies only as dependencies, not as members of the referenced types, so they are read from there.
+    /// </summary>
+    public static IEnumerable<MethodMember> CalledMethods(ArchitectureModel architecture, string fullNameContaining) =>
+        architecture.Types
             .SelectMany(type => type.Dependencies)
             .OfType<MethodCallDependency>()
             .Select(call => call.TargetMember)
