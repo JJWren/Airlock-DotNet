@@ -32,7 +32,7 @@ No dependencies beyond the base class library. Every type is immutable.
 | `VulnerablePackage` | Value | Package, match method, findings; exposes the highest severity. |
 | `UnverifiedPackage`, `UnverifiedReason` | Value | Package, reason (`LookupFailed` or `VersionUnknown`) and detail. |
 | `ScanSummary` | Value | Totals; built only through a factory that enforces total = clean + vulnerable + unverified. |
-| `ScanProgress`, `ScanWarning`, `ScanFailure` | Values | Correlated-of-total counter; non-fatal note with a code (`NoPackagesIdentified`, `DistributionBackportsNotConsidered`, `CvesWithoutSeverity`); fatal reason with a code — each optionally naming the input. |
+| `ScanProgress`, `ScanWarning`, `ScanFailure` | Values | Correlated-of-total counter; non-fatal note with a code (`NoPackagesIdentified`, `DistributionBackportsNotConsidered`, `CvesWithoutSeverity`, `NotProductMatched`); fatal reason with a code — each optionally naming the input. |
 
 ## Airlock.Application — use cases, orchestration, ports
 

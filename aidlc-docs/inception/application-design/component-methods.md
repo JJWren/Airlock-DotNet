@@ -101,7 +101,11 @@ public sealed record ScanSummary(int TotalPackages, int VulnerablePackages, int 
 }
 
 public sealed record ScanProgress(int Correlated, int Total);
-public enum ScanWarningCode { NoPackagesIdentified, DistributionBackportsNotConsidered, CvesWithoutSeverity }
+public enum ScanWarningCode
+{
+    NoPackagesIdentified, DistributionBackportsNotConsidered, CvesWithoutSeverity,
+    NotProductMatched   // added by U2 Q-U2-3: no CPE records and a name too generic to product-match
+}
 public sealed record ScanWarning(ScanWarningCode Code, string Message, string? Input = null);
 public enum ScanFailureCode { SyftFailed, SyftTimedOut, SyftOutputUnreadable, ScanTimedOut, Unexpected }
 public sealed record ScanFailure(ScanFailureCode Code, string Reason, string? Input = null);
@@ -144,12 +148,15 @@ public enum RefusalCode
 {
     ScanInProgress,      // 409
     NotReady,            // 503 — NVD key missing or Syft unavailable
-    InvalidTarget,       // 400 — nothing to scan, path missing, outside AllowedScanRoots
+    InvalidTarget,       // 400 — nothing to scan, a path and artifacts together, path not absolute, missing,
+                         //       a file, or outside AllowedScanRoots
     TooManyArtifacts,    // 400
     TooLarge,            // 413
+    ReservationStopped,  // 409 — Emergency Stop ended an upload before the scan started
     ScanNotFound,        // 404
     ScanNotFinished,     // 409 — report requested while running
-    ScanAlreadyFinished  // 409 — cancel requested after the end
+    ScanAlreadyFinished, // 409 — cancel requested after the end
+    ScanHasNoResults     // 409 — report requested for a Failed or Cancelled scan
 }
 public sealed record Refusal(RefusalCode Code, string Message);
 
@@ -158,8 +165,12 @@ public readonly record struct Outcome<T>
     public T? Value { get; }
     public Refusal? Refusal { get; }
     public bool IsSuccess { get; }
-    public static Outcome<T> Success(T value);
-    public static Outcome<T> Refused(RefusalCode code, string message);
+}
+public static class Outcome                               // factories here: CA1000 bars statics on generic types
+{
+    public static Outcome<T> Success<T>(T value);
+    public static Outcome<T> Refused<T>(Refusal refusal);
+    public static Outcome<T> Refused<T>(RefusalCode code, string message);
 }
 ```
 
@@ -213,7 +224,7 @@ public sealed class WatchActiveScan
     public IAsyncEnumerable<ActiveScanState> SubscribeAsync(CancellationToken cancellationToken);
 }
 
-public sealed record ScanReportDocument(string FileName, string ContentType, byte[] Content);
+public sealed record ScanReportDocument(string FileName, string ContentType, ReadOnlyMemory<byte> Content);
 public sealed class RenderScanReport
 {
     public ValueTask<Outcome<ScanReportDocument>> ExecuteAsync(ScanId id, CancellationToken cancellationToken);
@@ -236,39 +247,76 @@ public sealed class WatchLiveLog
 ### Services
 
 ```csharp
-public sealed class ScanCoordinator                       // singleton
+public sealed class ScanCoordinator                       // singleton; the slot behind one small lock
 {
     public ActiveScanState Active { get; }
-    public bool TryReserve(out ScanId id);                 // claims the single active slot
-    public void Release(ScanId id);                        // reservation abandoned before start
-    public Scan Launch(ScanId id, ScanTarget target, IStagingArea? staging);   // registers Running, starts the pipeline
-    public bool TryCancel(ScanId id);                      // signals that scan's cancellation
-    public ScanId? CancelActive();                         // Emergency Stop
-    public ScanEventHub? EventsFor(ScanId id);
     public IAsyncEnumerable<ActiveScanState> WatchActiveAsync(CancellationToken cancellationToken);
+    // Used by the use cases only:
+    internal bool TryReserve(ReservationTicket ticket);    // claims the single active slot; the reservation owns the ticket
+    internal void MarkReceivingUpload(ReservationTicket ticket);
+    internal void Release(ReservationTicket ticket);       // reservation ended before the start
+    internal Scan? Launch(ReservationTicket ticket, ScanTarget target, IStagingArea? staging);   // null if stopped meanwhile
+    internal Task? TryStop(ScanId id, StopCause cause);    // completes when the run has ended
+    internal ScanId? StopActive(StopCause cause);          // Emergency Stop: the running scan or the reservation
+    internal Task StopAllAsync();                          // server shutdown
+    internal ScanEventHub? HubFor(ScanId id);
+    internal void Prune();                                 // RetentionPolicy, then IScanRegistry.Remove
 }
 
 public sealed class ScanPipeline
 {
-    public Task RunAsync(ScanId id, ScanTarget target, IStagingArea? staging, ScanEventHub events,
-                         CancellationToken cancellationToken);
+    internal Task RunAsync(ScanRun run);                   // ScanRun: the scan's latest version, staging, hub,
+                                                           // breaker and one cancellation source with a stop cause
+}
+
+public static class ArtifactName                          // AR-07: a safe plain file name on Windows and Linux
+{
+    public static string Sanitize(string? fileName);
 }
 
 public abstract record PackageCorrelation(Package Package);
-public sealed record CleanCorrelation(Package Package, MatchMethod? Method) : PackageCorrelation(Package);
-public sealed record VulnerableCorrelation(VulnerablePackage Result) : PackageCorrelation(Result.Package);
+// Method null: no CPE records and a name too generic to product-match (U2 AR-15).
+public sealed record CleanCorrelation(Package Package, MatchMethod? Method, IReadOnlyList<string> UnscoredCveIds)
+    : PackageCorrelation(Package);
+public sealed record VulnerableCorrelation(VulnerablePackage Result, IReadOnlyList<string> UnscoredCveIds)
+    : PackageCorrelation(Result.Package);
 public sealed record UnverifiedCorrelation(UnverifiedPackage Result) : PackageCorrelation(Result.Package);
 
 public sealed class PackageCorrelator
 {
-    public ValueTask<PackageCorrelation> CorrelateAsync(SbomPackage package, CancellationToken cancellationToken);
+    public ValueTask<PackageCorrelation> CorrelateAsync(SbomPackage package, NvdOutageBreaker breaker,
+                                                        CancellationToken cancellationToken);
 }
 
-public sealed class ScanEventHub                          // one per scan, owned by ScanCoordinator
+public sealed class NvdOutageBreaker(int threshold)      // one per scan (AR-18)
 {
-    public void Publish(ScanEvent scanEvent);
-    public IAsyncEnumerable<ScanEvent> SubscribeAsync(Scan current, CancellationToken cancellationToken);
-    public void Complete();
+    public bool IsOpen { get; }
+    public void RecordAnswer();
+    public bool RecordFailure();                           // true for the failure that opened it
+}
+
+public sealed class ScanEventHub                          // one per running scan; owns its latest version
+{
+    public Scan Latest { get; }
+    public IAsyncEnumerable<ScanEvent> SubscribeAsync(CancellationToken cancellationToken);   // snapshot first
+    internal void Publish(Scan updated, ScanEvent? scanEvent);
+    internal void PublishLog(LiveLogEntry entry);
+    internal void Complete(Scan final);                    // publishes ScanFinished, ends every subscription
+}
+
+public sealed class ScanLogRouter                         // U3's Live Log provider hands it scan-scoped entries
+{
+    public void Route(LiveLogEntry entry);
+}
+
+public static class ScanLogScope                          // the logging scope with the "ScanId" entry
+{
+    public static IReadOnlyList<KeyValuePair<string, object?>> For(ScanId scanId);
+}
+
+public static class ExternalText                          // AR-25
+{
+    public static string Clean(string? text, int maxLength = 512);
 }
 ```
 
@@ -295,7 +343,7 @@ public sealed record FileSource(string Path, Artifact Artifact) : SbomSource;
 
 public sealed record SbomPackage(Package Package, IReadOnlyList<CandidateCpe> CandidateCpes);
 public abstract record SbomOutcome;
-public sealed record SbomProduced(IReadOnlyList<SbomPackage> Packages) : SbomOutcome;
+public sealed record SbomProduced(IReadOnlyList<SbomPackage> Packages, bool IsContainerImage) : SbomOutcome;
 public sealed record SbomFailed(ScanFailure Failure) : SbomOutcome;
 public sealed record SbomToolStatus(bool Available, string? Version, string Detail);
 
@@ -329,9 +377,13 @@ public interface IStagingArea : IAsyncDisposable
     string ManifestsDirectory { get; }
     IReadOnlyList<StagedArtifact> Artifacts { get; }
     long TotalBytes { get; }
-    ValueTask<StagedArtifact> AddAsync(string fileName, Stream content, long maxBytes,
+    // The name is already sanitized (ArtifactName); the byte limit is answered as a value.
+    ValueTask<StagingOutcome> AddAsync(string fileName, Stream content, long maxBytes,
                                        CancellationToken cancellationToken);
 }
+public abstract record StagingOutcome;
+public sealed record ArtifactStaged(StagedArtifact Artifact) : StagingOutcome;
+public sealed record ArtifactTooLarge : StagingOutcome;
 
 public interface IScanReportRenderer
 {
@@ -343,34 +395,43 @@ public interface IScanRegistry
     void Add(Scan scan);
     Scan? Find(ScanId id);
     Scan Update(ScanId id, Func<Scan, Scan> transition);   // atomic replace of the latest version
-    void Prune(DateTimeOffset now);                         // 24 hours / 20 finished scans
+    IReadOnlyList<Scan> List();                             // the Application's RetentionPolicy decides what to remove
+    void Remove(ScanId id);
 }
 
 public interface ILiveLog
 {
-    IAsyncEnumerable<LiveLogEntry> SubscribeAsync(CancellationToken cancellationToken);
-    IAsyncEnumerable<LiveLogEntry> SubscribeAsync(ScanId id, CancellationToken cancellationToken);
+    IAsyncEnumerable<LiveLogEntry> SubscribeAsync(CancellationToken cancellationToken);   // scan-scoped lines: ScanLogRouter
 }
 
 public interface IHostFileSystem
 {
+    bool IsAbsolute(string path);              // by the host's rules
     bool DirectoryExists(string path);
+    bool FileExists(string path);
     string GetFullPath(string path);
-    bool IsWithin(string path, string root);
+    string ResolveLinks(string path);          // every symbolic link on the way followed
+    bool IsWithin(string path, string root);   // whole path segments, with the host's case rules
 }
 ```
 
 ### Options
 
 ```csharp
-public sealed class AirlockOptions                        // section "Airlock"
+public sealed class AirlockOptions                        // section "Airlock"; settable for configuration binding
 {
-    public LimitsOptions Limits { get; init; }             // MaxBytesPerScan = 2 GiB, MaxArtifactsPerScan = 25
-    public TimeoutOptions Timeouts { get; init; }          // SyftRun = 15 min, Scan = 60 min
-    public RetentionOptions Retention { get; init; }       // Duration = 24 h, MaxScans = 20
-    public IReadOnlyList<string> AllowedScanRoots { get; init; }   // empty = unrestricted
-    public CorrelationOptions Correlation { get; init; }   // MaxParallelism (value set in U2 NFR Design)
+    public LimitsOptions Limits { get; set; }              // MaxBytesPerScan = 2 GiB, MaxArtifactsPerScan = 25
+    public TimeoutOptions Timeouts { get; set; }           // SyftRun = 15 min, Scan = 60 min, CancelGracePeriod = 5 s
+    public RetentionOptions Retention { get; set; }        // Duration = 24 h, MaxScans = 20
+    public IReadOnlyList<string> AllowedScanRoots { get; set; }    // empty = unrestricted
+    public CorrelationOptions Correlation { get; set; }    // MaxParallelism = 4, OutageThreshold = 5
 }
+public sealed class AirlockOptionsValidator : IValidateOptions<AirlockOptions>;   // the ranges of the U2 NFR Design
+
+public static class ApplicationServiceCollectionExtensions
+{
+    public static IServiceCollection AddAirlockApplication(this IServiceCollection services);
+}   // also registers ScanLifetimeService (IHostedService): warns about missing scan roots, stops scans at shutdown
 ```
 
 ## Airlock.Infrastructure

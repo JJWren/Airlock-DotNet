@@ -14,6 +14,8 @@ Design stages.
 | `ScanCoordinator` | Application | Singleton | Active slot, each running scan's cancellation source and event hub |
 | `ScanPipeline`, `PackageCorrelator` | Application | Singleton | None — a run's state lives in its `Scan` and `ScanEventHub` |
 | `ScanEventHub` | Application | One per scan, owned by `ScanCoordinator` | Subscribers, latest snapshot |
+| `ScanLogRouter` | Application | Singleton | The event hub of each running scan, by scan id |
+| `ScanLifetimeService` | Application | Hosted service | None — warns about missing scan roots at start, stops scans at shutdown |
 | `InMemoryScanRegistry` | Infrastructure | Singleton | Latest version of each scan |
 | `LiveLogBroadcaster`, `LiveLogLoggerProvider` | Infrastructure | Singleton | Subscribers |
 | `SyftSbomGenerator`, `DiskArtifactStaging`, `QuestPdfScanReportRenderer`, `HostFileSystem` | Infrastructure | Singleton | Syft tool status, cached briefly |
@@ -38,8 +40,9 @@ Design stages.
    packages, correlates them through `PackageCorrelator`, builds the summary and finishes. Every transition goes
    through `IScanRegistry.Update` and is published on the scan's `ScanEventHub`.
 5. **End** — Completed, or Incomplete when any package is unverified; Failed on a Syft failure, unparseable output or
-   the 60-minute limit; Cancelled on cancel, Emergency Stop or server shutdown. In every case the staging area is
-   disposed, the event hub completes, the active slot is released and retention pruning runs.
+   the 60-minute limit; Cancelled on cancel, Emergency Stop or server shutdown. In every case, in this order, the final
+   status is recorded and `ScanFinished` published, the event hub completes, the staging area is deleted, the active
+   slot is released and retention pruning runs (U2 AR-32).
 
 ## Concurrency
 
@@ -48,6 +51,8 @@ Design stages.
   page renders or an endpoint serializes.
 - Correlation processes packages in parallel up to `Correlation.MaxParallelism`. All NVD traffic passes one app-wide
   sliding-window limiter (50 requests / 30 s), so parallelism bounds in-flight work, not the request rate.
+- When `Correlation.OutageThreshold` lookups fail in a row, the scan stops calling NVD and every package not yet decided
+  is Unverified with "NVD unavailable" (U2 AR-18), so an outage ends the scan Incomplete within minutes.
 - `ScanEventHub` and `LiveLogBroadcaster` give every subscriber its own bounded buffer. A slow subscriber loses its
   oldest log and progress items; snapshot and finished events are never dropped.
 
@@ -60,6 +65,7 @@ Design stages.
 | 15-minute Syft run limit | `SyftProcessRunner` timeout | Failed, naming the input |
 | Server shutdown | Host stopping token linked into every running scan | Cancelled — "Server shutting down" |
 | HTTP request aborted during upload | Request token; the reservation is disposed | No scan recorded |
+| Emergency Stop while a reservation receives an upload | The reservation ends; the upload is refused with `ReservationStopped` | No scan recorded |
 
 The pipeline's token is independent of the HTTP request that started it, which ends at 202. Cancelling it kills the
 Syft process tree and abandons pending NVD calls; the pipeline then records the resulting status itself.
@@ -73,12 +79,14 @@ Expected refusals are values (`Outcome<T>` carrying a `Refusal`), never exceptio
 |---|---|---|
 | ScanInProgress | 409 | A scan is already in progress |
 | NotReady | 503 | NVD API key not configured · Syft not found at `<path>` |
-| InvalidTarget | 400 | Target path does not exist · Path is outside the allowed scan roots · Choose a directory or upload at least one artifact |
+| InvalidTarget | 400 | Target path does not exist · Path is outside the allowed scan roots · Choose a directory or upload at least one artifact · Choose a directory or upload artifacts, not both · Target path is not valid · Target path must be absolute · Target path is a file, not a directory |
 | TooManyArtifacts | 400 | At most 25 files per scan |
 | TooLarge | 413 | Uploads are limited to 2 GB per scan |
+| ReservationStopped | 409 | Emergency Stop ended the upload before the scan started |
 | ScanNotFound | 404 | Scan not found or no longer retained |
 | ScanNotFinished | 409 | The scan is still running |
 | ScanAlreadyFinished | 409 | The scan has already finished |
+| ScanHasNoResults | 409 | The scan ended without results |
 
 Unexpected exceptions become a 500 ProblemDetails with no internal details. Inside a scan they make it Failed with a
 generic reason; the full error goes to the console log.
@@ -89,8 +97,9 @@ generic reason; the full error goes to the console log.
   connect after the 202) see the current state; then phase, progress and scan-scoped log events; and ends with
   `ScanFinished`. For a finished scan the stream is just its snapshot and the finished event.
 - **Live Log** — `LiveLogLoggerProvider` captures entries from Airlock's own logging categories at Debug and above.
-  The pipeline wraps its work in a logging scope carrying the scan id, which is how log lines become scan-scoped
-  events. Console verbosity follows `LOG_LEVEL` independently.
+  The pipeline wraps its work in a logging scope carrying the scan id (`ScanLogScope`); the provider hands every entry
+  that carries one to the Application's `ScanLogRouter`, which publishes it on that scan's hub as it is written, so
+  no line is lost before a subscription exists (U2 refinement 3). Console verbosity follows `LOG_LEVEL` independently.
 - **Active scan** — `WatchActiveScan` pushes every change of the active slot (reserved, running, released) to all
   tabs, so Execute and Emergency Stop are enabled correctly everywhere.
 
@@ -103,9 +112,9 @@ update a page it is no longer connected to.
 
 ## Retention
 
-`IScanRegistry.Prune` removes finished scans older than 24 hours and keeps at most 20 finished scans, dropping the
-oldest first. It runs whenever a scan finishes and before lookups; running scans are never pruned. Nothing survives a
-restart.
+The Application's `RetentionPolicy` picks the finished scans that finished more than 24 hours ago, then, beyond 20
+finished scans, the earliest finished; `IScanRegistry.Remove` drops them (U2 AR-33, refinement 1). Pruning runs
+whenever a scan finishes and before lookups by id; running scans are never pruned. Nothing survives a restart.
 
 ## Startup and configuration
 

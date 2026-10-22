@@ -341,3 +341,115 @@ UI does NOT go through HTTP API (API tested separately), "Q4 — Is the reverse-
 **Context**: CONSTRUCTION — U1 approved; commits; U2 Functional Design next
 
 ---
+
+## Commits
+**Timestamp**: 2026-10-22T01:23:10Z
+**User Input**: "(none — carrying out the approved commit plan)"
+**AI Response**: "Committed 31a5105 'Add AIDLC inception and U1 design documents' on main (44 files) and a323976 'Add U1 Domain: solution scaffold, domain model and tests' on new branch feature/u1-domain (56 files). Checked the staged documents for API keys and secrets first: none. Nothing pushed; no remote is configured. U2 work continues on feature/u1-domain, uncommitted."
+**Context**: CONSTRUCTION — repository history started
+
+---
+
+## U2 Functional Design — Plan and questions
+**Timestamp**: 2026-10-22T01:26:28Z
+**User Input**: "(none — stage entered under the approval of 2026-10-22T01:21:27Z)"
+**AI Response**: "Loaded the U2 inputs (unit-of-work, component-methods Application section, services, requirements, stories E01–E09, spike results, ADR-0006, U1 FD) and the original's log calls from github.com/JJWren/Airlock (read-only). Created construction/plans/u2-application-functional-design-plan.md with four questions — Q-U2-1 lookup failure before a match, Q-U2-2 NVD unreachable for the whole scan, Q-U2-3 generic names without CPE records, Q-U2-4 path and artifacts together — and ten decisions taken in the design for review at the gate. Asked the four questions."
+**Context**: CONSTRUCTION — U2 Functional Design started
+
+---
+
+## U2 Functional Design — Answers
+**Timestamp**: 2026-10-22T01:31:34Z
+**User Input**: "Your questions have been answered: "Q-U2-1: A package's first candidate-CPE lookup still fails after its retries. What decides that package?"="A) Stop: Unverified (Recommended)", "Q-U2-2: NVD is unreachable for the whole scan. What should happen?"="B) Stop after failures (Recommended)", "Q-U2-3: No candidate CPE has NVD records and the name is too generic to product-match (e.g. cloud.google.com/go/auth). What is the package?"="B) Clean + warning (Recommended)", "Q-U2-4: A request carries both a directory path and uploaded artifacts. What happens?"="B) Refuse both (Recommended)". You can now continue with these answers in mind."
+**AI Response**: "Recorded Q-U2-1 = A (a failed lookup makes the package Unverified), Q-U2-2 = B (stop calling NVD after a run of consecutive failures; the rest Unverified 'NVD unavailable'; Incomplete), Q-U2-3 = B (clean plus one warning naming the packages not product-matched; a fourth ScanWarningCode), Q-U2-4 = B (path and artifacts together are refused). Read the original's correlation tests and export file names (read-only) for the worked examples. Writing the U2 functional design."
+**Context**: CONSTRUCTION — U2 Functional Design questions resolved
+
+---
+
+## U2 Functional Design — Completion prompt
+**Timestamp**: 2026-10-22T01:38:29Z
+**User Input**: "(pending)"
+**AI Response**: "Wrote construction/u2-application/functional-design/: domain-entities.md (outcomes with the new refusal codes ReservationStopped and ScanHasNoResults, reservation, active slot, events, port records with SbomProduced.IsContainerImage and IHostFileSystem.FileExists/ResolveLinks, correlation results, options with Correlation.OutageThreshold and Timeouts.CancelGracePeriod, the NotProductMatched Domain amendment), business-rules.md (AR-01 to AR-35), business-logic-model.md (pipeline flowchart, reservation sequence and correlation flowchart, all three validated with Mermaid 11.4.1 and given text alternatives; Live Log catalogue in the original's wording; warning messages; worked examples; rule-to-test map with the defect regressions 3, 6, 7, 8, 10, 12, 15). Updated component-methods.md, services.md, components.md and U1 domain-entities.md. Presented: 'Functional design complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U2 NFR Requirements)."
+**Context**: CONSTRUCTION — U2 Functional Design approval gate
+
+---
+
+## U2 Functional Design — Approval
+**Timestamp**: 2026-10-22T02:19:36Z
+**User Input**: "Continue"
+**AI Response**: "Recorded approval of the U2 functional design (option B, Continue to Next Stage), including the decisions listed in the plan and the ones surfaced at the gate. Starting U2 NFR Requirements (Standard depth)."
+**Context**: CONSTRUCTION — U2 Functional Design approved; U2 NFR Requirements started
+
+---
+
+## U2 NFR Requirements — Completion prompt
+**Timestamp**: 2026-10-22T02:22:05Z
+**User Input**: "(pending)"
+**AI Response**: "Wrote construction/plans/u2-application-nfr-requirements-plan.md (no open questions; eight new targets listed for review), construction/u2-application/nfr-requirements/nfr-requirements.md (U2-NFR-01 to U2-NFR-14: dependencies, concurrency safety, bounded work, responsive stopping, outage detection, fail-closed guarantees, bounded memory, time, log hygiene, performance, reliable cleanup, portability, coverage 90%/85%, maintainability) and tech-stack-decisions.md (Microsoft.Extensions abstraction packages, TimeProvider, Parallel.ForEachAsync, Channels, LoggerMessage, a shutdown hosted service; tests with FakeTimeProvider and FakeLogger, no NSubstitute). Presented: 'NFR requirements complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U2 NFR Design)."
+**Context**: CONSTRUCTION — U2 NFR Requirements approval gate
+
+---
+
+## U2 NFR Requirements — Approval
+**Timestamp**: 2026-10-22T10:44:54Z
+**User Input**: "B) Continue to Next Stage (U2 NFR Design)."
+**AI Response**: "Recorded approval of U2 NFR Requirements, including the eight targets listed for review. Starting U2 NFR Design (Standard depth)."
+**Context**: CONSTRUCTION — U2 NFR Requirements approved; U2 NFR Design started
+
+---
+
+## U2 NFR Design — Completion prompt
+**Timestamp**: 2026-10-22T10:48:09Z
+**User Input**: "(pending)"
+**AI Response**: "Wrote construction/plans/u2-application-nfr-design-plan.md and construction/u2-application/nfr-design/: nfr-design-patterns.md (a pattern per U2 NFR: abstractions-only references guarded by rules 2, 4 and 6; one lock for the slot; Parallel.ForEachAsync without retries above the port; a per-scan cancellation source with a recorded cause; a per-scan NVD outage breaker; one exit funnel; per-subscriber queues evicting the oldest droppable event; TimeProvider everywhere with a broadened clock rule; a LoggerMessage catalogue with event-id ranges, a ScanId scope and ExternalText; guarded cleanup steps; host rules behind IHostFileSystem; blocking and failing fakes) and the values table (MaxParallelism 4, OutageThreshold 5, CancelGracePeriod 5 s, 1,000 events per subscriber, every option's range); logical-components.md (namespaces, a component diagram validated with Mermaid 11.4.1 with a text alternative, the checks, constraints handed to U3 including a 2-minute bound per lookup). Fed back two refinements: AR-05 'Target path is not valid', and IHostFileSystem.IsAbsolute. Presented: 'NFR design complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U2 Code Generation)."
+**Context**: CONSTRUCTION — U2 NFR Design approval gate
+
+---
+
+## U2 NFR Design — Approval
+**Timestamp**: 2026-10-22T13:13:52Z
+**User Input**: "B) Continue to Next Stage (U2 Code Generation)."
+**AI Response**: "Recorded approval of U2 NFR Design, including its defaults and the two refinements fed back. Starting U2 Code Generation Part 1 (planning): checked nuget.org (read-only) for the latest stable versions — Microsoft.Extensions.Logging.Abstractions, Options, DependencyInjection.Abstractions and Hosting.Abstractions 10.0.13; Microsoft.Extensions.TimeProvider.Testing and Diagnostics.Testing 10.11.0 — and their closure: 18 packages, 4.5 MB, none cached."
+**Context**: CONSTRUCTION — U2 NFR Design approved; U2 Code Generation Part 1 started
+
+---
+
+## U2 Code Generation — Plan approval prompt
+**Timestamp**: 2026-10-22T13:13:52Z
+**User Input**: "(pending)"
+**AI Response**: "Created construction/plans/u2-application-code-generation-plan.md: 27 checkbox steps in seven groups (branch and packages, Domain amendment, Airlock.Application, Application tests, architecture tests, verification, documentation) and five design refinements found while planning (retention policy in the Application; the byte limit as a value; scan-scoped log lines routed to the hub; the hub owns the latest version; ScanLifetimeService). Asked Q-CG2-1 (branch for U2: A fast-forward main then branch from main, B branch from feature/u1-domain, C stay on feature/u1-domain) and for plan approval (A Request Changes / B Approve and generate, which restores 18 packages, 4.5 MB, from nuget.org)."
+**Context**: CONSTRUCTION — U2 Code Generation Part 1
+
+---
+
+## U2 Code Generation — Plan approval
+**Timestamp**: 2026-10-22T13:18:38Z
+**User Input**: "Your questions have been answered: "Q-CG2-1: Which branch should U2 be built on? U1 is approved and committed on feature/u1-domain; main holds only the documents commit."="A) Main, then new branch (Recommended)", "Approve the U2 code generation plan (27 steps, 5 design refinements) and generate the code now? Restoring downloads 18 packages, 4.5 MB in total, from nuget.org."="B) Approve and generate (Recommended)". You can now continue with these answers in mind."
+**AI Response**: "Recorded Q-CG2-1 = A and plan approval, which covers restoring the 18 packages. Fast-forwarded main to feature/u1-domain (a323976) and created feature/u2-application from main; the uncommitted U2 design documents came along. Starting Part 2."
+**Context**: CONSTRUCTION — U2 Code Generation Part 2 started
+
+---
+
+## U2 Code Generation — Part 2 complete
+**Timestamp**: 2026-10-22T13:55:22Z
+**User Input**: "(none — generation ran under the plan approval of 2026-10-22T13:18:38Z)"
+**AI Response**: "Restored the six approved packages (18 with dependencies). Generated src/Airlock.Application (33 files: outcomes, events, ports, options and validator, logging catalogue, correlation with the NVD outage breaker, the scan coordinator, pipeline and event hub, ten use cases, AddAirlockApplication, ScanLifetimeService), the Domain amendment ScanWarningCode.NotProductMatched with its test, tests/Airlock.Application.Tests (24 files: fakes for every port, a harness, rule and NFR tests) and the Application architecture rules 2, 4, 6 and the clock rule. Verification: build 0 warnings, 0 errors; 430 tests pass (203 Domain, 190 Application, 37 architecture); Airlock.Application coverage 97.6% of lines and 95.7% of branches; temporary probes broke the 6 targeted architecture rules and only those, then were deleted. Deviations recorded in u2-application/code/code-generation-summary.md: Outcome factories on a static class (CA1000); the reservation owns its ticket (CA1001); watchers notified inside the lock; a final status that cannot be recorded becomes Failed (found by fault injection); artifact names sanitized in the Application; NvdOutageBreaker public. Updated component-methods.md, services.md and the U2 design documents for the five plan refinements. Ticked all 27 plan steps."
+**Context**: CONSTRUCTION — U2 Code Generation Part 2 complete
+
+---
+
+## U2 Code Generation — Completion prompt
+**Timestamp**: 2026-10-22T13:56:07Z
+**User Input**: "(pending)"
+**AI Response**: "Asked two questions: the stage gate 'Code generation complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U3 Infrastructure — Functional Design), and whether to make the two proposed commits on feature/u2-application: the U2 design documents, then the U2 code. Nothing is pushed."
+**Context**: CONSTRUCTION — U2 Code Generation approval gate
+
+---
+
+## U2 Code Generation — Approval
+**Timestamp**: 2026-10-22T20:06:11Z
+**User Input**: "Your questions have been answered: "Code generation complete. Choose: A) Request Changes  B) Continue to Next Stage (U3 Infrastructure — Functional Design)?"="B) Continue to Next Stage", "Make the two proposed commits on feature/u2-application? Nothing is pushed."="A) Make both (Recommended)". You can now continue with these answers in mind."
+**AI Response**: "Recorded approval of U2 Code Generation (U2 Application complete) and of the commit plan. Committing on feature/u2-application: 1) the U2 design documents and the design-document updates; 2) the U2 code with its tests, the architecture rules, the Domain amendment, the package versions and the code summary. Nothing pushed. Next: U3 Infrastructure — Functional Design."
+**Context**: CONSTRUCTION — U2 approved; commits; U3 Functional Design next
+
+---

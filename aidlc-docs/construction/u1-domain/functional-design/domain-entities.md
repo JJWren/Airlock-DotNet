@@ -55,7 +55,7 @@ Transitions: `Start`, `EnterPhase`, `RecordProgress`, `AddWarning`, `Finish`, `F
 ### `ScanWarning` — value
 | Member | Type | Rules |
 |---|---|---|
-| `Code` | `ScanWarningCode` | `NoPackagesIdentified`, `DistributionBackportsNotConsidered`, `CvesWithoutSeverity`. |
+| `Code` | `ScanWarningCode` | `NoPackagesIdentified`, `DistributionBackportsNotConsidered`, `CvesWithoutSeverity`; `NotProductMatched`, added by U2 question Q-U2-3 and implemented in U2 Code Generation. |
 | `Message` | `string` | Non-empty; the text shown to people. |
 | `Input` | `string?` | The artifact or package the warning is about, when there is one. |
 
