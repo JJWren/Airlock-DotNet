@@ -37,7 +37,7 @@
   run times out after 15 minutes. Python wheels (`.whl`) and NuGet packages (`.nupkg`) are staged with a `.zip`
   suffix so Syft unpacks them; for each `.nupkg`, Airlock also reads its `.nuspec` and adds the NuGet package
   (type `nuget`, its id and version). *(D4, N3, Q17, Q-S0-3)*
-- **FR-06 Syft failures** — A non-zero Syft exit or unparseable output fails the scan and names the input; an artifact
+- **FR-06 Syft failures** — A non-zero Syft exit, unparseable output, or a package Airlock cannot represent (Q-U3-3) fails the scan and names the input; an artifact
   in which Syft finds no packages produces a warning, not a failure. A scan that includes a container image carries a
   warning that distribution backports are not considered. *(Q6, S0 N13; defect 6)*
 - **FR-07 Package merge** — Packages from all runs are merged and de-duplicated by (type, name, version). *(D5, Q5-B;
@@ -53,7 +53,8 @@
 - **FR-10 Product match** — Only when no candidate CPE returns any record, NVD is asked for the CVEs whose
   configurations name the package's product, from any vendor, at the package's version (`virtualMatchString`); their
   CVEs at or above the threshold become findings with the Product match method. Versions are sent as Syft reports
-  them, except that a leading `v` is removed from Go module versions. Names too generic to identify a product are not
+  them, except that a leading `v` is removed from Go module versions — in product matches and CPE lookups alike
+  (U3 decision 1). Names too generic to identify a product are not
   product-matched (domain rule BR-09, specified in U1's functional design). *(Q-S0-2, superseding the keyword fallback of Q7; ADR-0006;
   defects 1, 10, 12)*
 - **FR-11 Unverified packages** — A package whose NVD lookups still fail after retries, or that Syft reports without
@@ -76,7 +77,8 @@
 - **FR-17 Progress events** — Each scan publishes phase changes, packages correlated (n of total), scan-scoped log
   lines and its final status. *(N1; defect 14)*
 - **FR-18 Live Log** — Airlock's own activity messages (Debug and above, framework noise excluded) are delivered in
-  real time to every subscriber through bounded buffers; the tactical message wording is kept. *(Q5-B, Q14; defect 4)*
+  real time to every subscriber through bounded buffers, a new subscriber receiving the last 200 lines first; the
+  tactical message wording is kept. *(Q5-B, Q14, Q-U3-1; defect 4)*
 - **FR-19 Retention** — Finished scans remain retrievable for 24 hours, at most 20 of them, in memory only; they are
   lost on restart. *(N1, D1)*
 
@@ -90,7 +92,8 @@
 ### Reports
 - **FR-21 PDF Scan Report** — One server-side generator (QuestPDF) serves both the UI and the API: title with
   completion time (labelled UTC), summary table including Unverified, findings table (package, version, match method,
-  CVE, severity, score with CVSS version, NVD link, description) and an Unverified section. *(Q13; defect 18)*
+  CVE, severity, score with CVSS version, NVD link, description), an Unverified section and the scan's warnings.
+  *(Q13, Q-U3-2; defect 18)*
 - **FR-22 JSON export** — The JSON export is the scan resource as returned by `GET /scans/{id}`. *(parity, Q10)*
 
 ### Health
@@ -195,3 +198,10 @@
 | S0 findings (N1–N2, N13, S12) | FR-06, FR-08, FR-09 |
 | Q-U1-1 Unscored CVEs | FR-12 |
 | Q-U1-2 Several CNA scores | FR-13 |
+| Q-U2-1 Lookup failure before a match | FR-11 (U2 AR-14) |
+| Q-U2-2 NVD unreachable for a whole scan | FR-11 (U2 AR-18) |
+| Q-U2-3 Generic names without CPE records | FR-12 warnings (U2 AR-15, AR-19) |
+| Q-U2-4 A path and artifacts together | FR-02 (U2 AR-04) |
+| Q-U3-1 Live Log replay | FR-18 |
+| Q-U3-2 Warnings in the PDF | FR-21 |
+| Q-U3-3 Packages Airlock cannot represent | FR-06 |

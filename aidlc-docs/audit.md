@@ -453,3 +453,107 @@ UI does NOT go through HTTP API (API tested separately), "Q4 — Is the reverse-
 **Context**: CONSTRUCTION — U2 approved; commits; U3 Functional Design next
 
 ---
+
+## Commits
+**Timestamp**: 2026-10-22T20:07:30Z
+**User Input**: "(none — carrying out the approved commit plan)"
+**AI Response**: "Committed e9a525e 'Add U2 Application design documents' (17 files) and 0aecba2 'Add U2 Application: use cases, scan pipeline and tests' (68 files) on feature/u2-application. Checked the staged documents for API keys and secrets first: none. Nothing pushed."
+**Context**: CONSTRUCTION — U2 committed
+
+---
+
+## U3 Functional Design — Plan and questions
+**Timestamp**: 2026-10-22T20:08:43Z
+**User Input**: "(none — stage entered under the approval of 2026-10-22T20:06:11Z)"
+**AI Response**: "Loaded the U3 inputs (unit-of-work U3, workflow-planning depths, the story map, component-methods and components Infrastructure sections, the U2 constraints). Created construction/plans/u3-infrastructure-functional-design-plan.md with three questions — Q-U3-1 Live Log replay for new subscribers, Q-U3-2 warnings in the PDF, Q-U3-3 Syft packages Airlock cannot represent — and eight decisions for review, including a small U1/U2 change so Go-module versions lose their leading v in CPE lookups too. Asked the three questions."
+**Context**: CONSTRUCTION — U3 Functional Design started
+
+---
+
+## U3 Functional Design — Answers
+**Timestamp**: 2026-10-22T20:12:31Z
+**User Input**: "Your questions have been answered: "Q-U3-1: What should a new Live Log subscriber (a tab opened mid-scan, or an API client) see first?"="B) Last 200 lines (Recommended)", "Q-U3-2: Should the PDF Scan Report include the scan's warnings?"="A) Add a Warnings section (Recommended)", "Q-U3-3: Syft reports a package Airlock cannot represent (control characters, or longer than the Domain limits). What happens?"="A) Fail the scan (Recommended)". You can now continue with these answers in mind."
+**AI Response**: "Recorded Q-U3-1 = B (new subscribers get the last 200 lines first), Q-U3-2 = A (a Warnings section in the PDF), Q-U3-3 = A (a package Airlock cannot represent makes the run's output unreadable; the scan fails naming the input). Writing the U3 functional design."
+**Context**: CONSTRUCTION — U3 Functional Design questions resolved
+
+---
+
+## U3 Functional Design — Completion prompt
+**Timestamp**: 2026-10-22T20:17:22Z
+**User Input**: "(pending)"
+**AI Response**: "Wrote construction/u3-infrastructure/functional-design/: domain-entities.md (Syft JSON and NVD fields as read, the staging layout, options with the original variable names, the Live Log buffers, the PDF sections), business-rules.md (IR-01 to IR-26), business-logic-model.md (a Syft run and an NVD lookup as sequence diagrams, both validated with Mermaid 11.4.1 and given text alternatives; mapping tables; the PDF layout; worked examples from the recorded S0 outputs; the rule-to-test map with the regressions for defects 3, 4, 5, 9 and 11). Amended requirements FR-06, FR-10, FR-18 and FR-21 and the traceability table, and brought component-methods.md, components.md, unit-of-work.md, U1 domain-entities.md (CandidateCpe.ForNvd) and U2 AR-14 in line. Presented: 'Functional design complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U3 NFR Requirements)."
+**Context**: CONSTRUCTION — U3 Functional Design approval gate
+
+---
+
+## U3 Functional Design — Approval
+**Timestamp**: 2026-10-23T13:56:41Z
+**User Input**: "B) Continue to Next Stage (U3 NFR Requirements)."
+**AI Response**: "Recorded approval of the U3 functional design, including the eight decisions listed in the plan. Starting U3 NFR Requirements (Standard depth)."
+**Context**: CONSTRUCTION — U3 Functional Design approved; U3 NFR Requirements started
+
+---
+
+## U3 NFR Requirements — Completion prompt
+**Timestamp**: 2026-10-23T14:05:33Z
+**User Input**: "(pending)"
+**AI Response**: "Wrote construction/plans/u3-infrastructure-nfr-requirements-plan.md and construction/u3-infrastructure/nfr-requirements/: nfr-requirements.md (U3-NFR-01 to U3-NFR-14) and tech-stack-decisions.md. Checked the drafts against IR-01 to IR-26, the constraints U2 handed to U3 and the recorded S0 outputs. Corrected the NVD pipeline so the limiter sits inside the retry (every attempt takes a turn), and chose Airlock's own pacing limiter on TimeProvider (one request every 600 ms) because the built-in SlidingWindowRateLimiter can admit more than 50 requests in some 30-second spans. Listed eight new targets for review. Presented: 'NFR requirements complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U3 NFR Design)."
+**Context**: CONSTRUCTION — U3 NFR Requirements approval gate
+
+---
+
+## U3 NFR Requirements — Approval
+**Timestamp**: 2026-10-23T14:21:08Z
+**User Input**: "B) Continue to Next Stage (U3 NFR Design)."
+**AI Response**: "Recorded approval of the U3 NFR requirements (U3-NFR-01 to U3-NFR-14) and tech-stack decisions, including the eight new targets listed in the plan. Starting U3 NFR Design (Standard depth)."
+**Context**: CONSTRUCTION — U3 NFR Requirements approved; U3 NFR Design started
+
+---
+
+## U3 NFR Design — Completion prompt
+**Timestamp**: 2026-10-23T14:36:20Z
+**User Input**: "(pending)"
+**AI Response**: "Wrote construction/plans/u3-infrastructure-nfr-design-plan.md and construction/u3-infrastructure/nfr-design/: nfr-design-patterns.md (a pattern for each of U3-NFR-01 to U3-NFR-14, the option defaults and ranges, the fixed values) and logical-components.md (namespaces, registrations, two diagrams validated with Mermaid 11.4.1 with text alternatives, the checks, the constraints handed to U4 and U6). Fed the refinements back into business-rules.md (IR-01, IR-11, IR-13, IR-22, IR-23), domain-entities.md, business-logic-model.md (its NVD sequence diagram re-validated), component-methods.md, components.md, component-dependency.md, services.md, unit-of-work.md, and both tech-stack documents (U3 with an amendment note). Listed ten choices for review, among them Polly.Core and Polly.RateLimiting in NvdApiClient instead of Microsoft.Extensions.Http.Resilience's handler, so the attempt timeout and retries cover the streamed body. Presented: 'NFR design complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U3 Code Generation)."
+**Context**: CONSTRUCTION — U3 NFR Design approval gate
+
+---
+
+## U3 NFR Design — Approval
+**Timestamp**: 2026-10-24T00:50:42Z
+**User Input**: "B) Continue to Next Stage (U3 Code Generation)."
+**AI Response**: "Recorded approval of the U3 NFR design, including the ten choices listed in the plan and the amendment that replaces Microsoft.Extensions.Http.Resilience with Polly.Core and Polly.RateLimiting. Starting U3 Code Generation, Part 1 (planning)."
+**Context**: CONSTRUCTION — U3 NFR Design approved; U3 Code Generation started
+
+---
+
+## U3 Code Generation — Plan and questions
+**Timestamp**: 2026-10-24T00:57:12Z
+**User Input**: "(pending)"
+**AI Response**: "Checked the inputs: Microsoft.Extensions.* 10.0.13 (as in U2), Polly.Core and Polly.RateLimiting 8.8.0, QuestPDF 2026.9.1 and PdfPig 0.1.16 are the latest stable versions on nuget.org; restoring them downloads up to 7 packages, about 65 MB (QuestPDF 48.6 MB, PdfPig 16.3 MB). Syft v1.55.0 is still the latest release. PdfPig's package id is PdfPig, not UglyToad.PdfPig. Created construction/plans/u3-infrastructure-code-generation-plan.md (steps A to I, five design refinements) and asked Q-CG3-1 (branch for U3) and for plan approval."
+**Context**: CONSTRUCTION — U3 Code Generation, Part 1 (planning) approval gate
+
+---
+
+## U3 Code Generation — Answers and plan approval
+**Timestamp**: 2026-10-24T01:01:40Z
+**User Input**: "Your questions have been answered: "Q-CG3-1: Which branch should the U3 code go on? U2 is committed on feature/u2-application; main holds U1."="A) Main, then new branch (Recommended)", "Approve the U3 code generation plan (aidlc-docs/construction/plans/u3-infrastructure-code-generation-plan.md)? Approving restores up to 7 packages, about 65 MB, from nuget.org (QuestPDF 48.6 MB, PdfPig 16.3 MB, the rest under 1 MB each)."="B) Approve and generate (Recommended)". You can now continue with these answers in mind."
+**AI Response**: "Recorded Q-CG3-1 = A (fast-forward main to feature/u2-application locally, then branch feature/u3-infrastructure from main; nothing pushed) and plan approval B. Starting Part 2: generating the U3 code as planned."
+**Context**: CONSTRUCTION — U3 Code Generation, Part 2 (generation) started
+
+---
+
+## U3 Code Generation — Completion prompt
+**Timestamp**: 2026-10-24T02:10:30Z
+**User Input**: "(pending)"
+**AI Response**: "Generated U3 on feature/u3-infrastructure, branched from main after fast-forwarding main to the U2 commit: src/Airlock.Infrastructure (37 files), tests/Airlock.Infrastructure.Tests (29 code files and 33 cleaned S0 fixtures), tests/Airlock.Infrastructure.StandIn, scripts/install-tools.ps1 and install-tools.sh, architecture rules 3 and 4 and an Infrastructure clock rule, CandidateCpe.ForNvd in the Domain and its use in PackageCorrelator. Build: 0 warnings. Tests: 730 of 733 pass with Syft v1.55.0; 3 skips depend on the environment. Coverage: Infrastructure 95.7 % of lines and 87.2 % of branches; Domain 100 % and 100 %; Application 97.2 % and 95.2 %. A temporary probe broke the 6 new rules and was deleted; one live NVD lookup without a key found pyyaml 5.3's two CVEs; install-tools.ps1 skipped the download with v1.55.0 in bin. Found and fixed while testing: the HTTP client factory's structured log state carried the raw apiKey header, so its logging is removed for the NVD client; deletion waited on the fake clock for read-only files. Wrote u3-infrastructure/code/code-generation-summary.md and updated the design documents. Asked: 'Code generation complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U4 Web API — Functional Design), and whether to make the two proposed commits on feature/u3-infrastructure. Nothing is pushed."
+**Context**: CONSTRUCTION — U3 Code Generation approval gate
+
+---
+
+## U3 Code Generation — Approval
+**Timestamp**: 2026-10-24T02:26:20Z
+**User Input**: "Your questions have been answered: "Code generation complete. Choose: A) Request Changes  B) Continue to Next Stage (U4 Web API — Functional Design)?"="B) Continue to Next Stage", "Make the two proposed commits on feature/u3-infrastructure? Nothing is pushed."="A) Make both (Recommended)". You can now continue with these answers in mind."
+**AI Response**: "Recorded approval of U3 Code Generation (U3 Infrastructure complete) and of the commit plan. Committing on feature/u3-infrastructure after checking the staged files for keys, cookies and personal paths: 1) the U3 design documents and the earlier documents they amended; 2) the U3 code with its tests, fixtures, stand-in, install scripts, architecture rules, the Domain and correlator change, the package versions and the code summary. Nothing pushed. Next: U4 Web API — Functional Design."
+**Context**: CONSTRUCTION — U3 approved; commits; U4 Functional Design next
+
+---

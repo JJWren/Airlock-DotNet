@@ -19,7 +19,7 @@ Design stages.
 | `InMemoryScanRegistry` | Infrastructure | Singleton | Latest version of each scan |
 | `LiveLogBroadcaster`, `LiveLogLoggerProvider` | Infrastructure | Singleton | Subscribers |
 | `SyftSbomGenerator`, `DiskArtifactStaging`, `QuestPdfScanReportRenderer`, `HostFileSystem` | Infrastructure | Singleton | Syft tool status, cached briefly |
-| `NvdApiClient` | Infrastructure | Typed HttpClient (handlers managed by the factory) | Shared rate limiter (singleton) |
+| `NvdApiClient` | Infrastructure | Singleton; asks the factory for the named HttpClient `Airlock.Nvd` on each request | Shared pacer (singleton) |
 | `ScanSession`, `AirlockJs` | Web | Scoped — one per circuit (browser tab) | The tab's inputs, current scan, terminal lines |
 
 ## Scan lifecycle
@@ -50,7 +50,8 @@ Design stages.
 - A scan has a single writer (its pipeline). Readers get immutable `Scan` instances, so nothing is locked while a
   page renders or an endpoint serializes.
 - Correlation processes packages in parallel up to `Correlation.MaxParallelism`. All NVD traffic passes one app-wide
-  sliding-window limiter (50 requests / 30 s), so parallelism bounds in-flight work, not the request rate.
+  pacer (one request start every 600 ms, so at most 50 in any 30 s), so parallelism bounds in-flight work, not the
+  request rate.
 - When `Correlation.OutageThreshold` lookups fail in a row, the scan stops calling NVD and every package not yet decided
   is Unverified with "NVD unavailable" (U2 AR-18), so an outage ends the scan Incomplete within minutes.
 - `ScanEventHub` and `LiveLogBroadcaster` give every subscriber its own bounded buffer. A slow subscriber loses its

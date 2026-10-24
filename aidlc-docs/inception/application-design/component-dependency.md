@@ -28,7 +28,7 @@ the layer it tests (API and component tests reference Web).
 |---|---|---|
 | Airlock.Domain | — | None (base class library only) |
 | Airlock.Application | Domain | Microsoft.Extensions.Logging.Abstractions, Microsoft.Extensions.Options, Microsoft.Extensions.DependencyInjection.Abstractions |
-| Airlock.Infrastructure | Application, Domain | Microsoft.Extensions.Http.Resilience, QuestPDF, Microsoft.Extensions.Options.ConfigurationExtensions, Microsoft.Extensions.Hosting.Abstractions (System.Threading.RateLimiting ships with the shared framework) |
+| Airlock.Infrastructure | Application, Domain | Microsoft.Extensions.Http, Polly.Core, Polly.RateLimiting, QuestPDF, Microsoft.Extensions.Logging, Microsoft.Extensions.Configuration, Microsoft.Extensions.Options.ConfigurationExtensions, Microsoft.Extensions.Configuration.Binder, Microsoft.Extensions.Hosting.Abstractions (System.Threading.RateLimiting ships with the shared framework) |
 | Airlock.Web | Infrastructure, Application, Domain | ASP.NET Core shared framework, MudBlazor, Microsoft.AspNetCore.OpenApi, Scalar.AspNetCore |
 | Test projects | The layer under test | xunit.v3, NSubstitute, bunit, Microsoft.AspNetCore.Mvc.Testing, TngTech.ArchUnitNET.xUnitV3 |
 

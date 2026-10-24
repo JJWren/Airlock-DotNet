@@ -75,7 +75,8 @@ ranking (BR-08). `totalPackages` is the number of merged packages. *Trace*: FR-0
 **AR-13 — Unknown versions.** A package whose version is unknown (BR-10) is Unverified with the reason "version
 unknown" and is never looked up. *Trace*: FR-11; Q-S0-4; E06.
 
-**AR-14 — CPE stage.** The package's ranked candidates (at most three, BR-08) are looked up one after another:
+**AR-14 — CPE stage.** The package's ranked candidates (at most three, BR-08) are looked up one after another, each with
+its version part as NVD writes it (`CandidateCpe.ForNvd`, U3 decision 1):
 
 | Lookup answer | Next step |
 |---|---|

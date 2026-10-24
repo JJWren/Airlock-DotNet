@@ -42,6 +42,8 @@ public sealed record CandidateCpe(string Value, CpeSource Source)
     // Dictionary first; generated candidates whose vendor and product equal the package name next; at most `max`.
     public static IReadOnlyList<CandidateCpe> Prioritize(Package package, IEnumerable<CandidateCpe> candidates,
                                                          int max = 3);
+    // The candidate with its version part sent as PackageVersion.ForNvd(package) — a Go module's v dropped (U3 decision 1).
+    public CandidateCpe ForNvd(Package package);
 }
 
 public enum Severity { None, Low, Medium, High, Critical }
@@ -440,55 +442,72 @@ public static class ApplicationServiceCollectionExtensions
 public sealed class SyftSbomGenerator : ISbomGenerator;
 internal sealed class SyftProcessRunner
 {
-    public Task<SyftRunResult> RunAsync(IReadOnlyList<string> arguments, TimeSpan timeout,
-                                        CancellationToken cancellationToken);   // kills the process tree on cancel or timeout
+    // No shell; standard output streamed to the reader while the last 4 KB of standard error are kept; the process
+    // tree killed on cancellation or at the run's limit; the run's own temporary folder; no NVD key in the environment.
+    public Task<SyftRunResult<T>> RunAsync<T>(SyftRunRequest request, Func<Stream, CancellationToken, Task<T>> readOutput,
+                                             CancellationToken cancellationToken);
 }
-internal sealed class SyftJsonParser
+internal sealed class SyftEnvironment                      // the update check off, the run's own TMPDIR, no NVD key
 {
-    public IReadOnlyList<SbomPackage> Parse(Stream syftJson);
+    public SyftRunRequest Request(string fileName, IReadOnlyList<string> arguments, TimeSpan timeLimit,
+                                  string? temporaryFolder = null);
+}
+internal static class SyftJsonParser
+{
+    public static Task<SyftParse> ParseAsync(Stream syftJson, CancellationToken cancellationToken);   // a document, or why not
+    public static SbomProduced Map(SyftDocument document);  // throws ArgumentException for a package the Domain rejects
 }
 internal static class NuspecReader                         // Q-S0-3: the NuGet package a .nupkg names
 {
-    public static Package? Read(Stream nupkg);             // type "nuget", id, version
+    public static NuspecRead Read(Stream nupkg);           // type "nuget", id, version — or the reason, past the caps too
 }
 
-public sealed class NvdVulnerabilityCatalog : IVulnerabilityCatalog;
-public sealed class NvdApiClient                           // typed HttpClient; resilience and limiter in its handler pipeline
+public sealed class NvdVulnerabilityCatalog : IVulnerabilityCatalog, IDisposable;   // owns the one pacer; 2-minute lookups
+internal sealed class NvdApiClient                         // the named HttpClient "Airlock.Nvd" from the factory, per request
 {
-    public Task<NvdCveResponse?> GetByCpeNameAsync(string cpeName, CancellationToken cancellationToken);
-    public Task<NvdCveResponse?> GetByVirtualMatchAsync(string matchString, CancellationToken cancellationToken);
+    // One page through the pipeline (retry, NvdRequestPacer, 30-second attempt timeout); the body is read inside the
+    // attempt. An NvdQuery is a cpeName or a virtualMatchString. Answers NvdPage, NvdNotFound or NvdFailed.
+    public Task<NvdAttempt> GetPageAsync(NvdQuery query, int startIndex, CancellationToken cancellationToken);
 }
-internal sealed class NvdResponseMapper
+internal sealed class NvdRequestPacer : RateLimiter;       // one request start every Window / RequestsPerWindow, app-wide
+internal static class NvdResponseMapper
 {
     // CVSS metrics with their Primary / Secondary source, affected products from configurations; unknown metric
     // types (e.g. ssvcV203) are ignored.
-    public IReadOnlyList<Cve> Map(NvdCveResponse response);
+    public static IReadOnlyList<Cve> Map(NvdCveResponse response);
 }
 
-public sealed class DiskArtifactStaging : IArtifactStaging;
-internal static class FileNameSanitizer
-{
-    public static string Sanitize(string fileName);
-}
+public sealed class DiskArtifactStaging : IArtifactStaging;   // names arrive sanitized by the Application's ArtifactName
+internal sealed class StagingSweepService : IHostedService;   // at startup, deletes the marked folders an earlier run left
 
 public sealed class QuestPdfScanReportRenderer : IScanReportRenderer;
-public sealed class InMemoryScanRegistry : IScanRegistry;
-public sealed class LiveLogBroadcaster : ILiveLog
+public sealed class InMemoryScanRegistry : IScanRegistry;   // a plain store; retention is the Application's RetentionPolicy
+public sealed class LiveLogBroadcaster : ILiveLog              // replays the last 200 entries, then 1,000 per subscriber
 {
     public void Publish(LiveLogEntry entry);
 }
-public sealed class LiveLogLoggerProvider : ILoggerProvider;   // Airlock.* categories; scan id from the logging scope
+public sealed class LiveLogLoggerProvider : ILoggerProvider;   // Airlock.* categories; scan-scoped entries to ScanLogRouter
 public sealed class HostFileSystem : IHostFileSystem;
 
-public sealed class SyftOptions { public string BinaryPath { get; init; } }                 // SYFT_BINARY_PATH, default "syft"
+public sealed class SyftOptions                                                             // SYFT_BINARY_PATH
+{
+    public string? BinaryPath { get; set; }                                                 // none: the IR-06 search
+    public TimeSpan StatusCacheDuration { get; set; }                                       // 30 s
+}
 public sealed class NvdOptions                                                              // NVD_API_KEY, base URL, rate
 {
-    public string? ApiKey { get; init; }
-    public Uri BaseUrl { get; init; }
-    public int RequestsPerWindow { get; init; }                                             // 50
-    public TimeSpan Window { get; init; }                                                   // 30 s
+    public string? ApiKey { get; set; }
+    public Uri BaseUrl { get; set; }
+    public int RequestsPerWindow { get; set; }                                              // 50
+    public TimeSpan Window { get; set; }                                                    // 30 s
 }
-public sealed class StagingOptions { public string Root { get; init; } }                    // per-scan folders live here
+public sealed class StagingOptions { public string Root { get; set; } }                     // per-scan folders live here; a full path
+
+public static class AirlockConfigurationBuilderExtensions
+{
+    // NVD_API_KEY, SYFT_BINARY_PATH and LOG_LEVEL (the original's level names or .NET's) onto the options; U4 adds it
+    public static IConfigurationBuilder AddAirlockEnvironmentVariables(this IConfigurationBuilder builder);
+}
 
 public static class InfrastructureServiceCollectionExtensions
 {

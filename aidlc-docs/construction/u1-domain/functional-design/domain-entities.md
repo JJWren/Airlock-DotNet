@@ -105,6 +105,7 @@ matches exactly. Equality and hashing follow that identity.
 | `Source` | `CpeSource` | `Dictionary` (Syft's `nvd-cpe-dictionary`) or `Generated` (`syft-generated`). |
 | `Vendor`, `Product` | `string` | The 4th and 5th components, split on unescaped colons; empty when absent. |
 | `Prioritize(Package, candidates, max = 3)` | factory | Ordered, de-duplicated, capped list (BR-08). |
+| `ForNvd(Package)` | method | The candidate with its version part as `PackageVersion.ForNvd` gives it — added by U3 decision 1, implemented in U3 Code Generation. |
 
 ### `Severity` — enum
 `None` < `Low` < `Medium` < `High` < `Critical`. `SeverityScale.FromScore(CvssVersion, decimal)` derives a severity

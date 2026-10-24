@@ -63,11 +63,11 @@ Generation checkpoint approved.
 - **Scope**: `src/Airlock.Infrastructure`; `tests/Airlock.Infrastructure.Tests`; `scripts/install-tools.ps1`,
   `scripts/install-tools.sh` (Syft v1.55.0 into `./bin`, checksum-verified); architecture rule 3.
 - **Delivers**: `SyftSbomGenerator` (process runner with tree kill and timeout, JSON parser, `.nuspec` reader),
-  `NvdVulnerabilityCatalog` (typed HttpClient with retries, timeouts, pagination and the 50-per-30-seconds limiter;
+  `NvdVulnerabilityCatalog` (an HttpClient from the factory with retries, timeouts, pagination and the 50-per-30-seconds limiter;
   CPE lookups and product matches; response mapper with CVSS metrics, their sources and affected products),
-  `DiskArtifactStaging` with `FileNameSanitizer` and the `.zip` suffix for wheels and NuGet packages,
+  `DiskArtifactStaging` with the `.zip` suffix for wheels and NuGet packages (names sanitized by the Application),
   `QuestPdfScanReportRenderer`,
-  `InMemoryScanRegistry` (retention), `LiveLogBroadcaster` and `LiveLogLoggerProvider`, `HostFileSystem`, options with
+  `InMemoryScanRegistry` (a plain store), `LiveLogBroadcaster` and `LiveLogLoggerProvider`, `HostFileSystem`, options with
   validation and environment-variable mapping, `AddAirlockInfrastructure`.
 - **Tests**: Syft JSON parsing from recorded fixtures (the S0 outputs); Syft integration tests
   (`Category=Integration`, need the binary) including wheels and NuGet packages; the `.nuspec` reader; NVD mapping

@@ -18,7 +18,7 @@ versions are resolved to the latest stable releases at Code Generation and recor
 | Logging | `ILogger<T>` with `[LoggerMessage]` source-generated methods, one per catalogue line, with stable event ids; `BeginScope` carries the scan id (U3's Live Log provider reads it) |
 | Shutdown | An `IHostedService` whose `StopAsync` cancels running scans and open reservations and waits for their cleanup within the host's shutdown timeout (AR-30) |
 | Errors | Expected refusals are `Outcome<T>` values; unexpected exceptions are caught only at the pipeline boundary (AR-31) and at each cleanup step (U2-NFR-11) |
-| Not here | No HTTP, no retries and no rate limiter — those live behind the catalog port in U3 (`Microsoft.Extensions.Http.Resilience`, `System.Threading.RateLimiting`) |
+| Not here | No HTTP, no retries and no rate limiter — those live behind the catalog port in U3 (Polly and `System.Threading.RateLimiting`) |
 
 ## Test projects
 
