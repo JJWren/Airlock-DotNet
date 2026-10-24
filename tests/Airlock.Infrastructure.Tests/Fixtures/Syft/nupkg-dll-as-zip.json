@@ -1,0 +1,106 @@
+{
+ "artifacts": [
+  {
+   "id": "0abb31992abb9bb4",
+   "name": "System.Text.Json",
+   "version": "10.0.11",
+   "type": "dotnet",
+   "foundBy": "dotnet-deps-binary-cataloger",
+   "locations": [
+    {
+     "path": "lib/net10.0/System.Text.Json.dll",
+     "accessPath": "lib/net10.0/System.Text.Json.dll",
+     "annotations": {
+      "evidence": "primary"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "dotnet",
+   "cpes": [],
+   "purl": "pkg:nuget/System.Text.Json@10.0.11",
+   "metadataType": "dotnet-portable-executable-entry",
+   "metadata": {
+    "assemblyVersion": "10.0.0.0",
+    "legalCopyright": "© Microsoft Corporation. All rights reserved.",
+    "comments": "Provides high-performance and low-allocating types that serialize objects to JavaScript Object Notation (JSON) text and deserialize JSON text to objects, with UTF-8 support built-in. Also provides types to read and write JSON text encoded as UTF-8, and to create an in-memory document object model (DOM), that is read-only, for random access of the JSON elements within a structured view of the data.\r\n\r\nThe System.Text.Json library is built-in as part of the shared framework in .NET Runtime. The package can be installed when you need to use it in other target frameworks.",
+    "internalName": "System.Text.Json.dll",
+    "companyName": "Microsoft Corporation",
+    "productName": "Microsoft® .NET",
+    "productVersion": "10.0.11+e2f47b0110ed922f21a1522da67279133ce28f32"
+   }
+  }
+ ],
+ "artifactRelationships": [
+  {
+   "parent": "0abb31992abb9bb4",
+   "child": "3c3a425b5d359f66",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  },
+  {
+   "parent": "70ed507e91333685aa2faf342f96523b953663040239cb1f278680aa12f884c7",
+   "child": "0abb31992abb9bb4",
+   "type": "contains"
+  }
+ ],
+ "files": [
+  {
+   "id": "3c3a425b5d359f66",
+   "location": {
+    "path": "lib/net10.0/System.Text.Json.dll"
+   },
+   "metadata": {
+    "mode": 666,
+    "type": "RegularFile",
+    "userID": -1,
+    "groupID": -1,
+    "mimeType": "application/vnd.microsoft.portable-executable",
+    "size": 1890088
+   },
+   "digests": [
+    {
+     "algorithm": "sha1",
+     "value": "22c2deb2646114915ebff6b6950a32481b90a6ef"
+    },
+    {
+     "algorithm": "sha256",
+     "value": "ed5f0f3773c89948471e3691f31963ea00d3577e17296ac4dfb97772e78b6fa3"
+    }
+   ],
+   "executable": {
+    "format": "pe",
+    "hasExports": false,
+    "hasEntrypoint": false,
+    "importedLibraries": []
+   }
+  }
+ ],
+ "source": {
+  "id": "70ed507e91333685aa2faf342f96523b953663040239cb1f278680aa12f884c7",
+  "name": "/fixtures-unpacked/Newtonsoft.Json.12.0.1-with-dll.zip",
+  "version": "sha256:c467edc591e7c7fe63236b7c7ecf857e710bc4433911ca9d6d04a8cb62c88077",
+  "type": "file",
+  "metadata": {
+   "path": "/fixtures-unpacked/Newtonsoft.Json.12.0.1-with-dll.zip",
+   "digests": [
+    {
+     "algorithm": "sha256",
+     "value": "c467edc591e7c7fe63236b7c7ecf857e710bc4433911ca9d6d04a8cb62c88077"
+    }
+   ],
+   "mimeType": ""
+  }
+ },
+ "distro": {},
+ "descriptor": {
+  "name": "syft",
+  "version": "1.55.0"
+ },
+ "schema": {
+  "version": "16.1.11",
+  "url": "https://raw.githubusercontent.com/anchore/syft/main/schema/json/schema-16.1.11.json"
+ }
+}

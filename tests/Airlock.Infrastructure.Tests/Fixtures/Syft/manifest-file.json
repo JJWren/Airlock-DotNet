@@ -1,0 +1,361 @@
+{
+ "artifacts": [
+  {
+   "id": "e1bc2f5696acfad6",
+   "name": "flask",
+   "version": "0.12.2",
+   "type": "python",
+   "foundBy": "python-package-cataloger",
+   "locations": [
+    {
+     "path": "/requirements.txt",
+     "accessPath": "/requirements.txt",
+     "annotations": {
+      "evidence": "primary"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "python",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:python-flask:python-flask:0.12.2:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python-flask:python_flask:0.12.2:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python_flask:python-flask:0.12.2:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python_flask:python_flask:0.12.2:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python:python-flask:0.12.2:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python:python_flask:0.12.2:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:flask:python-flask:0.12.2:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:flask:python_flask:0.12.2:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python-flask:flask:0.12.2:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python_flask:flask:0.12.2:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python:flask:0.12.2:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:flask:flask:0.12.2:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:pypi/flask@0.12.2",
+   "metadataType": "python-pip-requirements-entry",
+   "metadata": {
+    "name": "flask",
+    "versionConstraint": "==0.12.2"
+   }
+  },
+  {
+   "id": "cac9478da23b3a61",
+   "name": "jinja2",
+   "version": "2.10",
+   "type": "python",
+   "foundBy": "python-package-cataloger",
+   "locations": [
+    {
+     "path": "/requirements.txt",
+     "accessPath": "/requirements.txt",
+     "annotations": {
+      "evidence": "primary"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "python",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:python-jinja2:python-jinja2:2.10:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python-jinja2:python_jinja2:2.10:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python_jinja2:python-jinja2:2.10:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python_jinja2:python_jinja2:2.10:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:jinja2:python-jinja2:2.10:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:jinja2:python_jinja2:2.10:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python-jinja2:jinja2:2.10:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python:python-jinja2:2.10:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python:python_jinja2:2.10:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python_jinja2:jinja2:2.10:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:jinja2:jinja2:2.10:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python:jinja2:2.10:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:pypi/jinja2@2.10",
+   "metadataType": "python-pip-requirements-entry",
+   "metadata": {
+    "name": "jinja2",
+    "versionConstraint": "==2.10"
+   }
+  },
+  {
+   "id": "fb05837ff0d809cd",
+   "name": "pyyaml",
+   "version": "5.3",
+   "type": "python",
+   "foundBy": "python-package-cataloger",
+   "locations": [
+    {
+     "path": "/requirements.txt",
+     "accessPath": "/requirements.txt",
+     "annotations": {
+      "evidence": "primary"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "python",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:python-pyyaml:python-pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python-pyyaml:python_pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python_pyyaml:python-pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python_pyyaml:python_pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python-pyyaml:pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python:python-pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python:python_pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python_pyyaml:pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:pyyaml:python-pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:pyyaml:python_pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python:pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:pyyaml:pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:pypi/pyyaml@5.3",
+   "metadataType": "python-pip-requirements-entry",
+   "metadata": {
+    "name": "pyyaml",
+    "versionConstraint": "==5.3"
+   }
+  },
+  {
+   "id": "e66750ddd96bef94",
+   "name": "requests",
+   "version": "2.25.1",
+   "type": "python",
+   "foundBy": "python-package-cataloger",
+   "locations": [
+    {
+     "path": "/requirements.txt",
+     "accessPath": "/requirements.txt",
+     "annotations": {
+      "evidence": "primary"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "python",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:python:requests:2.25.1:*:*:*:*:*:*:*",
+     "source": "nvd-cpe-dictionary"
+    }
+   ],
+   "purl": "pkg:pypi/requests@2.25.1",
+   "metadataType": "python-pip-requirements-entry",
+   "metadata": {
+    "name": "requests",
+    "versionConstraint": "==2.25.1"
+   }
+  }
+ ],
+ "artifactRelationships": [
+  {
+   "parent": "1dfff6f602b24f1271693556d029d7518eda8417abbadfa956544a8a7b15a67c",
+   "child": "cac9478da23b3a61",
+   "type": "contains"
+  },
+  {
+   "parent": "1dfff6f602b24f1271693556d029d7518eda8417abbadfa956544a8a7b15a67c",
+   "child": "e1bc2f5696acfad6",
+   "type": "contains"
+  },
+  {
+   "parent": "1dfff6f602b24f1271693556d029d7518eda8417abbadfa956544a8a7b15a67c",
+   "child": "e66750ddd96bef94",
+   "type": "contains"
+  },
+  {
+   "parent": "1dfff6f602b24f1271693556d029d7518eda8417abbadfa956544a8a7b15a67c",
+   "child": "fb05837ff0d809cd",
+   "type": "contains"
+  },
+  {
+   "parent": "cac9478da23b3a61",
+   "child": "26ca2b7dc025d550",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  },
+  {
+   "parent": "e1bc2f5696acfad6",
+   "child": "26ca2b7dc025d550",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  },
+  {
+   "parent": "e66750ddd96bef94",
+   "child": "26ca2b7dc025d550",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  },
+  {
+   "parent": "fb05837ff0d809cd",
+   "child": "26ca2b7dc025d550",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  }
+ ],
+ "files": [
+  {
+   "id": "26ca2b7dc025d550",
+   "location": {
+    "path": "/requirements.txt"
+   },
+   "metadata": {
+    "mode": 666,
+    "type": "RegularFile",
+    "userID": -1,
+    "groupID": -1,
+    "mimeType": "text/plain",
+    "size": 56
+   },
+   "digests": [
+    {
+     "algorithm": "sha1",
+     "value": "cbe0d5af7e1f152bbc13c25fbe85280a8a620924"
+    },
+    {
+     "algorithm": "sha256",
+     "value": "18429cefe3b803afb554e0c524431b66344b2a500b79e97506379a7b23c8a155"
+    }
+   ]
+  }
+ ],
+ "source": {
+  "id": "1dfff6f602b24f1271693556d029d7518eda8417abbadfa956544a8a7b15a67c",
+  "name": "/fixtures/manifest/requirements.txt",
+  "version": "sha256:18429cefe3b803afb554e0c524431b66344b2a500b79e97506379a7b23c8a155",
+  "type": "file",
+  "metadata": {
+   "path": "/fixtures/manifest/requirements.txt",
+   "digests": [
+    {
+     "algorithm": "sha256",
+     "value": "18429cefe3b803afb554e0c524431b66344b2a500b79e97506379a7b23c8a155"
+    }
+   ],
+   "mimeType": ""
+  }
+ },
+ "distro": {},
+ "descriptor": {
+  "name": "syft",
+  "version": "1.55.0"
+ },
+ "schema": {
+  "version": "16.1.11",
+  "url": "https://raw.githubusercontent.com/anchore/syft/main/schema/json/schema-16.1.11.json"
+ }
+}

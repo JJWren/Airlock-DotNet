@@ -26,7 +26,7 @@ public sealed class PackageCorrelator(IVulnerabilityCatalog catalog, ILogger<Pac
         }
 
         // AR-14
-        foreach (var cpe in CandidateCpe.Prioritize(package, sbomPackage.CandidateCpes))
+        foreach (var candidate in CandidateCpe.Prioritize(package, sbomPackage.CandidateCpes))
         {
             if (breaker.IsOpen)
             {
@@ -34,6 +34,8 @@ public sealed class PackageCorrelator(IVulnerabilityCatalog catalog, ILogger<Pac
             }
 
             cancellationToken.ThrowIfCancellationRequested();
+            // IR-10: asked for, and recorded in the match, with its version part as NVD writes it.
+            var cpe = candidate.ForNvd(package);
             logger.CpeSearch(cpe.Value);
             var lookup = await catalog.FindByCpeAsync(cpe, cancellationToken);
             if (lookup is CatalogFound found)

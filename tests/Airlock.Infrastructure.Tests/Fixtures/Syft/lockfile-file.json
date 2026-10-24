@@ -1,0 +1,222 @@
+{
+ "artifacts": [
+  {
+   "id": "ef6a1e3b85a7a68c",
+   "name": "fixture-app",
+   "version": "1.0.0",
+   "type": "npm",
+   "foundBy": "javascript-lock-cataloger",
+   "locations": [
+    {
+     "path": "/package-lock.json",
+     "accessPath": "/package-lock.json",
+     "annotations": {
+      "evidence": "primary"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "javascript",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:fixture-app:fixture-app:1.0.0:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:fixture-app:fixture_app:1.0.0:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:fixture_app:fixture-app:1.0.0:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:fixture_app:fixture_app:1.0.0:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:fixture:fixture-app:1.0.0:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:fixture:fixture_app:1.0.0:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:npm/fixture-app@1.0.0",
+   "metadataType": "javascript-npm-package-lock-entry",
+   "metadata": {
+    "resolved": "",
+    "integrity": "",
+    "dependencies": {
+     "lodash": "4.17.20",
+     "minimist": "1.2.5"
+    }
+   }
+  },
+  {
+   "id": "5bf6c34992d730bc",
+   "name": "lodash",
+   "version": "4.17.20",
+   "type": "npm",
+   "foundBy": "javascript-lock-cataloger",
+   "locations": [
+    {
+     "path": "/package-lock.json",
+     "accessPath": "/package-lock.json",
+     "annotations": {
+      "evidence": "primary"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "javascript",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:lodash:lodash:4.17.20:*:*:*:*:node.js:*:*",
+     "source": "nvd-cpe-dictionary"
+    }
+   ],
+   "purl": "pkg:npm/lodash@4.17.20",
+   "metadataType": "javascript-npm-package-lock-entry",
+   "metadata": {
+    "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.20.tgz",
+    "integrity": "sha512-AAAA",
+    "dependencies": null
+   }
+  },
+  {
+   "id": "16ca4d16b2fdf699",
+   "name": "minimist",
+   "version": "1.2.5",
+   "type": "npm",
+   "foundBy": "javascript-lock-cataloger",
+   "locations": [
+    {
+     "path": "/package-lock.json",
+     "accessPath": "/package-lock.json",
+     "annotations": {
+      "evidence": "primary"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "javascript",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:minimist:minimist:1.2.5:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:npm/minimist@1.2.5",
+   "metadataType": "javascript-npm-package-lock-entry",
+   "metadata": {
+    "resolved": "https://registry.npmjs.org/minimist/-/minimist-1.2.5.tgz",
+    "integrity": "sha512-AAAA",
+    "dependencies": null
+   }
+  }
+ ],
+ "artifactRelationships": [
+  {
+   "parent": "16ca4d16b2fdf699",
+   "child": "ef6a1e3b85a7a68c",
+   "type": "dependency-of"
+  },
+  {
+   "parent": "16ca4d16b2fdf699",
+   "child": "fd71c2238fc07657",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  },
+  {
+   "parent": "2a8195a408e1c9248edea1da4ca9d5becc5a9fe9806b199cce4912d23f77da4c",
+   "child": "16ca4d16b2fdf699",
+   "type": "contains"
+  },
+  {
+   "parent": "2a8195a408e1c9248edea1da4ca9d5becc5a9fe9806b199cce4912d23f77da4c",
+   "child": "5bf6c34992d730bc",
+   "type": "contains"
+  },
+  {
+   "parent": "2a8195a408e1c9248edea1da4ca9d5becc5a9fe9806b199cce4912d23f77da4c",
+   "child": "ef6a1e3b85a7a68c",
+   "type": "contains"
+  },
+  {
+   "parent": "5bf6c34992d730bc",
+   "child": "ef6a1e3b85a7a68c",
+   "type": "dependency-of"
+  },
+  {
+   "parent": "5bf6c34992d730bc",
+   "child": "fd71c2238fc07657",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  },
+  {
+   "parent": "ef6a1e3b85a7a68c",
+   "child": "fd71c2238fc07657",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  }
+ ],
+ "files": [
+  {
+   "id": "fd71c2238fc07657",
+   "location": {
+    "path": "/package-lock.json"
+   },
+   "metadata": {
+    "mode": 666,
+    "type": "RegularFile",
+    "userID": -1,
+    "groupID": -1,
+    "mimeType": "application/json",
+    "size": 623
+   },
+   "digests": [
+    {
+     "algorithm": "sha1",
+     "value": "9eb12b4b73aa0bc4e745ea52eb36e011406458a1"
+    },
+    {
+     "algorithm": "sha256",
+     "value": "b74c2b4c8989bb9f269a32b14fcc4efa87251eb23705aa88c7e2d24f25f5963c"
+    }
+   ]
+  }
+ ],
+ "source": {
+  "id": "2a8195a408e1c9248edea1da4ca9d5becc5a9fe9806b199cce4912d23f77da4c",
+  "name": "/fixtures/lockfile/package-lock.json",
+  "version": "sha256:b74c2b4c8989bb9f269a32b14fcc4efa87251eb23705aa88c7e2d24f25f5963c",
+  "type": "file",
+  "metadata": {
+   "path": "/fixtures/lockfile/package-lock.json",
+   "digests": [
+    {
+     "algorithm": "sha256",
+     "value": "b74c2b4c8989bb9f269a32b14fcc4efa87251eb23705aa88c7e2d24f25f5963c"
+    }
+   ],
+   "mimeType": ""
+  }
+ },
+ "distro": {},
+ "descriptor": {
+  "name": "syft",
+  "version": "1.55.0"
+ },
+ "schema": {
+  "version": "16.1.11",
+  "url": "https://raw.githubusercontent.com/anchore/syft/main/schema/json/schema-16.1.11.json"
+ }
+}

@@ -18,6 +18,7 @@ public sealed record CandidateCpe
     private const string Prefix = "cpe:2.3:";
     private const int VendorComponent = 3;
     private const int ProductComponent = 4;
+    private const int VersionComponent = 5;
 
     public CandidateCpe(string value, CpeSource source)
     {
@@ -74,6 +75,20 @@ public sealed record CandidateCpe
             .ToImmutableArray();
     }
 
+    // BR-10, U3 decision 1: the version part as NVD writes it, so a Go module's "v0.23.3" is asked for as "0.23.3".
+    // Only a version part equal to the package's own version is rewritten; any other candidate is returned as it is.
+    public CandidateCpe ForNvd(Package package)
+    {
+        ArgumentNullException.ThrowIfNull(package);
+        if (PackageVersion.ForNvd(package) == package.Version || Component(Value, VersionComponent) != package.Version)
+        {
+            return this;
+        }
+
+        // PackageVersion.ForNvd drops only a leading "v" before a digit, and neither is ever escaped.
+        return new CandidateCpe(Value.Remove(VersionStart(Value), 1), Source);
+    }
+
     private static int Tier(CandidateCpe candidate, string name)
     {
         if (candidate.Source == CpeSource.Dictionary)
@@ -123,5 +138,27 @@ public sealed record CandidateCpe
         }
 
         return current == index ? builder.ToString() : string.Empty;
+    }
+
+    /// <summary>Where the version part starts, counting unescaped colons; called only when the CPE has that part.</summary>
+    private static int VersionStart(string cpe)
+    {
+        var colons = 0;
+        var i = 0;
+        while (colons < VersionComponent)
+        {
+            if (cpe[i] == '\\')
+            {
+                i++;
+            }
+            else if (cpe[i] == ':')
+            {
+                colons++;
+            }
+
+            i++;
+        }
+
+        return i;
     }
 }

@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Airlock.Application/Airlock.Application.csproj" />
     <ProjectReference Include="../../src/Airlock.Domain/Airlock.Domain.csproj" />
+    <ProjectReference Include="../../src/Airlock.Infrastructure/Airlock.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

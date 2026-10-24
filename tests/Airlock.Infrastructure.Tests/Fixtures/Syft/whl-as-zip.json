@@ -1,0 +1,287 @@
+{
+ "artifacts": [
+  {
+   "id": "7c8b7e97f67da34d",
+   "name": "pyyaml",
+   "version": "5.3",
+   "type": "python",
+   "foundBy": "python-installed-package-cataloger",
+   "locations": [
+    {
+     "path": "PyYAML-5.3.dist-info/METADATA",
+     "accessPath": "PyYAML-5.3.dist-info/METADATA",
+     "annotations": {
+      "evidence": "primary"
+     }
+    },
+    {
+     "path": "PyYAML-5.3.dist-info/RECORD",
+     "accessPath": "PyYAML-5.3.dist-info/RECORD",
+     "annotations": {
+      "evidence": "supporting"
+     }
+    },
+    {
+     "path": "PyYAML-5.3.dist-info/top_level.txt",
+     "accessPath": "PyYAML-5.3.dist-info/top_level.txt",
+     "annotations": {
+      "evidence": "supporting"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "python",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:python-pyyaml:python-pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python-pyyaml:python_pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python_pyyaml:python-pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python_pyyaml:python_pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python-pyyaml:pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python:python-pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python:python_pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python_pyyaml:pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:pyyaml:python-pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:pyyaml:python_pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:python:pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:pyyaml:pyyaml:5.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:pypi/pyyaml@5.3",
+   "metadataType": "python-package",
+   "metadata": {
+    "name": "PyYAML",
+    "version": "5.3",
+    "author": "",
+    "authorEmail": "",
+    "platform": "",
+    "files": [
+     {
+      "path": "PyYAML-5.3.dist-info/METADATA"
+     },
+     {
+      "path": "PyYAML-5.3.dist-info/WHEEL"
+     },
+     {
+      "path": "PyYAML-5.3.dist-info/top_level.txt"
+     },
+     {
+      "path": "PyYAML-5.3.dist-info/RECORD"
+     }
+    ],
+    "sitePackagesRootPath": ".",
+    "topLevelPackages": [
+     "yaml"
+    ]
+   }
+  }
+ ],
+ "artifactRelationships": [
+  {
+   "parent": "7c8b7e97f67da34d",
+   "child": "11201781ab5371e4",
+   "type": "contains"
+  },
+  {
+   "parent": "7c8b7e97f67da34d",
+   "child": "11201781ab5371e4",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  },
+  {
+   "parent": "7c8b7e97f67da34d",
+   "child": "6cccb3f63ad3a293",
+   "type": "contains"
+  },
+  {
+   "parent": "7c8b7e97f67da34d",
+   "child": "6cccb3f63ad3a293",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "7c8b7e97f67da34d",
+   "child": "780c9f494cc661ba",
+   "type": "contains"
+  },
+  {
+   "parent": "7c8b7e97f67da34d",
+   "child": "780c9f494cc661ba",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "7c8b7e97f67da34d",
+   "child": "fbcd71e933f0c852",
+   "type": "contains"
+  },
+  {
+   "parent": "e8574b15d6181c67b4fa4fc1ade3137f4d4c40a93c658105933e4ff7ae5f05c7",
+   "child": "7c8b7e97f67da34d",
+   "type": "contains"
+  }
+ ],
+ "files": [
+  {
+   "id": "11201781ab5371e4",
+   "location": {
+    "path": "PyYAML-5.3.dist-info/METADATA"
+   },
+   "metadata": {
+    "mode": 666,
+    "type": "RegularFile",
+    "userID": -1,
+    "groupID": -1,
+    "mimeType": "text/plain",
+    "size": 92
+   },
+   "digests": [
+    {
+     "algorithm": "sha1",
+     "value": "ec84a8b1f63bca9433e0b5862771d3039037dc4b"
+    },
+    {
+     "algorithm": "sha256",
+     "value": "6d2077c473d4da2a61ae239beccc89bfc8c8f0ec58f14b547b7b5beda419d033"
+    }
+   ]
+  },
+  {
+   "id": "780c9f494cc661ba",
+   "location": {
+    "path": "PyYAML-5.3.dist-info/RECORD"
+   },
+   "metadata": {
+    "mode": 666,
+    "type": "RegularFile",
+    "userID": -1,
+    "groupID": -1,
+    "mimeType": "text/csv",
+    "size": 128
+   },
+   "digests": [
+    {
+     "algorithm": "sha1",
+     "value": "8d19ad4eea3cab770ceccc503686b5e9f695768f"
+    },
+    {
+     "algorithm": "sha256",
+     "value": "3ba14580a394fd8aad250e91b77b0dcc7a920042972d4e5a62ccf50de1088988"
+    }
+   ]
+  },
+  {
+   "id": "fbcd71e933f0c852",
+   "location": {
+    "path": "PyYAML-5.3.dist-info/WHEEL"
+   },
+   "metadata": {
+    "mode": 666,
+    "type": "RegularFile",
+    "userID": -1,
+    "groupID": -1,
+    "mimeType": "text/plain",
+    "size": 90
+   },
+   "digests": [
+    {
+     "algorithm": "sha1",
+     "value": "e1172abf58a0579e562bc3fb8b0c2bb1e06e51eb"
+    },
+    {
+     "algorithm": "sha256",
+     "value": "378d27aa1fc0b6ac29cb2c7974bd93d72b16b658ac1ea407967726b55b244358"
+    }
+   ]
+  },
+  {
+   "id": "6cccb3f63ad3a293",
+   "location": {
+    "path": "PyYAML-5.3.dist-info/top_level.txt"
+   },
+   "metadata": {
+    "mode": 666,
+    "type": "RegularFile",
+    "userID": -1,
+    "groupID": -1,
+    "mimeType": "text/plain",
+    "size": 5
+   },
+   "digests": [
+    {
+     "algorithm": "sha1",
+     "value": "d2feab397d285b5e9446c12fc8a9275aa690d724"
+    },
+    {
+     "algorithm": "sha256",
+     "value": "39d9025ac53d30586f47ac6f51e6b7e0cad74fb9cb4903089970e11c43fb0723"
+    }
+   ]
+  }
+ ],
+ "source": {
+  "id": "e8574b15d6181c67b4fa4fc1ade3137f4d4c40a93c658105933e4ff7ae5f05c7",
+  "name": "/fixtures-unpacked/PyYAML-5.3.zip",
+  "version": "sha256:75dfbd8890a4a80a47ea8d49872211b6bfa9a6b79a4e7a6a4dc78590cb30e960",
+  "type": "file",
+  "metadata": {
+   "path": "/fixtures-unpacked/PyYAML-5.3.zip",
+   "digests": [
+    {
+     "algorithm": "sha256",
+     "value": "75dfbd8890a4a80a47ea8d49872211b6bfa9a6b79a4e7a6a4dc78590cb30e960"
+    }
+   ],
+   "mimeType": ""
+  }
+ },
+ "distro": {},
+ "descriptor": {
+  "name": "syft",
+  "version": "1.55.0"
+ },
+ "schema": {
+  "version": "16.1.11",
+  "url": "https://raw.githubusercontent.com/anchore/syft/main/schema/json/schema-16.1.11.json"
+ }
+}

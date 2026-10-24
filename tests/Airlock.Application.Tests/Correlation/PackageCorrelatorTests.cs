@@ -120,6 +120,20 @@ public sealed class PackageCorrelatorTests
     }
 
     [Fact]
+    public async Task A_Go_module_is_asked_for_and_matched_without_its_leading_v()
+    {
+        using var harness = new ScanHarness();
+        var asked = A.CpeValue("golang:crypto", "0.23.3");
+        harness.Catalog.Cpe(asked, A.Cve("CVE-2024-45337", 9.1m, Severity.Critical));
+
+        var result = await CorrelateAsync(harness, A.SbomPackage("golang.org/x/crypto", "v0.23.3", "go-module", "golang:crypto"));
+
+        var vulnerable = Assert.IsType<VulnerableCorrelation>(result);
+        Assert.Equal(asked, Assert.IsType<CpeMatch>(vulnerable.Result.Method).Cpe.Value);
+        Assert.Equal([asked], harness.Catalog.Calls);
+    }
+
+    [Fact]
     public async Task A_package_without_candidates_goes_straight_to_the_product_stage()
     {
         using var harness = new ScanHarness();
@@ -139,7 +153,8 @@ public sealed class PackageCorrelatorTests
             harness, A.SbomPackage("cloud.google.com/go/auth", "v0.23.3", "go-module", "google:auth"));
 
         Assert.Null(Assert.IsType<CleanCorrelation>(result).Method);
-        Assert.Equal([A.CpeValue("google:auth", "v0.23.3")], harness.Catalog.Calls);
+        // IR-10: the candidate is asked for without the Go module's leading v.
+        Assert.Equal([A.CpeValue("google:auth", "0.23.3")], harness.Catalog.Calls);
     }
 
     [Fact]

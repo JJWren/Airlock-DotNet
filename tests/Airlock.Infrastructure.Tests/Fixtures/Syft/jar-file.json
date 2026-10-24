@@ -1,0 +1,140 @@
+{
+ "artifacts": [
+  {
+   "id": "0b8e60f5b8abeaa6",
+   "name": "log4j-core",
+   "version": "2.14.1",
+   "type": "java-archive",
+   "foundBy": "java-archive-cataloger",
+   "locations": [
+    {
+     "path": "/log4j-core-2.14.1.jar",
+     "accessPath": "/log4j-core-2.14.1.jar",
+     "annotations": {
+      "evidence": "primary"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "java",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:apache:log4j-core:2.14.1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:apache:log4j_core:2.14.1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:apache:log4j:2.14.1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1",
+   "metadataType": "java-archive",
+   "metadata": {
+    "virtualPath": "/log4j-core-2.14.1.jar",
+    "manifest": {
+     "main": [
+      {
+       "key": "Manifest-Version",
+       "value": "1.0"
+      },
+      {
+       "key": "Implementation-Title",
+       "value": "Apache Log4j Core"
+      },
+      {
+       "key": "Implementation-Version",
+       "value": "2.14.1"
+      },
+      {
+       "key": "Implementation-Vendor",
+       "value": "The Apache Software Foundation"
+      }
+     ]
+    },
+    "pomProperties": {
+     "path": "META-INF/maven/org.apache.logging.log4j/log4j-core/pom.properties",
+     "name": "",
+     "groupId": "org.apache.logging.log4j",
+     "artifactId": "log4j-core",
+     "version": "2.14.1"
+    },
+    "digest": [
+     {
+      "algorithm": "sha1",
+      "value": "45c381c0bd8e62eeac97f0c2aed7457c143fb6bb"
+     }
+    ]
+   }
+  }
+ ],
+ "artifactRelationships": [
+  {
+   "parent": "0b8e60f5b8abeaa6",
+   "child": "5a824e9d6ce7388f",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  },
+  {
+   "parent": "fe66164c8237c25446adeab92fd8c4a24c2e5ce61d32c85ce804433daafff56b",
+   "child": "0b8e60f5b8abeaa6",
+   "type": "contains"
+  }
+ ],
+ "files": [
+  {
+   "id": "5a824e9d6ce7388f",
+   "location": {
+    "path": "/log4j-core-2.14.1.jar"
+   },
+   "metadata": {
+    "mode": 666,
+    "type": "RegularFile",
+    "userID": -1,
+    "groupID": -1,
+    "mimeType": "application/java-archive",
+    "size": 515
+   },
+   "digests": [
+    {
+     "algorithm": "sha1",
+     "value": "45c381c0bd8e62eeac97f0c2aed7457c143fb6bb"
+    },
+    {
+     "algorithm": "sha256",
+     "value": "30cbec599fe1e2b00c731eb281128f5e56ca4f643c9172b6b9fae518e6f16f96"
+    }
+   ]
+  }
+ ],
+ "source": {
+  "id": "fe66164c8237c25446adeab92fd8c4a24c2e5ce61d32c85ce804433daafff56b",
+  "name": "/fixtures/jar/log4j-core-2.14.1.jar",
+  "version": "sha256:30cbec599fe1e2b00c731eb281128f5e56ca4f643c9172b6b9fae518e6f16f96",
+  "type": "file",
+  "metadata": {
+   "path": "/fixtures/jar/log4j-core-2.14.1.jar",
+   "digests": [
+    {
+     "algorithm": "sha256",
+     "value": "30cbec599fe1e2b00c731eb281128f5e56ca4f643c9172b6b9fae518e6f16f96"
+    }
+   ],
+   "mimeType": ""
+  }
+ },
+ "distro": {},
+ "descriptor": {
+  "name": "syft",
+  "version": "1.55.0"
+ },
+ "schema": {
+  "version": "16.1.11",
+  "url": "https://raw.githubusercontent.com/anchore/syft/main/schema/json/schema-16.1.11.json"
+ }
+}
