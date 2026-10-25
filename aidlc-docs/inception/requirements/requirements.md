@@ -86,8 +86,10 @@
 - **FR-20 Resources** — `POST /scans` (multipart `targetPath` or `artifacts[]` → 202 + Location + `{id, status}`),
   `GET /scans/{id}`, `GET /scans/{id}/events` (SSE), `GET /scans/{id}/report.pdf` (409 while running),
   `POST /scans/{id}/cancel`, `POST /system/stop`, `GET /system/health`, `GET /logs/stream` (SSE). JSON is camelCase and
-  named after the glossary (`vulnerablePackages[].findings[]`, …); errors are RFC 9457 ProblemDetails; the OpenAPI
-  document is published and browsable with Scalar at `/docs`. *(Q10, N1, D6, Q17; ADR-0003)*
+  named after the glossary (`vulnerablePackages[].findings[]`, …), with enumeration values in capitals with
+  underscores (`INCOMPLETE`, `CRITICAL`; Q-U4-1); errors are RFC 9457 ProblemDetails whose `type` is a URL per kind of
+  problem in the repository's `docs/api/problems.md` (Q-U4-2); the OpenAPI document is published and browsable with
+  Scalar at `/docs`. *(Q10, N1, D6, Q17; ADR-0003)*
 
 ### Reports
 - **FR-21 PDF Scan Report** — One server-side generator (QuestPDF) serves both the UI and the API: title with
@@ -133,7 +135,10 @@
   dependencies enforced by ArchUnitNET tests; use cases are plain classes. *(Q16, N7; ADR-0004)*
 - **NFR-03 Security** — Fail closed (ADR-0002); input hardening (FR-02, FR-03); no authentication, documented as an
   accepted risk for a local single-user tool; the NVD key is never logged and comes from user-secrets in development
-  and environment variables in containers; antiforgery is disabled on API endpoints only (no cookies or credentials).
+  and environment variables in containers. API endpoints take no antiforgery token (no cookies or credentials);
+  instead, their `POST` endpoints refuse requests a browser marks as coming from another site (403), and Airlock
+  answers only the host names in `AllowedHosts`, by default `localhost`, `127.0.0.1` and `[::1]`, against DNS
+  rebinding. *(Q-U4-3; ADR-0007)*
 - **NFR-04 Reliability** — App-wide NVD sliding-window limit of 50 requests per 30 seconds; retries with exponential
   backoff and jitter on 429, 5xx and timeouts, honouring `Retry-After`; per-attempt and total timeouts; Syft and scan
   timeouts; staging cleanup on every exit path.
@@ -205,3 +210,6 @@
 | Q-U3-1 Live Log replay | FR-18 |
 | Q-U3-2 Warnings in the PDF | FR-21 |
 | Q-U3-3 Packages Airlock cannot represent | FR-06 |
+| Q-U4-1 Enumeration values in JSON | FR-20 |
+| Q-U4-2 Problem types | FR-20 |
+| Q-U4-3 Requests from other websites | NFR-03; ADR-0007 |

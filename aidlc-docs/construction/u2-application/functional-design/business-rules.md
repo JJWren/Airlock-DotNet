@@ -138,7 +138,9 @@ and outage-Unverified ones — adds one; the last brings it to the total. Every 
 **AR-23 — Snapshot first, finished last.** A subscription to a scan yields a `ScanSnapshot` of its latest version, then
 its later events in order, and ends with `ScanFinished`. Subscribing to a finished scan yields its snapshot and
 `ScanFinished`; to an unknown or pruned scan, nothing. A slow subscriber may lose its oldest log and progress events,
-never the snapshot, a phase change or the finished event. *Trace*: FR-17; E03; decision 9.
+never the snapshot, a phase change or the finished event. A subscriber that leaves — at any point, right after its
+snapshot included — is no longer written to (added in U4 Code Generation, U4-NFR-09). *Trace*: FR-17; E03;
+decision 9.
 
 **AR-24 — Scan-scoped log lines.** Every log entry written inside a scan's pipeline carries the scan id: it is
 published on that scan's hub as `ScanLogged` and also appears in the global Live Log. *Trace*: FR-17, FR-18.
@@ -168,7 +170,9 @@ held the slot. *Trace*: FR-16; Q9; E09; decision 3; defect 3.
 *Trace*: FR-15; N3; E06.
 
 **AR-30 — Server shutdown.** Stopping the host cancels every running scan with "Server shutting down" and ends every
-open reservation. *Trace*: services.md (cancellation).
+open reservation. It does so as soon as the host begins to stop, before the web server stops, so a client following
+the scan still receives its `CANCELLED` status (amended in U4 Code Generation: `ScanLifetimeService` is an
+`IHostedLifecycleService` and cancels in `StoppingAsync`). *Trace*: services.md (cancellation); U4-NFR-05.
 
 **AR-31 — Unexpected errors.** An exception the pipeline does not expect fails the scan with `Unexpected`, "Unexpected
 error — see the server log". The full error goes to the console log only. *Trace*: services.md (outcomes).

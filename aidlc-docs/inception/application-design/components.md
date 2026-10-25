@@ -100,10 +100,11 @@ The composition root. Depends on every other project plus ASP.NET Core, MudBlazo
 
 | Area | Components | Responsibility |
 |---|---|---|
-| Host | `Program` | Wires all layers, logging, options, Kestrel limits, health, OpenAPI + Scalar at `/docs`, Blazor (global Interactive Server). |
-| API | `ScanEndpoints`, `SystemEndpoints`, `LogEndpoints` | The `/api/v2` resources (N1); SSE through `TypedResults.ServerSentEvents`. |
+| Host | `Program`, `AirlockHost` | `AirlockHost`, the composition root that `Program` calls, wires all layers, logging, options, Kestrel limits, health, OpenAPI + Scalar at `/docs`, Blazor (global Interactive Server). |
+| API | `ScanEndpoints`, `SystemEndpoints`, `LogEndpoints` | The `/api/v2` resources (N1); SSE through Airlock's own stream writer, which adds keep-alive comments (U4-NFR-05). |
 | API | `MultipartScanReader` | Streams `targetPath` and `artifacts[]` sections into a `ScanReservation` without buffering whole files. |
-| API | `ScanDtoMapper`, `RefusalProblemDetails` | camelCase DTOs named after the glossary; refusal codes → status codes + ProblemDetails. |
+| API | `ScanDtoMapper`, `ApiProblems` | camelCase DTOs named after the glossary; refusal codes and the Web's own problems → status codes + ProblemDetails, each with its problem type (U4 WR-03, WR-04). |
+| API | `CrossSiteRequestFilter` | Refuses `POST` requests a browser marks as cross-site (U4 WR-19); the host filter answers only `AllowedHosts` (WR-20, ADR-0007). |
 | UI layout | `App`, `Routes`, `MainLayout`, `NavMenu` | Top bar (brand, inert placeholders), navigation drawer, Execute Audit shortcut, reconnect handling. |
 | UI pages | `ControlCenter` (`/`), `ActiveLogs` (`/logs`), `Reports` (`/reports/{id?}`) | The three original views. |
 | UI components | `StatusPill`, `ArtifactPicker`, `ScanProgress`, `ElapsedTimer`, `Terminal`, `StopScanDialog`, `SummaryCards`, `UnverifiedBanner`, `InventoryGrid`, `VulnerabilityDetail` | Building blocks of the pages (MudBlazor-based). |

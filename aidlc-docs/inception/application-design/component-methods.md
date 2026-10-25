@@ -161,6 +161,10 @@ public enum RefusalCode
     ScanHasNoResults     // 409 — report requested for a Failed or Cancelled scan
 }
 public sealed record Refusal(RefusalCode Code, string Message);
+public static class Refusals                              // added in U4: the one refusal the Web also answers itself
+{
+    public static Refusal ScanNotFound { get; }            // "Scan not found or no longer retained", for an unknown id too
+}
 
 public readonly record struct Outcome<T>
 {
@@ -193,6 +197,10 @@ public sealed class ScanReservation : IAsyncDisposable
                                                          CancellationToken cancellationToken);
     // Validates the target (directory path, or at least one artifact), registers the Running scan, starts the pipeline.
     public ValueTask<Outcome<Scan>> StartAsync(string? directoryPath, CancellationToken cancellationToken);
+    // Added in U4 (its refinement 1): refuse at once, before anything more is staged — a path together with artifacts,
+    // or a path the host could not read as text — recorded, logged and repeated like every other refusal (AR-03).
+    public Refusal RefuseBothTargets();
+    public Refusal RefuseUnreadableTargetPath();
     // If the scan never started: releases the slot and deletes the staging area.
     public ValueTask DisposeAsync();
 }
@@ -300,7 +308,9 @@ public sealed class NvdOutageBreaker(int threshold)      // one per scan (AR-18)
 public sealed class ScanEventHub                          // one per running scan; owns its latest version
 {
     public Scan Latest { get; }
-    public IAsyncEnumerable<ScanEvent> SubscribeAsync(CancellationToken cancellationToken);   // snapshot first
+    // Snapshot first; the subscription is removed however the subscriber leaves, right after its snapshot included (U4).
+    public IAsyncEnumerable<ScanEvent> SubscribeAsync(CancellationToken cancellationToken);
+    internal int SubscriberCount { get; }                  // U4-NFR-09's check that nobody who has gone is written to
     internal void Publish(Scan updated, ScanEvent? scanEvent);
     internal void PublishLog(LiveLogEntry entry);
     internal void Complete(Scan final);                    // publishes ScanFinished, ends every subscription
@@ -433,7 +443,8 @@ public sealed class AirlockOptionsValidator : IValidateOptions<AirlockOptions>; 
 public static class ApplicationServiceCollectionExtensions
 {
     public static IServiceCollection AddAirlockApplication(this IServiceCollection services);
-}   // also registers ScanLifetimeService (IHostedService): warns about missing scan roots, stops scans at shutdown
+}   // also registers ScanLifetimeService (IHostedLifecycleService since U4): warns about missing scan roots, and cancels
+    // the active scan as soon as the host begins to stop (StoppingAsync), before the web server stops (AR-30)
 ```
 
 ## Airlock.Infrastructure
@@ -478,7 +489,8 @@ internal static class NvdResponseMapper
 }
 
 public sealed class DiskArtifactStaging : IArtifactStaging;   // names arrive sanitized by the Application's ArtifactName
-internal sealed class StagingSweepService : IHostedService;   // at startup, deletes the marked folders an earlier run left
+internal sealed class StagingSweepService : IHostedService, IDisposable;   // at startup, locks the root (.airlock-lock, U4)
+                                                                         // and deletes the marked folders an earlier run left
 
 public sealed class QuestPdfScanReportRenderer : IScanReportRenderer;
 public sealed class InMemoryScanRegistry : IScanRegistry;   // a plain store; retention is the Application's RetentionPolicy
@@ -522,30 +534,77 @@ public static class InfrastructureServiceCollectionExtensions
 
 | Endpoint | Handler | Use case | Results |
 |---|---|---|---|
-| `POST /scans` | `ScanEndpoints.CreateScanAsync` | `StartScan` via `MultipartScanReader` | 202 + `Location` + `{id, status}`; ProblemDetails 400 / 409 / 413 / 503 |
-| `GET /scans/{id:guid}` | `ScanEndpoints.GetScan` | `GetScan` | 200 `ScanDto`; 404 |
-| `GET /scans/{id:guid}/events` | `ScanEndpoints.WatchScan` | `WatchScan` | SSE: `snapshot`, `phase`, `progress`, `log`, `finished`; 404 |
-| `GET /scans/{id:guid}/report.pdf` | `ScanEndpoints.GetReportAsync` | `RenderScanReport` | 200 `application/pdf`; 404; 409 |
-| `POST /scans/{id:guid}/cancel` | `ScanEndpoints.CancelAsync` | `CancelScan` | 202; 404; 409 |
-| `POST /system/stop` | `SystemEndpoints.StopAsync` | `EmergencyStop` | 200 `{status: TERMINATED / IDLE, scanId?}` |
-| `GET /system/health` | `SystemEndpoints.GetHealthAsync` | `GetSystemHealth` | 200 `{status, checks[]}` |
+| `POST /scans` | `ScanEndpoints.CreateScanAsync` | `StartScan` via `MultipartScanReader` | 202 + `Location` + `ScanAcceptedDto`; problems 400 / 403 / 409 / 413 / 415 / 503 |
+| `GET /scans/{id}` | `ScanEndpoints.GetScan` | `GetScan` | 200 `ScanDto`; 404 |
+| `GET /scans/{id}/events` | `ScanEndpoints.WatchScan` | `GetScan`, then `WatchScan` | SSE: `snapshot`, `phase`, `progress`, `log`, `finished`; 404 |
+| `GET /scans/{id}/report.pdf` | `ScanEndpoints.GetReportAsync` | `RenderScanReport` | 200 `application/pdf`; 404; 409 |
+| `POST /scans/{id}/cancel` | `ScanEndpoints.CancelAsync` | `CancelScan` | 200 or 202 + `ScanDto`; 403; 404; 409 |
+| `POST /system/stop` | `SystemEndpoints.StopAsync` | `EmergencyStop` | 200 `EmergencyStopDto` (`TERMINATED` / `IDLE`, `scanId`); 403 |
+| `GET /system/health` | `SystemEndpoints.GetHealthAsync` | `GetSystemHealth` | 200 `SystemHealthDto` (`status`, `version`, `checks[]`) |
 | `GET /logs/stream` | `LogEndpoints.Stream` | `WatchLiveLog` | SSE: `log` |
 
+An `{id}` is parsed with `ScanId.TryParse`, so anything but a scan id answers 404 `scan-not-found` (U4 WR-01). The DTOs,
+event payloads and problem catalogue are in `construction/u4-web-api/functional-design/domain-entities.md`.
+
 ```csharp
+internal static class AirlockHost                          // the composition root, the only Web code naming Infrastructure
+{
+    public static void ConfigureServices(WebApplicationBuilder builder);   // configuration sources, Kestrel, options, layers, API
+    public static void ConfigurePipeline(WebApplication app);              // the /api branch, the endpoints, the docs
+}   // Program's top-level statements only create the builder, call these two and run
+
 internal sealed class MultipartScanReader
 {
-    // Reads sections in order without buffering whole files: "targetPath" (optional) and "artifacts" (0..n).
-    public ValueTask<Outcome<Scan>> ReadAndStartAsync(HttpRequest request, ScanReservation reservation,
-                                                      CancellationToken cancellationToken);
+    // 415 for another media type, 400 for a missing or over-long boundary, before anything is reserved (U4 WR-06).
+    public ProblemHttpResult? CheckContentType(HttpRequest request, out string boundary);
+    // Reads the parts in order without buffering whole files (U4 WR-07): "targetPath" (0..1) and "artifacts" or
+    // "artifacts[]" (0..n), names compared ignoring case; any other part is refused. Both kinds of target, or an
+    // unreadable path, are refused through the reservation at once.
+    public Task<SubmissionResult> ReadAndStartAsync(HttpContext context, string boundary, ScanReservation reservation);
 }
+// SubmissionStarted(Scan), SubmissionRefused(Refusal), SubmissionInvalid(Detail), SubmissionTooLarge,
+// SubmissionAbandoned(Stalled): what ScanEndpoints answers — 202, the refusal's problem, 400, 413, or nothing.
+internal abstract record SubmissionResult;
+
 internal static class ScanDtoMapper
 {
-    public static ScanDto ToDto(Scan scan);                // camelCase, glossary names
+    public static ScanDto ToDto(Scan scan);                // camelCase, glossary names, values in capitals (U4 WR-02)
+    public static ScanStatusValue Status(ScanStatus status);
+    public static ScanPhaseValue Phase(ScanPhase phase);
 }
-internal static class RefusalProblemDetails
+internal static class EventMapper                          // one event: name and one line of compact JSON each (U4 WR-13)
 {
-    public static IResult ToResult(Refusal refusal);       // status-code map in RefusalCode comments
+    public static EventStreamItem ForScan(ScanEvent scanEvent);       // snapshot, phase, progress, log, finished
+    public static EventStreamItem ForLiveLog(LiveLogEntry entry);     // log, with its scanId
 }
+internal static class ApiProblems
+{
+    public static ProblemHttpResult ForRefusal(Refusal refusal);     // the problem kind of each RefusalCode (U4 WR-03)
+    public static ProblemHttpResult ForInvalidRequest(string detail); // and the Web's own problems (U4 WR-04):
+    public static ProblemHttpResult ForUnsupportedMediaType();         // 415,
+    public static ProblemHttpResult ForCrossSiteRequest();             // 403,
+    public static ProblemHttpResult ForBodyTooLarge();                 // 413
+    // For the problems ASP.NET Core writes itself (404, 405, 400 and 500 among them): the kind from the status, the
+    // five members only, and the traceId (U4 WR-05).
+    public static void Customize(ProblemDetailsContext context);
+}
+internal sealed class ApiExceptionHandler : IExceptionHandler;   // 500 without the message or stack; a bad request keeps its status
+internal sealed class CrossSiteRequestFilter : IEndpointFilter
+{
+    // 403 for a POST a browser marks as cross-site: Sec-Fetch-Site, else Origin against Host (U4 WR-19).
+    public ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next);
+}
+internal sealed class EventStreamResult : IResult          // constructed with the source of its EventStreamItems
+{
+    // event: and data: lines, a flush per event, ": keep-alive" after 15 seconds of silence; it ends when the client
+    // goes, a second after shutdown begins, or with the source (U4 WR-13, U4-NFR-05).
+    public Task ExecuteAsync(HttpContext httpContext);
+}
+internal sealed class IdleTimeoutStream : Stream
+{
+    // The request body, read with a 60-second idle timer on the TimeProvider (U4-NFR-04).
+}
+internal sealed class RequestBodyStream : Stream;          // an artifact's part; remembers whether reading the request failed
 ```
 
 ### UI

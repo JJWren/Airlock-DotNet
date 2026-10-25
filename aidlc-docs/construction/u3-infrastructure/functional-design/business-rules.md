@@ -99,7 +99,9 @@ being killed on Windows — the deletion is retried a few times briefly before t
 Application, which logs it (U2 AR-32); read-only files and folders are made writable and the deletion tried again at
 once, since they need no waiting. At startup,
 marked folders left by an earlier run are deleted and nothing unmarked is touched, so one staging root serves one
-Airlock. *Trace*: FR-03; E02; U3 NFR Design.
+Airlock. Before it sweeps, Airlock takes an exclusive lock on `<Staging:Root>/.airlock-lock` and holds it while it
+runs, so a second Airlock on the same root stops at startup with "Another Airlock is using the staging root <root>"
+instead of deleting the first one's folders (U4-NFR-09, added in U4 NFR Design). *Trace*: FR-03; E02; U3 NFR Design.
 
 ## Scan registry
 

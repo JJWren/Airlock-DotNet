@@ -557,3 +557,155 @@ UI does NOT go through HTTP API (API tested separately), "Q4 — Is the reverse-
 **Context**: CONSTRUCTION — U3 approved; commits; U4 Functional Design next
 
 ---
+
+## Commits
+**Timestamp**: 2026-10-24T02:27:30Z
+**User Input**: "(none — carrying out the approved commit plan)"
+**AI Response**: "Committed 453bd24 'Add U3 Infrastructure design documents' (22 files) and 0d32bb7 'Add U3 Infrastructure: Syft, NVD, staging, Live Log and PDF adapters with tests' (115 files) on feature/u3-infrastructure. Checked the staged files for API keys, cookies and personal paths first: none. Nothing pushed."
+**Context**: CONSTRUCTION — U3 committed
+
+---
+
+## U4 Functional Design — Plan and questions
+**Timestamp**: 2026-10-24T02:40:04Z
+**User Input**: "(none — continuing after the U3 approval)"
+**AI Response**: "Started U4 Web API — Functional Design at Standard depth. Read the inputs: FR-02, FR-03, FR-16 to FR-23 and NFR-03, NFR-05, NFR-07; stories E02, E03, E11 and the U4 scenarios of E01, E04, E06, E08, E09, E12, E13, E14; the Web API section of component-methods.md, services.md and unit-of-work.md; ADR-0001 and ADR-0003; the U2 use cases, Outcome and RefusalCode, the scan events and AirlockOptions; the constraints U2 and U3 hand to U4; the original API and its Export JSON (JSON.stringify(result, null, 2), checked in web/src/views/Reports.jsx). Wrote construction/plans/u4-web-api-functional-design-plan.md with 16 decisions taken by default and three questions: Q-U4-1 how enum values are written in JSON (recommended A, capitals with underscores); Q-U4-2 how a client tells refusals apart (recommended A, a type URL per problem pointing at docs/api/problems.md in the repository); Q-U4-3 requests from other websites (recommended A, refuse cross-site POSTs with 403 and answer only the host names in AllowedHosts, by default localhost, 127.0.0.1 and [::1]). Asked the three questions."
+**Context**: CONSTRUCTION — U4 Functional Design, open questions
+
+---
+
+## U4 Functional Design — Answers
+**Timestamp**: 2026-10-24T02:51:58Z
+**User Input**: "Your questions have been answered: "Q-U4-1: JSON property names are camelCase. How should enum values (statuses, phases, severities, match kinds, reasons, codes) be written? Details are in aidlc-docs/construction/plans/u4-web-api-functional-design-plan.md."="A) Capitals (Recommended)", "Q-U4-2: Five refusals share HTTP 409, so a CI script that wants to tell them apart needs a stable identifier in the ProblemDetails. How should each kind of problem be identified?"="A) URL to repo docs (Recommended)", "Q-U4-3: Any web page the analyst visits can make their browser send POST requests to a local Airlock: start a scan of any directory, cancel a scan, or press Emergency Stop. Through DNS rebinding, a site can also read the answers. curl and CI clients are not affected. Should the API refuse these requests?"="A) Refuse both (Recommended)". You can now continue with these answers in mind."
+**AI Response**: "Recorded Q-U4-1 = A (capitals with underscores for every enum value), Q-U4-2 = A (a type URL per kind of problem, pointing at docs/api/problems.md in the repository), Q-U4-3 = A (403 for cross-site POSTs; AllowedHosts defaults to localhost, 127.0.0.1 and [::1]). Writing the U4 functional design documents."
+**Context**: CONSTRUCTION — U4 Functional Design, questions answered
+
+---
+
+## U4 Functional Design — Completion prompt
+**Timestamp**: 2026-10-24T03:04:47Z
+**User Input**: "(pending)"
+**AI Response**: "Wrote construction/u4-web-api/functional-design/: domain-entities.md (the multipart submission; ScanAcceptedDto, ScanDto and its parts, EmergencyStopDto, SystemHealthDto and the event payloads; a catalogue of 16 problem kinds), business-rules.md (WR-01 to WR-23) and business-logic-model.md (a submission, an event stream and the cross-site check as diagrams validated with Mermaid 11.4.1, each with a text alternative; the statuses by endpoint; worked requests and responses built from the S0 requirements.txt and U3's recorded NVD answers; what U4 hands to U5; what is left to U4 NFR and Infrastructure Design; the rule-to-test map and the regressions for defects 6, 7, 14, 15 and 18). Added plan decisions 17 (Airlock's version is 2.0.0) and 18 (text written as it is). Aligned components.md, component-methods.md (routes take {id} parsed by ScanId.TryParse; ApiProblems replaces RefusalProblemDetails; CrossSiteRequestFilter added), services.md, unit-of-work.md and requirements.md (FR-20 for Q-U4-1 and Q-U4-2, NFR-03 for Q-U4-3, three traceability rows), and wrote docs/adr/0007-cross-site-and-host-checks.md. Nothing committed. Asked: 'Functional design complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U4 NFR Requirements)."
+**Context**: CONSTRUCTION — U4 Functional Design approval gate
+
+---
+
+## U4 Functional Design — Approval
+**Timestamp**: 2026-10-24T03:48:44Z
+**User Input**: "B"
+**AI Response**: "Recorded approval of U4 Functional Design (B, Continue to Next Stage). Starting U4 NFR Requirements at Standard depth."
+**Context**: CONSTRUCTION — U4 Functional Design approved; U4 NFR Requirements next
+
+---
+
+## U4 NFR Requirements — Completion prompt
+**Timestamp**: 2026-10-24T03:55:43Z
+**User Input**: "(pending)"
+**AI Response**: "Checked the framework facts the requirements rest on (ASP.NET Core 10 release notes and API docs; Scalar's ASP.NET Core guide): .NET 10 generates the public Program class for tests; WebApplicationFactory has UseKestrel; OpenAPI 3.1 is the default; SseItem<T> has no comment line; Scalar serves its assets locally but loads fonts from a CDN unless DisableDefaultFonts() and has an AI agent that DisableAgent() turns off. Versions on nuget.org: Microsoft.AspNetCore.OpenApi 10.0.13, Scalar.AspNetCore 2.18.3, Microsoft.AspNetCore.Mvc.Testing 10.0.13. Wrote construction/plans/u4-web-api-nfr-requirements-plan.md (no open questions; ten new targets listed for review), u4-web-api/nfr-requirements/nfr-requirements.md (U4-NFR-01 to U4-NFR-15) and tech-stack-decisions.md. New targets: a 60-second idle timeout for stalled uploads; keep-alive comments every 15 seconds, written by Airlock's own stream writer instead of TypedResults.ServerSentEvents; streams ended within a second at shutdown; POST /scans limited to MaxBytesPerScan plus at most 1 MiB, other requests to 1 MiB; a second Airlock on the same staging root stops at startup; /docs makes no request to another host; nosniff, no Server header, no CORS, no compression; plain HTTP as the original; performance bounds; Airlock.Web coverage of 90 % lines and 85 % branches. Updated unit-of-work.md and components.md for the stream writer. Nothing committed. Asked: 'NFR requirements complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U4 NFR Design)."
+**Context**: CONSTRUCTION — U4 NFR Requirements approval gate
+
+---
+
+## U4 NFR Requirements — Approval
+**Timestamp**: 2026-10-24T15:32:18Z
+**User Input**: "B) Continue to Next Stage (U4 NFR Design)."
+**AI Response**: "Recorded approval of U4 NFR Requirements. Starting U4 NFR Design at Standard depth, beginning with the details left open: Scalar's request proxy and telemetry defaults and its option names in 2.18."
+**Context**: CONSTRUCTION — U4 NFR Requirements approved; U4 NFR Design next
+
+---
+
+## U4 NFR Design — Completion prompt
+**Timestamp**: 2026-10-24T15:38:57Z
+**User Input**: "(pending)"
+**AI Response**: "Read Scalar's ASP.NET Core options in its public source (integrations/dotnet on main, whose changelog is at 2.18.3): bundled assets by default, fonts from Scalar's CDN unless DefaultFonts is false, Telemetry on by default, an AI agent that DisableAgent() turns off, no proxy by default, OpenApiRoutePattern /openapi/{documentName}.json. Skipped fuget.org, whose address now redirects to an unrelated site. Wrote construction/plans/u4-web-api-nfr-design-plan.md (no open questions; nine choices listed for review), u4-web-api/nfr-design/nfr-design-patterns.md (a pattern for each of U4-NFR-01 to 15 and the values table) and logical-components.md (namespaces, registrations, the pipeline and the endpoint-to-use-case map as two diagrams validated with Mermaid 11.4.1, each with a text alternative; the checks; the constraints handed to U5 and U6). Choices: a 1 MiB server-wide body limit raised by the submission only after its reservation; IdleTimeoutStream with a 60-second timer on the TimeProvider; EventStreamResult with keep-alive comments, X-Accel-Buffering: no and a 1-second end after ApplicationStopping; exception handler and status-code pages in an /api branch; contract enumerations named with JsonStringEnumMemberName; Scalar with DefaultFonts, Telemetry and the agent off; an exclusive .airlock-lock in U3's StagingSweepService; WebLog event ids 3100 to 3399; one WebApplicationFactory with UseKestrel for the limit tests. Fed back: WR-13 and domain-entities (keep-alive comments), U3 IR-13 (the lock), component-methods.md, unit-of-work.md and the U4 tech-stack amendments. Nothing committed. Asked: 'NFR design complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U4 Infrastructure Design)."
+**Context**: CONSTRUCTION — U4 NFR Design approval gate
+
+---
+
+## U4 NFR Design — Approval
+**Timestamp**: 2026-10-24T16:09:22Z
+**User Input**: "B) Continue to Next Stage (U4 Infrastructure Design)."
+**AI Response**: "Recorded approval of U4 NFR Design. Starting U4 Infrastructure Design at Minimal depth: ports and listening addresses, Kestrel settings, configuration sources and their precedence, health-check wiring and the deployment topology."
+**Context**: CONSTRUCTION — U4 NFR Design approved; U4 Infrastructure Design next
+
+---
+
+## U4 Infrastructure Design — Plan and question
+**Timestamp**: 2026-10-24T16:09:22Z
+**User Input**: "(none — continuing after the U4 NFR Design approval)"
+**AI Response**: "Found that U3's AddAirlockEnvironmentVariables appends its source last, which would put NVD_API_KEY above the command line; the host will insert it just before the command-line source instead. Wrote construction/plans/u4-web-api-infrastructure-design-plan.md with eight decisions taken by default (loopback locally and all interfaces in the container; the configuration precedence; defaults kept in code; no health-check middleware; UTC console timestamps; Development from launchSettings; default data protection keys; a graceful stop under 10 seconds) and one question: Q-U4-I1 Airlock's port (recommended A, 8080 everywhere). Asked Q-U4-I1."
+**Context**: CONSTRUCTION — U4 Infrastructure Design, open question
+
+---
+
+## U4 Infrastructure Design — Answer to Q-U4-I1
+**Timestamp**: 2026-10-24T16:58:29Z
+**User Input**: "The user answered: "Q-U4-I1: The rebuild serves the UI, the API and /docs from one host on one port. The original used 8000 for its API and /docs and 3000 for its UI. Which port should Airlock use?"="8080 might be fine, but I'm not sure if I already have a container service on that port. You should check that within my docker stack (Z drive)". Read the answers carefully — they may request clarification, changes, or that you not proceed — and follow what they actually say."
+**AI Response**: "Checking the Docker stack under Z:\docker for services already published on port 8080 (reading the compose files only; nothing changed), before settling the port."
+**Context**: CONSTRUCTION — U4 Infrastructure Design, port check requested
+
+---
+
+## U4 Infrastructure Design — Port check result
+**Timestamp**: 2026-10-24T16:59:55Z
+**User Input**: "(none — reporting the check the user asked for)"
+**AI Response**: "Read the 23 compose files under Z:\docker (port lines only) and listed the running containers and local listeners: no compose file or running container publishes host port 8080, and nothing on this machine listens on 8080, 8000 or 3000. The stack's own .NET services listen on 8080 inside their containers and publish other host ports. Recorded Q-U4-I1 = A (8080), with the compose file (U6) publishing it through a variable so it can be moved. Writing the infrastructure design documents."
+**Context**: CONSTRUCTION — U4 Infrastructure Design, question resolved
+
+---
+
+## U4 Infrastructure Design — Completion prompt
+**Timestamp**: 2026-10-24T17:01:31Z
+**User Input**: "(pending)"
+**AI Response**: "Wrote construction/u4-web-api/infrastructure-design/infrastructure-design.md (port 8080 on loopback locally through launchSettings.json and \"Urls\" in appsettings.json, every interface in the container through ASPNETCORE_URLS; Kestrel settings; seven configuration sources with the original names moved in front of the command line; the settings table; Development and Production; health through GET /api/v2/system/health with no health-check middleware; single-line console logs with UTC timestamps; secrets and data protection; shutdown inside Docker's 10-second grace) and deployment-architecture.md (one topology diagram validated with Mermaid 11.4.1, with a text alternative; exposure; outbound connections; disk and processes; what U6 must provide, including ASPNETCORE_URLS, publishing on 127.0.0.1:${AIRLOCK_PORT:-8080} and a read-only /uploads). Updated the configuration row of the U4 logical components. Nothing committed. Asked: 'Infrastructure design complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U4 Code Generation)."
+**Context**: CONSTRUCTION — U4 Infrastructure Design approval gate
+
+---
+
+## U4 Infrastructure Design — Approval
+**Timestamp**: 2026-10-24T18:12:56Z
+**User Input**: "B"
+**AI Response**: "Recorded approval of U4 Infrastructure Design. Starting U4 Code Generation, Part 1 (planning) at Standard depth."
+**Context**: CONSTRUCTION — U4 Infrastructure Design approved; U4 Code Generation next
+
+---
+
+## U4 Code Generation — Plan and questions
+**Timestamp**: 2026-10-24T18:12:56Z
+**User Input**: "(none — continuing after the U4 Infrastructure Design approval)"
+**AI Response**: "Resolved the new packages' closure on nuget.org: up to 20 packages to download, about 8.5 MB (Scalar.AspNetCore 4.7 MB, Microsoft.OpenApi 0.7 MB, System.Diagnostics.EventLog 0.5 MB, 17 under 0.3 MB each), fewer if .NET 10 prunes the shared framework's own packages. Wrote construction/plans/u4-web-api-code-generation-plan.md: steps A to H (branch and packages; two small U2 methods on ScanReservation and the staging-root lock in U3's StagingSweepService; src/Airlock.Web in twelve steps; docs/api/problems.md; tests/Airlock.Web.Tests with the rule tests and NFR checks; architecture rule 5; verification including a run of the host with /docs checked in the browser pane; documentation) and five design refinements. Asked Q-CG4-1 (branch; recommended A, fast-forward main to feature/u3-infrastructure and branch feature/u4-web-api from main) and for plan approval (B restores up to 20 packages, about 8.5 MB)."
+**Context**: CONSTRUCTION — U4 Code Generation, Part 1 questions
+
+---
+
+## U4 Code Generation — Answers
+**Timestamp**: 2026-10-24T18:17:30Z
+**User Input**: "Your questions have been answered: "Q-CG4-1: Which branch should the U4 code go on? U3 is committed on feature/u3-infrastructure, and main still holds U2."="A) Main, then new branch (Recommended)", "Approve the U4 code generation plan (aidlc-docs/construction/plans/u4-web-api-code-generation-plan.md)? Approving restores up to 20 packages, about 8.5 MB, from nuget.org: Scalar.AspNetCore 4.7 MB, Microsoft.OpenApi 0.7 MB and the rest under 0.6 MB each."="B) Approve and generate (Recommended)". You can now continue with these answers in mind."
+**AI Response**: "Recorded Q-CG4-1 = A (fast-forward main to feature/u3-infrastructure locally, then branch feature/u4-web-api from main; nothing pushed) and plan approval B. Starting Part 2: generating the U4 code as planned."
+**Context**: CONSTRUCTION — U4 Code Generation, Part 2 (generation) started
+
+---
+
+## U4 Code Generation — Generation summary
+**Timestamp**: 2026-10-24T19:32:38Z
+**User Input**: "(none — Part 2 generation since the answers)"
+**AI Response**: "Generated U4 on feature/u4-web-api (main fast-forwarded to the U3 commit first; nothing committed or pushed). src/Airlock.Web (25 files: Program and the composition root AirlockHost, ConfigurationOrder, the /api/v2 endpoints, contracts and source-generated JSON, mappers, the problem catalogue and handler, the multipart reader with its idle timeout, the event stream writer, the cross-site filter and headers, the OpenAPI document and Scalar, WebLog); tests/Airlock.Web.Tests (34 code files, the worked example's golden file); docs/api/problems.md; architecture rule 5 for the Web. Amended U2 (ScanReservation.RefuseBothTargets and RefuseUnreadableTargetPath; Refusals.ScanNotFound; ScanLifetimeService cancels in StoppingAsync; ScanEventHub removes a subscriber that leaves right after its snapshot, a leak found while adding the planned U4-NFR-09 check) and U3 (the .airlock-lock staging-root lock). Verified: build with 0 warnings; 916 of 919 tests passed, 3 skipped as in U3, three full runs in a row clean after a flaky startup test was rebuilt around AirlockHost (WebApplicationFactory's deferred host could report a disposed service provider instead of the reason); coverage of Airlock.Web 97.9 % lines and 90.7 % branches, Domain 100/100, Application 97.1/95.2, Infrastructure 95.5/87.0; every worked example a test row, two refusal rows added (a missing path, defect 6; a path outside the allowed roots); a temporary probe broke rule 5, which named it, then was deleted; the host run on port 8080 with the scratchpad's Syft: health DEGRADED, 503 without a key, 403 cross-site, 400 for an unknown host, OpenAPI 3.1.1 with 8 paths, /docs loading from localhost only. Fixed on the way: EventStreamResult cancels its source when it ends (a client that stopped reading); Scalar's developer toolbar hidden (its Share and Deploy buttons upload the document). Wrote construction/u4-web-api/code/code-generation-summary.md (12 deviations, the constraints for U5 and U6), updated the design documents (WR-23, U4-NFR-01, logical components with the diagram re-validated in Mermaid 11.4.1, component-methods, components, component dependency rule 5, infrastructure design, tech-stack amendments, U2 AR-23 and AR-30) and ticked the plan."
+**Context**: CONSTRUCTION — U4 Code Generation, Part 2 complete
+
+---
+
+## U4 Code Generation — Completion prompt
+**Timestamp**: 2026-10-24T19:32:38Z
+**User Input**: "(pending)"
+**AI Response**: "Asked: 'Code generation complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U5 Web UI — Functional Design). Proposed, for approval only: two commits on feature/u4-web-api — the U4 design documents with the earlier documents they amend and ADR-0007, then the U4 code (src, tests, docs/api, the package and build props, .gitattributes, the U2 and U3 amendments) — after a scan of the staged files for keys and personal paths; nothing pushed; and asked whether .claude/launch.json should be committed."
+**Context**: CONSTRUCTION — U4 Code Generation approval gate
+
+---
+
+## U4 Code Generation — Approval
+**Timestamp**: 2026-10-25T01:22:04Z
+**User Input**: "B) Continue to Next Stage (U5 Web UI). Q-CG4-2: A. Q-CG4-3: A."
+**AI Response**: "Recorded approval of U4 Code Generation; Q-CG4-2 = A (two commits on feature/u4-web-api: the design documents with the earlier documents they amend and ADR-0007, then the code; the staged files scanned for keys and personal paths first; nothing pushed); Q-CG4-3 = A (.claude/launch.json stays uncommitted). Committing, then starting U5 Web UI — Functional Design."
+**Context**: CONSTRUCTION — U4 Code Generation approved; U5 Web UI Functional Design next
+
+---

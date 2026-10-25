@@ -82,14 +82,17 @@ Generation checkpoint approved.
 
 - **Purpose**: the host and the `/api/v2` surface.
 - **Scope**: `src/Airlock.Web` (Program, `Api/*`, `appsettings*.json`); `tests/Airlock.Web.Tests` (API integration);
-  architecture rule 5 for endpoints.
+  architecture rule 5 for endpoints; the staging-root lock in U3's `StagingSweepService` (U4-NFR-09).
 - **Delivers**: the composition root; `ScanEndpoints`, `SystemEndpoints`, `LogEndpoints`; `MultipartScanReader`
-  (streaming, no whole-file buffering); `ScanDtoMapper` (camelCase, glossary names); `RefusalProblemDetails`; SSE
-  through `TypedResults.ServerSentEvents`; health endpoint; OpenAPI document with Scalar at `/docs`; Kestrel and
-  per-endpoint request limits; configuration sources (appsettings, environment, user-secrets).
+  (streaming, no whole-file buffering); `ScanDtoMapper` (camelCase, glossary names); `ApiProblems` (the problem
+  catalogue) and `docs/api/problems.md`; `CrossSiteRequestFilter` and the `AllowedHosts` default (ADR-0007); SSE
+  through Airlock's own stream writer with keep-alive comments (U4-NFR-05); health endpoint; OpenAPI document with
+  Scalar at `/docs`; Kestrel and per-endpoint request limits; configuration sources (appsettings, environment,
+  user-secrets).
 - **Tests**: WebApplicationFactory with faked ports: 202 with `Location`, 409 busy, 503 not ready, 400 and 413
   limits, snapshot-first SSE, report 409 while running, 404 after retention, ProblemDetails without internal
-  details, an upload streamed without buffering in memory, the OpenAPI document listing every endpoint.
+  details, an upload streamed without buffering in memory, cross-site `POST` requests and unknown host names refused,
+  the OpenAPI document listing every endpoint (the rule-to-test map of U4's functional design).
 - **Provides**: the endpoints U5 calls for submission and downloads.
 
 ## U5 — Web UI

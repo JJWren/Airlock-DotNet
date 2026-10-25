@@ -40,7 +40,7 @@ the layer it tests (API and component tests reference Web).
 3. Airlock.Infrastructure never depends on Airlock.Web.
 4. Port interfaces live in Airlock.Application and are implemented only in Airlock.Infrastructure.
 5. API endpoints and UI components call Application use cases; they never use Infrastructure types directly (only
-   `Program` wires them).
+   the composition root, `AirlockHost`, wires them; `Program` calls it).
 6. Use cases are sealed classes in the `Airlock.Application.UseCases` namespace.
 
 ## Runtime interactions

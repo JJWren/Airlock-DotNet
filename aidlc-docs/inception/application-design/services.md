@@ -74,7 +74,7 @@ Syft process tree and abandons pending NVD calls; the pipeline then records the 
 ## Outcomes and errors
 
 Expected refusals are values (`Outcome<T>` carrying a `Refusal`), never exceptions. The API maps them through
-`RefusalProblemDetails`; the UI shows the message inline.
+`ApiProblems` to the statuses below, each with its own problem type (U4 WR-03); the UI shows the message inline.
 
 | Refusal | HTTP | Typical message |
 |---|---|---|
@@ -90,7 +90,9 @@ Expected refusals are values (`Outcome<T>` carrying a `Refusal`), never exceptio
 | ScanHasNoResults | 409 | The scan ended without results |
 
 Unexpected exceptions become a 500 ProblemDetails with no internal details. Inside a scan they make it Failed with a
-generic reason; the full error goes to the console log.
+generic reason; the full error goes to the console log. The Web adds problems of its own — 400 for a malformed
+submission, 403 for a cross-site `POST`, 415 for a body that is not multipart, 404 and 405 for unknown addresses and
+methods — from the same catalogue (U4 WR-04, `u4-web-api/functional-design/domain-entities.md`).
 
 ## Streams
 
@@ -122,4 +124,6 @@ whenever a scan finishes and before lookups by id; running scans are never prune
 Options bind from `appsettings.json`, environment variables and, in Development, user-secrets; the original names
 `NVD_API_KEY`, `SYFT_BINARY_PATH` and `LOG_LEVEL` map onto the `Airlock:*` options. Invalid values stop startup with a
 message naming the option. A missing NVD key or Syft binary does not stop startup; Airlock starts DEGRADED. The NVD
-key is never written to any log, including HTTP client logging.
+key is never written to any log, including HTTP client logging. Airlock answers only the host names in `AllowedHosts`
+(by default `localhost`, `127.0.0.1` and `[::1]`), and the API refuses `POST` requests a browser marks as cross-site
+(U4 WR-19, WR-20; ADR-0007).
