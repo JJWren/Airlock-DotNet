@@ -6,17 +6,24 @@ using Microsoft.Extensions.Options;
 
 namespace Airlock.Infrastructure.Staging;
 
-/// <summary>At startup, deletes the marked folders an earlier run left under the staging root (IR-13).</summary>
+/// <summary>
+/// At startup, takes the staging root's lock and deletes the marked folders an earlier run left under it (IR-13). The
+/// lock is held until the host stops, so a second Airlock on the same root stops at startup instead.
+/// </summary>
 internal sealed class StagingSweepService(
-    IOptions<StagingOptions> options, TimeProvider timeProvider, ILogger<StagingSweepService> logger) : IHostedService
+    IOptions<StagingOptions> options, TimeProvider timeProvider, ILogger<StagingSweepService> logger) : IHostedService, IDisposable
 {
+    private FileStream? rootLock;
+
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         var root = options.Value.Root;
+        rootLock ??= StagingFolders.LockRoot(root);
+
         List<string> folders;
         try
         {
-            folders = Directory.Exists(root) ? [.. Directory.EnumerateDirectories(root)] : [];
+            folders = [.. Directory.EnumerateDirectories(root)];
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
@@ -50,5 +57,15 @@ internal sealed class StagingSweepService(
         }
     }
 
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        Dispose();
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        rootLock?.Dispose();
+        rootLock = null;
+    }
 }

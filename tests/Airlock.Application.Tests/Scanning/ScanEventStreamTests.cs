@@ -1,6 +1,7 @@
 using Airlock.Application.Events;
 using Airlock.Application.Scanning;
 using Airlock.Domain.Scanning;
+using Airlock.Domain.Targets;
 
 namespace Airlock.Application.Tests.Scanning;
 
@@ -98,6 +99,34 @@ public sealed class ScanEventStreamTests
 
         Assert.Equal(2, events.Count);
         Assert.Same(final, hub.Latest);
+    }
+
+    // U4-NFR-09: a client that goes right after its snapshot, or while it waits, leaves no subscription behind.
+    [Fact]
+    public async Task A_subscriber_that_leaves_is_no_longer_written_to()
+    {
+        var hub = new ScanEventHub(Scan.Start(ScanId.New(), new DirectoryTarget("/uploads/acme-app"), ScanHarness.StartTime));
+        var token = TestContext.Current.CancellationToken;
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+        await using (var afterSnapshot = hub.SubscribeAsync(token).GetAsyncEnumerator(token))
+        {
+            Assert.True(await afterSnapshot.MoveNextAsync());
+            Assert.Equal(1, hub.SubscriberCount);
+        }
+
+        Assert.Equal(0, hub.SubscriberCount);
+
+        await using (var waiting = hub.SubscribeAsync(cancellation.Token).GetAsyncEnumerator(cancellation.Token))
+        {
+            Assert.True(await waiting.MoveNextAsync());
+            var next = waiting.MoveNextAsync().AsTask();
+            Assert.Equal(1, hub.SubscriberCount);
+            await cancellation.CancelAsync();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => next);
+        }
+
+        Assert.Equal(0, hub.SubscriberCount);
     }
 
     [Fact]

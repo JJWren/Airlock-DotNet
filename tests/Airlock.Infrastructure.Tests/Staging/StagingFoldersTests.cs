@@ -6,12 +6,14 @@ using Microsoft.Extensions.Time.Testing;
 
 namespace Airlock.Infrastructure.Tests.Staging;
 
-// U3-NFR-06, IR-13 — read-only entries, the startup sweep of marked folders, and nothing unmarked touched.
+// U3-NFR-06, IR-13, U4-NFR-09 — read-only entries, the startup sweep of marked folders, nothing unmarked touched, and
+// one Airlock per staging root.
 public sealed class StagingFoldersTests : IDisposable
 {
     private readonly TemporaryFolder folder = new();
     private readonly FakeTimeProvider clock = new(Test.StartTime);
     private readonly FakeLogger<StagingSweepService> logger = new();
+    private readonly List<StagingSweepService> sweeps = [];
 
     [Fact]
     public async Task Read_only_files_and_folders_are_deleted_without_waiting()
@@ -80,15 +82,51 @@ public sealed class StagingFoldersTests : IDisposable
     }
 
     [Fact]
-    public async Task Stopping_the_sweep_does_nothing()
+    public async Task A_second_sweep_on_a_held_root_stops_naming_the_root()
     {
-        await Sweep(folder.Path).StopAsync(Test.Token);
+        await Sweep(folder.Path).StartAsync(Test.Token);
+
+        var refused = await Assert.ThrowsAsync<InvalidOperationException>(() => Sweep(folder.Path).StartAsync(Test.Token));
+
+        Assert.Equal($"Another Airlock is using the staging root {folder.Path}", refused.Message);
     }
 
-    public void Dispose() => folder.Dispose();
+    [Fact]
+    public async Task Stopping_the_sweep_releases_the_lock()
+    {
+        var first = Sweep(folder.Path);
+        await first.StartAsync(Test.Token);
+        await first.StopAsync(Test.Token);
 
-    private StagingSweepService Sweep(string root) =>
-        new(Microsoft.Extensions.Options.Options.Create(new StagingOptions { Root = root }), clock, logger);
+        await Sweep(folder.Path).StartAsync(Test.Token);
+    }
+
+    [Fact]
+    public async Task The_sweep_creates_a_missing_root_and_leaves_its_lock_file_alone()
+    {
+        var root = folder.Combine("not-there-yet");
+
+        await Sweep(root).StartAsync(Test.Token);
+
+        Assert.True(File.Exists(Path.Combine(root, StagingFolders.LockName)));
+    }
+
+    public void Dispose()
+    {
+        foreach (var sweep in sweeps)
+        {
+            sweep.Dispose();
+        }
+
+        folder.Dispose();
+    }
+
+    private StagingSweepService Sweep(string root)
+    {
+        var sweep = new StagingSweepService(Microsoft.Extensions.Options.Options.Create(new StagingOptions { Root = root }), clock, logger);
+        sweeps.Add(sweep);
+        return sweep;
+    }
 
     private string Folder(string name, bool marked)
     {

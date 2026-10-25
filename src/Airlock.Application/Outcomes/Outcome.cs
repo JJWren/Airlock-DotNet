@@ -57,6 +57,13 @@ public readonly record struct Outcome<T>
     public bool IsSuccess { get; }
 }
 
+/// <summary>The refusals several callers give in the same words.</summary>
+public static class Refusals
+{
+    /// <summary>404: no such scan, or it is no longer retained (AR-33); also what the API answers for an unknown id.</summary>
+    public static Refusal ScanNotFound { get; } = new(RefusalCode.ScanNotFound, "Scan not found or no longer retained");
+}
+
 /// <summary>Creates <see cref="Outcome{T}"/> values.</summary>
 public static class Outcome
 {

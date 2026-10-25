@@ -1,3 +1,5 @@
 * text=auto
 *.cs text diff=csharp
 *.sh text eol=lf
+# The golden file of the API's JSON is compared byte for byte (U4).
+tests/Airlock.Web.Tests/Fixtures/*.json text eol=lf

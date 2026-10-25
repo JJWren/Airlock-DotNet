@@ -18,6 +18,7 @@ public sealed class ScanReservation : IAsyncDisposable
 {
     internal const string NothingToScanMessage = "Choose a directory or upload at least one artifact";
     internal const string NotBothMessage = "Choose a directory or upload artifacts, not both";
+    internal const string InvalidPathMessage = "Target path is not valid";
     internal const string StoppedMessage = "Emergency Stop ended the upload before the scan started";
 
     private const long Mebibyte = 1024 * 1024;
@@ -129,6 +130,15 @@ public sealed class ScanReservation : IAsyncDisposable
         return ValueTask.FromResult(Outcome.Success(scan));
     }
 
+    /// <summary>
+    /// Refuses a request that names a directory and uploads artifacts too, as soon as the host has seen both and before
+    /// it stages anything (AR-04). Like every refusal, it answers all later calls (AR-03).
+    /// </summary>
+    public Refusal RefuseBothTargets() => RefuseEarly(NotBothMessage);
+
+    /// <summary>Refuses a directory path the host could not read as text: too long, or not UTF-8 (AR-05).</summary>
+    public Refusal RefuseUnreadableTargetPath() => RefuseEarly(InvalidPathMessage);
+
     /// <summary>Before the start: deletes the staging area and frees the slot; no scan is recorded (AR-03).</summary>
     public async ValueTask DisposeAsync()
     {
@@ -171,7 +181,7 @@ public sealed class ScanReservation : IAsyncDisposable
         {
             if (TryCreate(path) is null)
             {
-                problem = "Target path is not valid";
+                problem = InvalidPathMessage;
                 return null;
             }
 
@@ -201,12 +211,12 @@ public sealed class ScanReservation : IAsyncDisposable
             }
 
             var target = TryCreate(fullPath);
-            problem = target is null ? "Target path is not valid" : null;
+            problem = target is null ? InvalidPathMessage : null;
             return target;
         }
         catch (ArgumentException)
         {
-            problem = "Target path is not valid";
+            problem = InvalidPathMessage;
             return null;
         }
     }
@@ -246,6 +256,8 @@ public sealed class ScanReservation : IAsyncDisposable
         logger.ScanRefused(message);
         return Outcome.Refused<T>(refusal);
     }
+
+    private Refusal RefuseEarly(string message) => Blocked() ?? Refuse<Scan>(RefusalCode.InvalidTarget, message).Refusal!;
 
     private static string Size(long bytes) =>
         bytes % Gibibyte == 0

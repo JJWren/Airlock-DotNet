@@ -72,7 +72,7 @@ public sealed class RenderScanReport(ScanCoordinator coordinator, IScanRegistry 
         var scan = registry.Find(id);
         if (scan is null)
         {
-            return Outcome.Refused<ScanReportDocument>(RefusalCode.ScanNotFound, CancelScan.NotFoundMessage);
+            return Outcome.Refused<ScanReportDocument>(Refusals.ScanNotFound);
         }
 
         if (scan.FinishedAt is not { } finishedAt)

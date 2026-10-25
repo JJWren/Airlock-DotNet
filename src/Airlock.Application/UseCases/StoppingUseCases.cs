@@ -11,7 +11,6 @@ namespace Airlock.Application.UseCases;
 public sealed class CancelScan(
     ScanCoordinator coordinator, IScanRegistry registry, IOptions<AirlockOptions> options, TimeProvider timeProvider)
 {
-    internal const string NotFoundMessage = "Scan not found or no longer retained";
     internal const string AlreadyFinishedMessage = "The scan has already finished";
 
     public async ValueTask<Outcome<Scan>> ExecuteAsync(ScanId id, CancellationToken cancellationToken)
@@ -20,7 +19,7 @@ public sealed class CancelScan(
         var scan = registry.Find(id);
         if (scan is null)
         {
-            return Outcome.Refused<Scan>(RefusalCode.ScanNotFound, NotFoundMessage);
+            return Outcome.Refused<Scan>(Refusals.ScanNotFound);
         }
 
         if (scan.IsFinished)

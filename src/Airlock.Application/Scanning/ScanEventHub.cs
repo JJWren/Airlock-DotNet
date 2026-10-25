@@ -30,6 +30,18 @@ public sealed class ScanEventHub
         }
     }
 
+    /// <summary>The subscriptions the hub writes to; none is left behind by a subscriber that has gone (U4-NFR-09).</summary>
+    internal int SubscriberCount
+    {
+        get
+        {
+            lock (gate)
+            {
+                return subscribers.Count;
+            }
+        }
+    }
+
     /// <summary>A snapshot first, then the later events in order, ending with the finished event (AR-23).</summary>
     public async IAsyncEnumerable<ScanEvent> SubscribeAsync([EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -46,15 +58,16 @@ public sealed class ScanEventHub
             }
         }
 
-        yield return new ScanSnapshot(snapshot.Id, snapshot);
-        if (alreadyCompleted)
-        {
-            yield return new ScanFinished(snapshot.Id, snapshot.Status);
-            yield break;
-        }
-
+        // From the moment the queue is added: a subscriber that leaves right after its snapshot is removed too.
         try
         {
+            yield return new ScanSnapshot(snapshot.Id, snapshot);
+            if (alreadyCompleted)
+            {
+                yield return new ScanFinished(snapshot.Id, snapshot.Status);
+                yield break;
+            }
+
             await foreach (var scanEvent in queue.ReadAllAsync(cancellationToken))
             {
                 yield return scanEvent;

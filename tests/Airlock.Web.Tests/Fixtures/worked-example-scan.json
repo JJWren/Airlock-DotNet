@@ -1,0 +1,118 @@
+{
+  "id": "01a1637b-7e00-7c3a-9f12-6b84d0e5a1c7",
+  "status": "INCOMPLETE",
+  "phase": "SUMMARY",
+  "progress": {
+    "correlated": 4,
+    "total": 4
+  },
+  "target": {
+    "kind": "ARTIFACTS",
+    "path": null,
+    "artifacts": [
+      {
+        "fileName": "requirements.txt",
+        "sizeBytes": 56,
+        "kind": "MANIFEST"
+      }
+    ]
+  },
+  "startedAt": "2026-10-22T12:00:00.000Z",
+  "finishedAt": "2026-10-22T12:01:32.418Z",
+  "durationSeconds": 92.418,
+  "summary": {
+    "totalPackages": 4,
+    "vulnerablePackages": 2,
+    "cleanPackages": 1,
+    "unverifiedPackages": 1,
+    "criticalFindings": 2,
+    "highFindings": 3
+  },
+  "vulnerablePackages": [
+    {
+      "type": "python",
+      "name": "pyyaml",
+      "version": "5.3",
+      "highestSeverity": "CRITICAL",
+      "matchMethod": {
+        "kind": "CPE",
+        "cpe": "cpe:2.3:a:pyyaml:pyyaml:5.3:*:*:*:*:*:*:*",
+        "cpeSource": "GENERATED",
+        "product": null
+      },
+      "findings": [
+        {
+          "cveId": "CVE-2020-14343",
+          "severity": "CRITICAL",
+          "baseScore": 9.8,
+          "cvssVersion": "3.1",
+          "scoreSource": "PRIMARY",
+          "nvdUrl": "https://nvd.nist.gov/vuln/detail/CVE-2020-14343",
+          "description": "A vulnerability was discovered in the PyYAML library in versions before 5.4, where it is susceptible to arbitrary code execution when it processes untrusted YAML files through the full_load method or with the FullLoader loader. Applications that use the library to process untrusted input may be vulnerable to this flaw. This flaw allows an attacker to execute arbitrary code on the system by abusing the python/object/new constructor. This flaw is due to an incomplete fix for CVE-2020-1747."
+        },
+        {
+          "cveId": "CVE-2020-1747",
+          "severity": "CRITICAL",
+          "baseScore": 9.8,
+          "cvssVersion": "3.1",
+          "scoreSource": "PRIMARY",
+          "nvdUrl": "https://nvd.nist.gov/vuln/detail/CVE-2020-1747",
+          "description": "A vulnerability was discovered in the PyYAML library in versions before 5.3.1, where it is susceptible to arbitrary code execution when it processes untrusted YAML files through the full_load method or with the FullLoader loader. Applications that use the library to process untrusted input may be vulnerable to this flaw. An attacker could use this flaw to execute arbitrary code on the system by abusing the python/object/new constructor."
+        }
+      ]
+    },
+    {
+      "type": "python",
+      "name": "flask",
+      "version": "0.12.2",
+      "highestSeverity": "HIGH",
+      "matchMethod": {
+        "kind": "PRODUCT",
+        "cpe": null,
+        "cpeSource": null,
+        "product": "flask"
+      },
+      "findings": [
+        {
+          "cveId": "CVE-2018-1000656",
+          "severity": "HIGH",
+          "baseScore": 7.5,
+          "cvssVersion": "3.0",
+          "scoreSource": "PRIMARY",
+          "nvdUrl": "https://nvd.nist.gov/vuln/detail/CVE-2018-1000656",
+          "description": "The Pallets Project flask version Before 0.12.3 contains a CWE-20: Improper Input Validation vulnerability in flask that can result in Large amount of memory usage possibly leading to denial of service. This attack appear to be exploitable via Attacker provides JSON data in incorrect encoding. This vulnerability appears to have been fixed in 0.12.3. NOTE: this may overlap CVE-2019-1010083."
+        },
+        {
+          "cveId": "CVE-2019-1010083",
+          "severity": "HIGH",
+          "baseScore": 7.5,
+          "cvssVersion": "3.0",
+          "scoreSource": "PRIMARY",
+          "nvdUrl": "https://nvd.nist.gov/vuln/detail/CVE-2019-1010083",
+          "description": "The Pallets Project Flask before 1.0 is affected by: unexpected memory usage. The impact is: denial of service. The attack vector is: crafted encoded JSON data. The fixed version is: 1. NOTE: this may overlap CVE-2018-1000656."
+        },
+        {
+          "cveId": "CVE-2023-30861",
+          "severity": "HIGH",
+          "baseScore": 7.5,
+          "cvssVersion": "3.1",
+          "scoreSource": "PRIMARY",
+          "nvdUrl": "https://nvd.nist.gov/vuln/detail/CVE-2023-30861",
+          "description": "Flask is a lightweight WSGI web application framework. When all of the following conditions are met, a response containing data intended for one client may be cached and subsequently sent by the proxy to other clients. If the proxy also caches `Set-Cookie` headers, it may send one client's `session` cookie to other clients. The severity depends on the application's use of the session and the proxy's behavior regarding cookies. The risk depends on all these conditions being met.\n\n1. The application must be hosted behind a caching proxy that does not strip cookies or ignore responses with cookies.\n2. The application sets `session.permanent = True`\n3. The application does not access or modify the session at any point during a request.\n4. `SESSION_REFRESH_EACH_REQUEST` enabled (the default).\n5. The application does not set a `Cache-Control` header to indicate that a page is private or should not be cached.\n\nThis happens because vulnerable versions of Flask only set the `Vary: Cookie` header when the session is accessed or modified, not when it is refreshed (re-sent to update the expiration) without being accessed or modified. This issue has been fixed in versions 2.3.2 and 2.2.5."
+        }
+      ]
+    }
+  ],
+  "unverifiedPackages": [
+    {
+      "type": "python",
+      "name": "jinja2",
+      "version": "2.10",
+      "reason": "LOOKUP_FAILED",
+      "detail": "NVD returned 503"
+    }
+  ],
+  "warnings": [],
+  "failure": null,
+  "cancellationReason": null
+}

@@ -8,6 +8,9 @@ internal static class StagingFolders
     /// <summary>The marker file in every folder Airlock creates under the root; the startup sweep deletes only these.</summary>
     public const string MarkerName = ".airlock";
 
+    /// <summary>The file a running Airlock holds open, so that one staging root serves one Airlock (IR-13).</summary>
+    public const string LockName = ".airlock-lock";
+
     public const int DeleteAttempts = 5;
 
     private const UnixFileMode OwnerOnly = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute;
@@ -35,6 +38,27 @@ internal static class StagingFolders
     }
 
     public static bool IsMarked(string path) => File.Exists(Path.Combine(path, MarkerName));
+
+    // IR-13, U4-NFR-09: held exclusively until disposed; .NET takes it as an advisory flock on Linux and macOS, and the
+    // operating system releases it if the process dies.
+    public static FileStream LockRoot(string root)
+    {
+        CreateDirectory(root);
+        var options = new FileStreamOptions { Mode = FileMode.OpenOrCreate, Access = FileAccess.ReadWrite, Share = FileShare.None };
+        if (!OperatingSystem.IsWindows())
+        {
+            options.UnixCreateMode = OwnerReadWrite;
+        }
+
+        try
+        {
+            return new FileStream(Path.Combine(root, LockName), options);
+        }
+        catch (IOException exception)
+        {
+            throw new InvalidOperationException($"Another Airlock is using the staging root {root}", exception);
+        }
+    }
 
     /// <summary>A new file, never an existing one, owner-only on Linux and macOS.</summary>
     public static FileStream OpenNew(string path)

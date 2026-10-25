@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <UserSecretsId>6f0d3b8e-3c4a-4f63-9a2e-1b7d5c9e2a41</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Scalar.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Airlock.Application/Airlock.Application.csproj" />
+    <ProjectReference Include="../Airlock.Domain/Airlock.Domain.csproj" />
+    <ProjectReference Include="../Airlock.Infrastructure/Airlock.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Airlock.Web.Tests" />
+  </ItemGroup>
+
+</Project>

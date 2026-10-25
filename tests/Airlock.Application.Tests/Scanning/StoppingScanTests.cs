@@ -175,6 +175,26 @@ public sealed class StoppingScanTests
     }
 
     [Fact]
+    public async Task The_scan_is_cancelled_as_soon_as_the_host_begins_to_stop()
+    {
+        using var harness = new ScanHarness();
+        harness.Sbom.BlocksUntilCancelled(ScanHarness.Directory);
+        var lifetime = new ScanLifetimeService(
+            harness.Coordinator,
+            harness.FileSystem,
+            new OptionsWrapper<AirlockOptions>(harness.Options),
+            harness.LoggerFactory.CreateLogger<ScanLifetimeService>());
+        var scan = await harness.StartDirectoryScanAsync(ScanHarness.Directory);
+        await harness.Sbom.RunStarted.Task.WaitAsync(harness.Token);
+
+        await lifetime.StoppingAsync(harness.Token);
+
+        Assert.Equal("Server shutting down", harness.Registry.Find(scan.Id)!.CancellationReason);
+        await lifetime.StopAsync(harness.Token);
+        await lifetime.StoppedAsync(harness.Token);
+    }
+
+    [Fact]
     public async Task Shutting_down_also_ends_an_open_reservation()
     {
         using var harness = new ScanHarness();

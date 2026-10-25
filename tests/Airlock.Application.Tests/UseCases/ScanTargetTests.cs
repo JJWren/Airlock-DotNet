@@ -60,6 +60,51 @@ public sealed class ScanTargetTests
     }
 
     [Fact]
+    public async Task Both_kinds_of_target_can_be_refused_before_anything_is_staged()
+    {
+        using var harness = new ScanHarness();
+        await using var reservation = await harness.ReserveAsync();
+
+        var refusal = reservation.RefuseBothTargets();
+
+        Assert.Equal(new Refusal(RefusalCode.InvalidTarget, "Choose a directory or upload artifacts, not both"), refusal);
+        Assert.Equal(refusal, (await reservation.StartAsync(ScanHarness.Directory, harness.Token)).Refusal);
+        Assert.Empty(harness.Staging.Created);
+        Assert.Empty(harness.Registry.List());
+    }
+
+    [Fact]
+    public async Task An_unreadable_target_path_is_not_valid_and_keeps_refusing()
+    {
+        using var harness = new ScanHarness();
+        await using var reservation = await harness.ReserveAsync();
+
+        var refusal = reservation.RefuseUnreadableTargetPath();
+        using var content = new MemoryStream([1]);
+        var upload = await reservation.AddArtifactAsync("requirements.txt", content, harness.Token);
+
+        Assert.Equal(new Refusal(RefusalCode.InvalidTarget, "Target path is not valid"), refusal);
+        Assert.Equal(refusal, upload.Refusal);
+        Assert.Equal(refusal, reservation.RefuseBothTargets());
+    }
+
+    [Fact]
+    public async Task An_early_refusal_after_another_keeps_the_first()
+    {
+        using var harness = new ScanHarness(configure: options => options.Limits.MaxArtifactsPerScan = 1);
+        await using var reservation = await harness.ReserveAsync();
+        using (var first = new MemoryStream([1]))
+        {
+            Assert.True((await reservation.AddArtifactAsync("requirements.txt", first, harness.Token)).IsSuccess);
+        }
+
+        using var second = new MemoryStream([1]);
+        var tooMany = (await reservation.AddArtifactAsync("package-lock.json", second, harness.Token)).Refusal;
+
+        Assert.Equal(tooMany, reservation.RefuseBothTargets());
+    }
+
+    [Fact]
     public async Task A_path_the_domain_would_reject_is_not_valid()
     {
         using var harness = new ScanHarness();
