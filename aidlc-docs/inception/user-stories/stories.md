@@ -186,7 +186,8 @@ I never mistake a misconfigured run for a clean result.
 ```gherkin
 Scenario: A second scan is refused
   Given a scan started from another browser tab is active
-  When I execute a scan
+  Then Execute reads "Vetting Sequence Active..." and is disabled
+  When a submission reaches the server anyway
   Then it is refused with the reason "A scan is already in progress"
   And the active scan is unaffected
 

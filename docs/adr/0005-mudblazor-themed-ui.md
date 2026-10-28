@@ -17,3 +17,5 @@ and the original layout. This trades pixel fidelity for far less hand-written CS
 ## Consequences
 
 - Replacing the component library later means rewriting the views.
+- Where the original's text colours fall below WCAG 2.2 AA contrast, the theme uses lighter shades of them: #A1A1AA for
+  small grey text, and #60A5FA and #F87171 for blue and red text on tinted backgrounds (U5, Q-U5-N1).

@@ -34,7 +34,7 @@ reachable from the network unless an operator decides otherwise (`deployment-arc
 | # | Source | Example | Notes |
 |---|---|---|---|
 | 1 | The options' defaults in code | `Limits.MaxArtifactsPerScan` = 25 | One source of truth; `appsettings.json` repeats none of them, and the README (U6) lists every setting with its default and range |
-| 2 | `appsettings.json` | `Urls`, `AllowedHosts`, `Logging` | Shipped with the application |
+| 2 | `appsettings.json` | `Urls`, `AllowedHosts`, `Logging`, and from U5 `DisableStaticAssetNotFoundRuntimeFallback` | Shipped with the application. The last keeps the static files' development fallback, which a run from the build output would add, from turning the API's 405 into 404 (U5) |
 | 3 | `appsettings.{Environment}.json` | — | Not needed today; nothing differs between environments |
 | 4 | User-secrets, Development only | `Airlock:Nvd:ApiKey` | Where a developer keeps the NVD key: `dotnet user-secrets set Airlock:Nvd:ApiKey <key> --project src/Airlock.Web` |
 | 5 | Environment variables | `Airlock__Limits__MaxArtifactsPerScan=10`, `ASPNETCORE_URLS`, `AllowedHosts` | .NET's own convention, `__` for `:` |

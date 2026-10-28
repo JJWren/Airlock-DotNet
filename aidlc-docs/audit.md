@@ -709,3 +709,131 @@ UI does NOT go through HTTP API (API tested separately), "Q4 — Is the reverse-
 **Context**: CONSTRUCTION — U4 Code Generation approved; U5 Web UI Functional Design next
 
 ---
+
+## U4 Code Generation — Commits
+**Timestamp**: 2026-10-25T01:28:56Z
+**User Input**: "(none — carrying out Q-CG4-2 = A)"
+**AI Response**: "Scanned the staged changes of each commit for keys, tokens and personal paths: no key (the only one is the tests' fake marker), no user path; the audit's port-check entries name Z:\docker, as the owner's own request did, and no service. Committed on feature/u4-web-api: 2a59a8a 'Add U4 Web API design documents' (25 files) and b7701e9 'Add U4 Web API: /api/v2 endpoints, streaming uploads, event streams and OpenAPI docs with tests' (82 files). .claude/ stays untracked (Q-CG4-3 = A). Nothing pushed."
+**Context**: CONSTRUCTION — U4 committed
+
+---
+
+## U5 Functional Design — Plan and questions
+**Timestamp**: 2026-10-25T01:28:56Z
+**User Input**: "(none — continuing after the U4 Code Generation approval)"
+**AI Response**: "Read the U5 inputs (FR-24 to FR-31; stories E07, E08, E10, E12 and the U5 scenarios of E01, E02, E04, E06, E09, E11; components, component-methods, services and unit-of-work; ADR-0001, 0002, 0005; the U2 use cases and U4's hand-off) and, in the browser pane, the original React views and components at JJWren/Airlock master for their layout and wording (viewed, nothing downloaded). Wrote construction/plans/u5-web-ui-functional-design-plan.md: inputs, steps, 30 decisions taken by default (among them staged files kept in the page and added to rather than replaced, the count and size checks before uploading, Execute's enablement and reasons, a non-blocking OFFLINE state, Emergency Stop's new question, the grid listing vulnerable and unverified packages ordered by risk, selection by package identity, the detail pane's match and score source, exports and Rescan, a local profile icon instead of the original's dicebear avatar, 'Artifact Upload' and 'Findings' wording, the theme and severity colours, time formats) and two questions: Q-U5-1 a directory path and staged artifacts together (recommended A, staged artifacts win as in the original) and Q-U5-2 what other tabs show of the active scan (recommended A, every tab follows it; the submitting tab opens the report)."
+**Context**: CONSTRUCTION — U5 Functional Design, open questions
+
+---
+
+## U5 Functional Design — Answers
+**Timestamp**: 2026-10-26T01:10:09Z
+**User Input**: "Q-U5-1: A. Q-U5-2: A."
+**AI Response**: "Recorded Q-U5-1 = A (while any file is staged, Execute uploads only the artifacts and the path field is dimmed with a note, as the original did) and Q-U5-2 = A (every tab follows the active scan, whoever started it; the tab that submitted it opens the report, the others offer 'View report'; a reloaded tab picks a running scan up again). Writing the U5 functional design documents."
+**Context**: CONSTRUCTION — U5 Functional Design, questions resolved
+
+---
+
+## U5 Functional Design — Completion prompt
+**Timestamp**: 2026-10-26T01:21:16Z
+**User Input**: "(pending)"
+**AI Response**: "Wrote construction/u5-web-ui/functional-design/domain-entities.md (the tab's session, staged artifacts, the upload, terminal lines, the inline notice, the status pill's states, a page's view of a scan, inventory rows, the copy catalogue with each text's source, the theme tokens), business-rules.md (UR-01 to UR-41: shell, readiness and connection, Control Center, following a scan, the terminal and Emergency Stop, Active Logs, Reports, presentation, boundaries) and business-logic-model.md (executing with artifacts, following a scan to its end and Emergency Stop as sequences, Rescan as a flowchart and the status pill as a state diagram — all five validated with Mermaid 11.4.1, each with a text alternative — the Execute and Reports tables, the airlock.js contract, the worked example on screen, the rule-to-test map with the regressions for defects 1, 2, 16 and 17, what is left to U5 NFR and handed to U6). Brought the plan's decisions 6, 7, 12 and 18 in line with the rules. Fed back: component-methods.md (UI section rewritten; the Application's UploadLimits added for the page's checks), components.md (CancelScan serves the API; UI rows), services.md (every tab follows the active scan), unit-of-work.md (U5), unit-of-work-story-map.md (E04), stories.md (E04 'A second scan is refused': Execute disabled in every tab, the refusal when a submission races), requirements.md (FR-25, FR-28, FR-29, FR-30 and two traceability rows). Nothing committed. Asked: 'Functional design complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U5 NFR Requirements)."
+**Context**: CONSTRUCTION — U5 Functional Design approval gate
+
+---
+
+## U5 Functional Design — Approval
+**Timestamp**: 2026-10-26T01:34:06Z
+**User Input**: "B) Continue to Next Stage (U5 NFR Requirements)."
+**AI Response**: "Recorded approval of U5 Functional Design. Starting U5 NFR Requirements at Standard depth: checking the package and font versions on their official sources and the theme's contrast, then writing the plan."
+**Context**: CONSTRUCTION — U5 Functional Design approved; U5 NFR Requirements next
+
+---
+
+## U5 NFR Requirements — Plan and question
+**Timestamp**: 2026-10-26T01:37:23Z
+**User Input**: "(none — continuing after the U5 Functional Design approval)"
+**AI Response**: "Checked the facts the targets rest on, reading only: MudBlazor 9.11.0 on nuget.org (MIT, .NET 10 group on Components 10.0.1+, no static rendering); bUnit 2.13.3, published the day before and not yet downloaded, and 2.12.5, a week old (MIT, Components 10.0.13 for .NET 10); the latest Inter 4.1 and JetBrains Mono 2.304 releases on GitHub (SIL OFL 1.1; archives of 32.1 MB and 5.36 MB, of which only a few WOFF2 files are needed); .NET 10's CircuitOptions in dotnet/aspnetcore release/10.0 (3-minute retention of disconnected circuits, at most 100; a 1-minute default for calls into the browser); the reconnection states on Microsoft Learn; and the WCAG contrast of the theme's colours (the original's #71717A at 3.67:1 on surfaces and 4.12:1 on the page; #A1A1AA at 6.91:1 and 7.76:1). Wrote construction/plans/u5-web-ui-nfr-requirements-plan.md with 16 targets taken by default and one question, Q-U5-N1: meet WCAG 2.2 AA by lightening small grey text to #A1A1AA (recommended A) or keep the original grey (B)."
+**Context**: CONSTRUCTION — U5 NFR Requirements, open question
+
+---
+
+## U5 NFR Requirements — Answer
+**Timestamp**: 2026-10-26T13:06:15Z
+**User Input**: "Q-U5-N1: A."
+**AI Response**: "Recorded Q-U5-N1 = A: the pages meet WCAG 2.2 AA; small grey text uses #A1A1AA, #71717A stays for borders, icons, dividers and disabled controls, and highlighted backgrounds get lighter shades where blue or red text falls short. Checking the contrast of the tinted backgrounds, then writing the NFR requirements and the tech-stack decisions."
+**Context**: CONSTRUCTION — U5 NFR Requirements, question resolved
+
+---
+
+## U5 NFR Requirements — Completion prompt
+**Timestamp**: 2026-10-26T13:09:07Z
+**User Input**: "(pending)"
+**AI Response**: "Measured the contrast of the theme's text colours on the original's tinted backgrounds as well: #3B82F6 and #EF4444 fall below 4.5:1 on the highlighted drawer item, a selected row and the CRITICAL badge, while #60A5FA and #F87171 pass on every background, as do the orange, yellow, emerald and the new #A1A1AA. Wrote construction/u5-web-ui/nfr-requirements/nfr-requirements.md (U5-NFR-01 to U5-NFR-16 — architecture, responsiveness, bounds per tab, large results, long uploads, connection loss, accessibility with the contrast table, security headers and CSP, time and culture, browsers, page weight, observability, testability, coverage, maintainability, licensing — each with its check) and tech-stack-decisions.md (rendering, MudBlazor 9.11.0, the theme with Q-U5-N1's shades, MudBlazor's icons, Inter 4.1 and JetBrains Mono 2.304 as WOFF2 files, one stylesheet, airlock.js without a toolchain, MapStaticAssets, the page headers, reconnection, time zones; bUnit 2.13.3 or 2.12.5 decided at code generation; what code generation will download). Fed back: the theme tokens of the U5 domain entities, FR-30, NFR-12 and a traceability row in requirements.md, and a consequence in ADR-0005. Nothing committed. Asked: 'NFR requirements complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U5 NFR Design)."
+**Context**: CONSTRUCTION — U5 NFR Requirements approval gate
+
+---
+
+## U5 NFR Requirements — Approval
+**Timestamp**: 2026-10-27T02:15:53Z
+**User Input**: "B) Continue to Next Stage (U5 NFR Design)."
+**AI Response**: "Recorded approval of U5 NFR Requirements. Starting U5 NFR Design at Standard depth, beginning with the framework facts the patterns rest on: Blazor's not-found handling and reconnection markup in .NET 10, MudBlazor's table and theme, bUnit's module interop."
+**Context**: CONSTRUCTION — U5 NFR Requirements approved; U5 NFR Design next
+
+---
+
+## U5 NFR Design — Completion prompt
+**Timestamp**: 2026-10-27T02:22:20Z
+**User Input**: "(pending)"
+**AI Response**: "Checked the framework facts, reading only: generated .NET 10's Blazor Web App template from the installed SDK into the scratchpad (UseExceptionHandler and UseStatusCodePagesWithReExecute('/not-found'), the router's NotFoundPage, the reconnect dialog with id components-reconnect-modal and Blazor.reconnect()/resumeCircuit(), ImportMap's inline script, the #blazor-error-ui bar); read MudBlazor v9.11.0's source (the palette's properties, the providers, MudSimpleTable wrapping Airlock's own table markup). Wrote construction/plans/u5-web-ui-nfr-design-plan.md (no open question; 14 choices for review, among them no prerendering, one immutable session snapshot with typed changes and redraws coalesced to 4 a second, four loops per session, a virtualized MudSimpleTable grid with focusable rows, uploads that report through a session-owned sink, a file dialog opened in the browser, a CSS-driven connection bar on Blazor's reconnect element, the pages' CSP with ImportMap left out and /docs exempt, an error boundary and an announcer, the theme mapping, bUnit in loose and strict modes), nfr-design-patterns.md (a pattern for each of U5-NFR-01 to 16, the values, the theme mapping, the CSP) and logical-components.md (namespaces and files, registrations, the pipeline's additions, the component tree and the tab's session as two diagrams validated with Mermaid 11.4.1, each with a text alternative, the checks, what Code Generation and U6 must provide). Fed back: component-methods.md (ScanSession as a snapshot with change flags and ScanEnded; AirlockJs and UploadSink; UploadLimits' namespace) and the U5 functional design (the airlock.js contract: bindArtifactPicker, submitScan returning once started, followTerminal; the session's note). Nothing committed. Asked: 'NFR design complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U5 Code Generation; Infrastructure Design is skipped for U5)."
+**Context**: CONSTRUCTION — U5 NFR Design approval gate
+
+---
+
+## U5 NFR Design — Approval
+**Timestamp**: 2026-10-27T13:18:17Z
+**User Input**: "B) Continue to Next Stage (U5 Code Generation)."
+**AI Response**: "Recorded approval of U5 NFR Design. Infrastructure Design is skipped for U5, as the workflow plan set out. Starting U5 Code Generation, Part 1: checking the package versions and measuring the downloads, then writing the code generation plan for approval."
+**Context**: CONSTRUCTION — U5 NFR Design approved; U5 Code Generation (Part 1, planning) next
+
+---
+
+## U5 Code Generation — Plan and question
+**Timestamp**: 2026-10-27T13:36:29Z
+**User Input**: "(none — continuing after the U5 NFR Design approval)"
+**AI Response**: "Checked, reading only: nuget.org's metadata for MudBlazor 9.11.0 (still the latest; its three dependencies are pruned as part of ASP.NET Core's shared framework) and for bUnit 2.13.3 (2026-10-25) and 2.12.5 (2026-10-19), whose release notes and the tech-stack rule pick 2.12.5; no vulnerability or deprecation on any package to restore; the restore specs, showing that Airlock.Web.Tests, unlike the host, does not prune ASP.NET Core's packages; the sizes and Git blob hashes of the Inter v4.1 and JetBrains Mono v2.304 files in their GitHub trees (JetBrains Mono has no variable WOFF2); a throwaway Razor build in the scratchpad (components are public classes, injected properties private; an internal base class or parameter type does not compile; CA1515 does not flag generated components); the .NET 10 reference documentation for AcceptsInteractiveRouting and ExcludeFromInteractiveRouting; and that this machine's development certificate is not trusted, so the browser checks point NVD at a closed local port rather than at a stand-in. Wrote construction/plans/u5-web-ui-code-generation-plan.md: the downloads (7 packages, 15.2 MB, from nuget.org; 6 font files, 0.64 MB, from GitHub, each checked against its Git blob hash), five design refinements (public Razor classes with public parameter types; the error page drawn by the server alone; the Web tests on the shared framework; the fonts; airlock.js's fingerprinted address handed over by MainLayout), steps A to I with checkboxes, and Q-CG5-1 (the branch). Asked for Q-CG5-1 and the plan's approval (A) Request Changes, B) Approve and generate)."
+**Context**: CONSTRUCTION — U5 Code Generation, Part 1 (planning), open question and approval
+
+---
+
+## U5 Code Generation — Answers
+**Timestamp**: 2026-10-27T21:56:57Z
+**User Input**: "B) Approve and generate. Q-CG5-1: A."
+**AI Response**: "Recorded plan approval (B, which covers restoring 7 packages, 15.2 MB, from nuget.org and fetching 6 font files, 0.64 MB, from GitHub) and Q-CG5-1 = A (fast-forward main to feature/u4-web-api locally, then branch feature/u5-web-ui from main; nothing pushed). Starting Part 2: generating the U5 code as planned, beginning with the branch, the packages and the fonts."
+**Context**: CONSTRUCTION — U5 Code Generation, Part 2 (generation) started
+
+---
+
+## U5 Code Generation — Generation summary
+**Timestamp**: 2026-10-27T23:15:33Z
+**User Input**: "(none — Part 2 generation since the answers)"
+**AI Response**: "Generated U5 on feature/u5-web-ui (main fast-forwarded to the U4 commit first; nothing committed or pushed). Restored MudBlazor 9.11.0 and bunit 2.12.5 with their packages — the 7 approved, 15.2 MB, and 16 more, 3.26 MB: Microsoft's 10.0.1 ASP.NET Core and Microsoft.Extensions packages, which Airlock.Architecture.Tests restored for MudBlazor before it too referenced the shared framework (reported to the owner at once; deviation 1). Fetched the 6 font files, 0.64 MB, each matching its Git blob hash at its tag. Wrote the UI in src/Airlock.Web (46 new files: the static shell, router and layout; Control Center, Active Logs, Reports, Not Found and the server-drawn error page; 13 parts under Components/Parts; the tab's ScanSession with its snapshot, four feeds, upload sink and coalesced redraws; AirlockJs; the theme; the page headers; airlock.css, airlock.js, the favicon and the fonts) and UploadLimits in the Application (B1). Fixed on the way: re-execution of /not-found and /error needs the main pipeline (the pages' handlers now sit ahead of U4's /api branch); U4's ApiExceptionHandler now declines exceptions outside /api; MapStaticAssets' development fallback turned the API's 405 into 404 (switched off in appsettings.json); MudButton draws an empty Href as a plain button (links to / now); CA1716 renamed Components/Shared to Components/Parts. Verified: build 0 warnings; 1,128 of 1,131 tests pass, 3 skipped as in U3 (Web 373, Domain 211, Application 206, Infrastructure 270 of 273, Architecture 68); coverage of Airlock.Web 96.3 % lines and 88.1 % branches, U1 to U4 at theirs; every row of the worked example on screen a test; a temporary probe broke the new WebUiRules, which named it, and was deleted; in the browser pane with dotnet run — DEGRADED without a key, a keyboard pass, 1.44 MB and 181 ms for a cold load, no other host, no CSP violation from the pages; with NVD on a closed local port, an 800 MB upload whose progress carried on across pages, a second tab following, the Incomplete report opened by the submitter, the exports' names and answers, Rescan with held files and the hint after a reload, Emergency Stop by keyboard, OFFLINE and Reload. Two issues found there were fixed (the docked terminal covering Execute at 1,024 pixels; actions left clickable while OFFLINE) and a one-render flash after Rescan. Wrote construction/u5-web-ui/code/code-generation-summary.md (17 deviations, the H6 results, the constraints for U6) and aligned component-methods.md, the U5 logical components, NFR design patterns, business rules, copy catalogue and tech-stack decisions, and U4's logical components and infrastructure design. Ticked the plan."
+**Context**: CONSTRUCTION — U5 Code Generation, Part 2 complete
+
+---
+
+## U5 Code Generation — Completion prompt
+**Timestamp**: 2026-10-27T23:15:33Z
+**User Input**: "(pending)"
+**AI Response**: "Asked: 'Code generation complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U6 Delivery — Functional Design). Proposed, for approval only: two commits on feature/u5-web-ui — the U5 design documents with the earlier documents they amend, then the U5 code (src, tests, the package versions, .gitattributes) — after a scan of the staged files for keys, cookies and personal paths; nothing pushed; .claude/ stays uncommitted (Q-CG4-3)."
+**Context**: CONSTRUCTION — U5 Code Generation approval gate
+
+---
+
+## U5 Code Generation — Approval
+**Timestamp**: 2026-10-28T14:00:29Z
+**User Input**: "B) Continue"
+**AI Response**: "Recorded approval of U5 Code Generation (B, Continue to Next Stage). The 'B) Continue' button was offered as answering Q-CG5-2 = A as well, so: two commits on feature/u5-web-ui — the U5 design documents with the earlier documents they amend, then the U5 code with its summary — after a scan of each commit's staged files for keys, cookies and personal paths; nothing pushed; .claude/ stays uncommitted (Q-CG4-3). Committing, then starting U6 Delivery — Functional Design."
+**Context**: CONSTRUCTION — U5 Code Generation approved; U6 Delivery Functional Design next
+
+---

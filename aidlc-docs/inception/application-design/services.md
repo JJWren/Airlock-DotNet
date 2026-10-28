@@ -20,7 +20,7 @@ Design stages.
 | `LiveLogBroadcaster`, `LiveLogLoggerProvider` | Infrastructure | Singleton | Subscribers |
 | `SyftSbomGenerator`, `DiskArtifactStaging`, `QuestPdfScanReportRenderer`, `HostFileSystem` | Infrastructure | Singleton | Syft tool status, cached briefly |
 | `NvdApiClient` | Infrastructure | Singleton; asks the factory for the named HttpClient `Airlock.Nvd` on each request | Shared pacer (singleton) |
-| `ScanSession`, `AirlockJs` | Web | Scoped — one per circuit (browser tab) | The tab's inputs, current scan, terminal lines |
+| `ScanSession`, `AirlockJs` | Web | Scoped — one per circuit (browser tab) | The tab's inputs and upload, the active slot, the scan it follows, terminal lines, health, time zone, notice (U5) |
 
 ## Scan lifecycle
 
@@ -104,7 +104,9 @@ methods — from the same catalogue (U4 WR-04, `u4-web-api/functional-design/dom
   that carries one to the Application's `ScanLogRouter`, which publishes it on that scan's hub as it is written, so
   no line is lost before a subscription exists (U2 refinement 3). Console verbosity follows `LOG_LEVEL` independently.
 - **Active scan** — `WatchActiveScan` pushes every change of the active slot (reserved, running, released) to all
-  tabs, so Execute and Emergency Stop are enabled correctly everywhere.
+  tabs, so Execute and Emergency Stop are enabled correctly everywhere. Every tab then follows the scan in the slot
+  through `WatchScan`, whoever started it, and the tab that submitted it opens its report when it ends (Q-U5-2, U5
+  UR-13 and UR-14).
 
 ## Health
 

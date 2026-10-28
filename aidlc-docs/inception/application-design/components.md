@@ -43,7 +43,7 @@ May depend on Domain and on `Microsoft.Extensions.*.Abstractions` (logging, opti
 | Use case | Serves | Responsibility |
 |---|---|---|
 | `StartScan` + `ScanReservation` | API (UI submits through it) | Checks readiness and claims the single active slot *before* any upload is read; streams artifacts into staging under the limits; validates the target; starts the scan. |
-| `CancelScan` | API, UI | Cancels one scan by id. |
+| `CancelScan` | API | Cancels one scan by id. The UI stops scans through Emergency Stop, since only the active scan can be stopped (U5 UR-20). |
 | `EmergencyStop` | API, UI Terminal | Cancels the active scan, whoever started it; reports stopped or idle. |
 | `GetScan` | API, UI Reports | Returns the latest version of a retained scan. |
 | `WatchScan` | API SSE, UI | Streams a scan's events, starting with a snapshot so late subscribers catch up. |
@@ -105,11 +105,11 @@ The composition root. Depends on every other project plus ASP.NET Core, MudBlazo
 | API | `MultipartScanReader` | Streams `targetPath` and `artifacts[]` sections into a `ScanReservation` without buffering whole files. |
 | API | `ScanDtoMapper`, `ApiProblems` | camelCase DTOs named after the glossary; refusal codes and the Web's own problems → status codes + ProblemDetails, each with its problem type (U4 WR-03, WR-04). |
 | API | `CrossSiteRequestFilter` | Refuses `POST` requests a browser marks as cross-site (U4 WR-19); the host filter answers only `AllowedHosts` (WR-20, ADR-0007). |
-| UI layout | `App`, `Routes`, `MainLayout`, `NavMenu` | Top bar (brand, inert placeholders), navigation drawer, Execute Audit shortcut, reconnect handling. |
-| UI pages | `ControlCenter` (`/`), `ActiveLogs` (`/logs`), `Reports` (`/reports/{id?}`) | The three original views. |
-| UI components | `StatusPill`, `ArtifactPicker`, `ScanProgress`, `ElapsedTimer`, `Terminal`, `StopScanDialog`, `SummaryCards`, `UnverifiedBanner`, `InventoryGrid`, `VulnerabilityDetail` | Building blocks of the pages (MudBlazor-based). |
-| UI state | `ScanSession` (scoped per circuit) | The tab's directory path, staged-file list, current scan, terminal lines, browser time zone; subscriptions to scan, active-scan and live-log streams. |
-| UI interop | `AirlockJs` + `wwwroot/js/airlock.js` | Submit the scan form over HTTP with upload progress; download text (logs); copy to clipboard; browser time zone; connection watcher for OFFLINE. |
+| UI layout | `App`, `Routes`, `MainLayout`, `NavMenu`, `ConnectionBar` | Top bar (brand, inert placeholders), navigation drawer, Execute Audit shortcut, the non-blocking connection bar (U5 UR-05). |
+| UI pages | `ControlCenter` (`/`), `ActiveLogs` (`/logs`), `Reports` (`/reports/{id?}`), `NotFound` | The three original views, and "Page not found". |
+| UI components | `StatusPill`, `ArtifactPicker`, `ScanProgress`, `ElapsedTimer`, `ScanNotice`, `Terminal`, `StopScanDialog`, `SummaryCards`, `UnverifiedBanner`, `WarningsPanel`, `InventoryGrid`, `VulnerabilityDetail` | Building blocks of the pages (MudBlazor-based). |
+| UI state | `ScanSession` (scoped per circuit) | The tab's directory path, staged artifacts, upload, the active slot, the scan it follows — every tab follows the active scan (Q-U5-2) — terminal lines, health, browser time zone and notice; subscriptions to the active-slot, scan and Live Log streams. |
+| UI interop | `AirlockJs` + `wwwroot/js/airlock.js` | Stage files and submit the scan form over HTTP with upload progress, keeping each upload's files for Rescan; download text (logs); copy to clipboard; browser time zone; connection watcher for OFFLINE. |
 | UI theme | `AirlockTheme` | MudTheme with the original palette, Inter and JetBrains Mono, uppercase monospace labels. |
 
 ## Tests

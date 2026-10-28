@@ -609,57 +609,123 @@ internal sealed class RequestBodyStream : Stream;          // an artifact's part
 
 ### UI
 
+The rules (UR), the copy and the types are in `construction/u5-web-ui/functional-design/`. Razor makes every component
+a public class, so the components, and `SessionComponent`, their base, are public; their parameters are of public types,
+and what they share of the tab's session is `private protected` (U5 refinement 1). Every other UI type is internal.
+
 | Component | Parameters / state | Behaviour |
 |---|---|---|
-| `ControlCenter` (`/`) | `ScanSession` | Status pill, directory path, artifact picker, Execute, elapsed timer, progress, mini Terminal, inline refusal or failure. |
-| `ActiveLogs` (`/logs`) | `ScanSession` | Header with machine name, elapsed timer, full Terminal. |
-| `Reports` (`/reports/{ScanId:guid?}`) | `ScanId?`, `ScanSession` | Spinner, empty state, header, exports, Rescan, cards, Unverified banner, grid, detail pane. |
-| `StatusPill` | — | ONLINE / DEGRADED (reason tooltip) / LOADING from `GetSystemHealth` + `WatchActiveScan`; OFFLINE applied client-side by the connection watcher. |
-| `ArtifactPicker` | `EventCallback<IReadOnlyList<StagedFileInfo>> StagedChanged` | Plain `<input type="file" multiple>` read by `airlock.js`; staged list with remove. |
-| `ScanProgress` | `Scan Scan` | Phase and "Correlating n of total". |
-| `ElapsedTimer` | `DateTimeOffset? StartedAt`, `DateTimeOffset? FinishedAt` | `mm:ss`, `h:mm:ss` past an hour. |
-| `Terminal` | `IReadOnlyList<LiveLogEntry> Lines`, `bool Compact`, `EventCallback EmergencyStopRequested` | Minimize, auto-scroll, empty state, Export Logs, Emergency Stop (opens `StopScanDialog`). |
-| `StopScanDialog` | — | MudDialog confirmation ("CRITICAL: Terminate the active scan?"). |
-| `SummaryCards` | `ScanSummary Summary` | Total, Critical findings (pulse when > 0), High findings, Clean. |
-| `UnverifiedBanner` | `IReadOnlyList<UnverifiedPackage> Packages` | Shown when any package is unverified. |
-| `InventoryGrid` | `Scan Scan`, `EventCallback<Package> Selected` | Risk, Package, Version, Method, Findings; filter by package name or CVE id; selection by package identity. |
-| `VulnerabilityDetail` | `VulnerablePackage Package`, `TimeZoneInfo TimeZone` | CVE link, copy description, CVSS bar with version, description, package type. |
+| `MainLayout`, `NavMenu`, `ConnectionBar`, `Announcer` | `ScanSession` | Top bar with the brand and inert placeholders (UR-02); drawer with the items and Execute Audit (UR-01); the connection bar (UR-05); the screen readers' announcer. `MainLayout` hands `airlock.js`'s fingerprinted address to `AirlockJs` and starts the session (U5 refinement 5). |
+| `ControlCenter` (`/`) | `ScanSession` | Status pill; the path, dimmed while artifacts are staged (Q-U5-1); artifact picker; the checks before uploading; Execute with its reasons; transfer progress; timer; progress; notice; docked Terminal (UR-04 to UR-16). |
+| `ActiveLogs` (`/logs`) | `ScanSession` | Heading, the node line with the machine's name, timer, full Terminal (UR-21). |
+| `Reports` (`/reports/{Id:guid?}`) | `Guid? Id`, `ScanSession` | The views of UR-22; header, exports, Rescan, cards, banner, warnings, grid, detail pane (UR-22 to UR-33). The parameter is `Id`, since a property named `ScanId` would hide the type. |
+| `NotFound`, `AirlockErrorBoundary` | — | "Page not found"; "Something went wrong" with Reload (UR-39). |
+| `Error` (`/error`), `PlainLayout` | the request's `HttpContext` | Excluded from interactive routing and drawn by the server alone, without MudBlazor or the session (U5 refinement 2). |
+| `StatusPill` | `ScanSession` | LOADING, ONLINE, DEGRADED with the failing checks' details in a tooltip that keyboard focus opens; OFFLINE set by `airlock.js` (UR-04, UR-05). |
+| `ArtifactPicker` | `ScanSession` | The Artifact Upload panel over a hidden `<input type="file" multiple>`; the staged list with sizes and remove (UR-07). |
+| `ScanProgress` | `ScanSession` | The Preparing line, the transfer line, the phase and "Correlating n of total" (UR-11, UR-16). |
+| `ElapsedTimer` | `Scan? Scan` | `mm:ss`, `h:mm:ss` from an hour; stopped at the finish; `00:00` without a scan (UR-15). |
+| `ScanNotice` | `ScanSession` | The tab's inline notice, with ✕ (UR-12). |
+| `Terminal` | `bool Compact`, `ScanSession` | Lines with level names and colours; following the newest line unless scrolled up; minimize; empty state; Export Logs; Emergency Stop (UR-17 to UR-20). |
+| `StopScanDialog` | — | "CRITICAL: Terminate the active scan?" with Cancel, focused first, and Terminate (UR-20). |
+| `SummaryCards` | `ScanSummary Summary` | Total Packages, Critical Findings (pulsing above zero), High Findings, Clean Packages (UR-24). |
+| `UnverifiedBanner` | `IReadOnlyList<UnverifiedPackage> Packages` | The count sentence, five rows, Show all (UR-25). |
+| `WarningsPanel` | `IReadOnlyList<ScanWarning> Warnings` | "Warnings (n)", collapsed (UR-26). |
+| `InventoryGrid` | `Scan Scan`, `Package? Selected`, `EventCallback<Package?> SelectedChanged` | Rows of vulnerable, then unverified packages; the filter by package name or CVE id; selection by package identity (UR-27 to UR-29). |
+| `VulnerabilityDetail` | `Scan Scan`, `Package Package`, `EventCallback Closed` | The match; each finding's link, COPY, CVSS version and source, score bar and description; an unverified package's reason (UR-30, UR-31). |
 
 ```csharp
-public sealed class ScanSession                            // scoped: one per circuit (browser tab)
+public abstract class SessionComponent : ComponentBase, IDisposable   // Airlock.Web.Components.Parts
 {
-    public string DirectoryPath { get; set; }              // default "/uploads"
-    public IReadOnlyList<StagedFileInfo> Staged { get; }
-    public Scan? Current { get; }
-    public IReadOnlyList<LiveLogEntry> TerminalLines { get; }   // bounded
-    public TimeZoneInfo BrowserTimeZone { get; }
-    public event Action? Changed;
-    public Task<Outcome<ScanId>> SubmitAsync(ElementReference fileInput, CancellationToken cancellationToken);
-    public Task FollowAsync(ScanId id, CancellationToken cancellationToken);
-    public Task<EmergencyStopResult> StopAsync(CancellationToken cancellationToken);
+    private protected ScanSession Session { get; }         // injected
+    private protected SessionState State { get; }          // Session.State
+    private protected abstract SessionChange RedrawsFor { get; }   // redraws, coalesced, for these kinds only
 }
 
-public sealed class AirlockJs : IAsyncDisposable          // wraps wwwroot/js/airlock.js
+internal sealed class ScanSession : IAsyncDisposable       // scoped: one per circuit (browser tab)
 {
-    public ValueTask<UploadResult> SubmitScanAsync(ElementReference fileInput, string? targetPath,
-                                                   DotNetObjectReference<UploadProgressSink> progress);
-    public ValueTask DownloadTextAsync(string fileName, string content);
-    public ValueTask CopyTextAsync(string text);
-    public ValueTask<string> GetTimeZoneAsync();
-    public ValueTask WatchConnectionAsync(ElementReference statusPill);
+    // One immutable snapshot, replaced under a lock (U5 NFR Design): the directory path, the staged artifacts, the
+    // upload, whether the tab is submitting, the active slot, the scan followed (Q-U5-2), the ids submitted here, the
+    // last 1,000 terminal lines, the health read every 10 seconds, the time zone and the notice.
+    public SessionState State { get; }
+    public LimitsOptions Limits { get; }                   // the server's limits, for the checks before uploading (UR-08)
+    public DotNetObjectReference<UploadSink> Sink { get; }
+    public event Action<SessionChange>? Changed;           // flags: Lines, Scan, Slot, Health, Notice, Staging, Upload, TimeZone
+    public event Action<ScanEnding>? ScanEnded;            // MainLayout navigates or shows the snackbar (UR-14)
+    public event Action<string>? Announced;                // every notice, and the snackbars the pages show (U5-NFR-07)
+    public Task StartAsync();                              // the four loops and the time zone, once per circuit
+    public void SetDirectoryPath(string? path);
+    public Task UnstageAsync(string stagedId);
+    public Task<SubmissionOutcome> ExecuteAsync();         // UR-08 to UR-11; completes with the server's answer
+    public Task<SubmissionOutcome> RescanAsync(Scan scan); // UR-33
+    public Task<EmergencyStopResult> StopAsync(CancellationToken cancellationToken);   // UR-20
+    public void DismissNotice();
+    public void Announce(string text);
 }
 
-public static class AirlockTheme
+internal sealed record SessionState(string DirectoryPath, ImmutableList<StagedArtifact> Staged, UploadProgress? Upload,
+    bool Submitting, ActiveScanState Active, Scan? Current, ImmutableHashSet<ScanId> Submitted,
+    ImmutableList<TerminalLine> Lines, SystemHealth? Health, TimeZoneInfo? TimeZone, InlineNotice? Notice);
+    // and IsPreparing, SlotHeld, CanExecute, StagedBytes
+internal sealed record ScanEnding(Scan Scan, bool SubmittedHere);
+internal readonly record struct SubmissionOutcome(SubmissionKind Kind, ScanId? ScanId = null);
+    // SubmissionKind: Accepted, Refused, Interrupted, NoFiles, NotSubmitted
+
+internal sealed record StagedArtifact(string Id, string FileName, long SizeBytes);
+internal sealed record UploadProgress(long SentBytes, long TotalBytes);            // and its Percent
+internal sealed record TerminalLine(long Sequence, DateTimeOffset Timestamp, LogLevel Level, string Message, ScanId? ScanId);
+internal enum NoticeKind { Refusal, Interrupted, Failed, Cancelled, Finished, RescanHint }
+internal sealed record InlineNotice(NoticeKind Kind, string Text, ScanId? ScanId); // and its Announcement
+internal abstract record InventoryRow(Package Package);  // VulnerableRow(VulnerablePackage) or UnverifiedRow(UnverifiedPackage)
+
+internal sealed class AirlockJs : IAsyncDisposable        // wraps wwwroot/js/airlock.js; a failed call is logged at Error
 {
-    public static MudTheme Create();
+    public void UseModuleAddress(string fingerprinted);    // from MainLayout, which can read Assets (U5 refinement 5)
+    // The panel opens the file dialog in the browser; picked files are reported to the sink (Staged).
+    public ValueTask<bool> BindArtifactPickerAsync(ElementReference panel, ElementReference fileInput,
+                                                   DotNetObjectReference<UploadSink> sink);
+    public ValueTask<bool> UnstageAsync(string stagedId);
+    // Both return once the upload has started; progress and the answer arrive through the sink (U5-NFR-05).
+    public ValueTask<UploadStart> SubmitScanAsync(ScanSubmissionTarget target, DotNetObjectReference<UploadSink> sink);
+    public ValueTask<UploadStart> ResubmitScanAsync(ScanId id, DotNetObjectReference<UploadSink> sink);   // NoFiles: gone
+    public ValueTask<bool> FollowTerminalAsync(ElementReference lines);   // newest line unless scrolled up (UR-17)
+    public ValueTask<bool> CopyTextAsync(string text);
+    public ValueTask<bool> DownloadTextAsync(string fileName, string text);
+    public ValueTask<string?> TimeZoneAsync();             // null when the call failed; the session then uses UTC
+    public ValueTask<bool> WatchConnectionAsync();
+}
+internal enum UploadStart { Started, NoFiles, Failed }
+// UploadSink, owned by the session: [JSInvokable] Staged(StagedFile[]), Progress(sent, total), Completed(SubmissionAnswer).
+// SubmissionAnswer: the status, and the scan id (202) or the problem's title and detail; status 0 for no answer.
+// ScanSubmissionTarget: ForPath(path) or ForArtifacts(stagedIds).
+
+internal static class AirlockTheme
+{
+    public static MudTheme Create();                       // the tokens of the U5 domain entities
 }
 ```
 
-`airlock.js` (ES module): `submitScan(fileInput, targetPath, progressSink)` posts `multipart/form-data` to
-`/api/v2/scans` with XMLHttpRequest upload-progress events and resolves `{status, body}`; `downloadText(name, text)`;
-`copyText(text)`; `getTimeZone()`; `watchConnection(element)` toggles the OFFLINE state on Blazor reconnection
-events.
+Added to the Application by U5 (UR-08), in `Airlock.Application.UseCases`, so that the page and the reservation word
+the limits alike:
+
+```csharp
+public static class UploadLimits
+{
+    public static Refusal? Check(int fileCount, long totalBytes, LimitsOptions limits);   // the reservation's refusals
+    public static string Size(long bytes);                 // "2 GB", "1.5 MB": the size wording of the refusals
+    // Internal: TooManyArtifacts(limits) and TooLarge(limits), which ScanReservation's checks before each file and
+    // while each one streams use.
+}
+```
+
+`airlock.js` (ES module, one per page, kept across Blazor's navigation): `bindArtifactPicker(panel, input, sink)`,
+`unstage(id)`, `submitScan(target, sink)` and `resubmitScan(scanId, sink)` — `multipart/form-data` to `/api/v2/scans`
+through XMLHttpRequest, returning once started, reporting progress at most four times a second and the answer through
+the sink, and keeping each accepted upload's files for Rescan — `followTerminal(element)`, `copyText(text)`, with a
+fallback outside secure contexts, `downloadText(name, text)`, `timeZone()` and `watchConnection()`. The contract is in
+the U5 business logic model.
 
 **Exports**: Export PDF and Export JSON are plain download links to `GET /api/v2/scans/{id}/report.pdf` and
-`GET /api/v2/scans/{id}`, so the UI and the API return byte-for-byte the same files (E11). Export Logs is generated
-from the tab's terminal lines and saved through `DownloadTextAsync`.
+`GET /api/v2/scans/{id}`, so the UI and the API return byte-for-byte the same files (E11); the JSON is saved as
+`airlock_audit_<finish time>.json`, the time written as in the PDF's name. Export Logs is generated from the tab's
+terminal lines and saved through `DownloadTextAsync`.

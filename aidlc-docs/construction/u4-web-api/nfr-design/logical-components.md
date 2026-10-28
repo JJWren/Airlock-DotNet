@@ -30,14 +30,15 @@ Every type is internal; `Airlock.Web.Tests` sees them through `InternalsVisibleT
 | Kestrel | `ConfigureKestrel`: `AddServerHeader = false`, `Limits.MaxRequestBodySize` = 1 MiB |
 | Options and layers | `AddOptions<AirlockOptions>().BindConfiguration("Airlock")`, `AddAirlockApplication()`, `AddAirlockInfrastructure(builder.Configuration)` |
 | JSON | `ConfigureHttpJsonOptions` with `ApiJson.Configure`: the source-generated context, the contract enumerations' names, indented output and the relaxed encoder |
-| Problems | `AddProblemDetails` with `ApiProblems.Customize`, which fills in `type`, `title` and `traceId` from the status or the refusal; `AddExceptionHandler<ApiExceptionHandler>` |
+| Problems | `AddProblemDetails` with `ApiProblems.Customize`, which fills in `type`, `title` and `traceId` from the status or the refusal; `AddExceptionHandler<ApiExceptionHandler>`, which every exception handler in the host asks first and which, from U5, declines exceptions outside `/api`, so the pages draw their own error page |
 | OpenAPI | `AddOpenApi("v2")` in `ApiDocs.AddAirlockOpenApi`, with the schema names, the document's title and an operation transformer for the multipart body |
 | Not registered | CORS, response compression, HTTPS redirection, HSTS |
 
-The pipeline, in order: host filtering (which `WebApplication` runs first); a branch for `/api` with
+The pipeline, in order: host filtering (which `WebApplication` runs first); from U5, the pages' headers, exception
+handler and status-code pages, which find nothing left to do under `/api`; a branch for `/api` with
 `UseExceptionHandler`, `UseStatusCodePages` and `ApiResponseHeaders`; routing; then the endpoints — `MapAirlockApi()`,
-`MapOpenApi()`, `MapScalarApiReference("/docs", ApiDocs.Configure)` and, from U5, the Razor components with their
-antiforgery.
+`MapOpenApi()`, `MapScalarApiReference("/docs", ApiDocs.Configure)` and, from U5, the static files and the Razor
+components with their antiforgery (U5's `nfr-design/logical-components.md`).
 
 ```mermaid
 flowchart TD

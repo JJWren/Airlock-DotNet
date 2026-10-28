@@ -100,13 +100,16 @@ Generation checkpoint approved.
 - **Purpose**: the Blazor UI on MudBlazor, themed to the original look.
 - **Scope**: `src/Airlock.Web` (`Components/*`, `State/ScanSession`, `Interop/AirlockJs`, `Theme/AirlockTheme`,
   `wwwroot/js/airlock.js`); `tests/Airlock.Web.Tests` (bUnit); architecture rule 5 for components.
-- **Delivers**: `MainLayout`, `NavMenu`, the ControlCenter, ActiveLogs and Reports pages, the components
-  (`StatusPill`, `ArtifactPicker`, `ScanProgress`, `ElapsedTimer`, `Terminal`, `StopScanDialog`, `SummaryCards`,
-  `UnverifiedBanner`, `InventoryGrid`, `VulnerabilityDetail`), the theme and the JavaScript module (submit with upload
-  progress, download text, copy, browser time zone, connection watcher).
+- **Delivers**: `MainLayout`, `NavMenu`, `ConnectionBar`, the ControlCenter, ActiveLogs, Reports and NotFound pages,
+  the components (`StatusPill`, `ArtifactPicker`, `ScanProgress`, `ElapsedTimer`, `ScanNotice`, `Terminal`,
+  `StopScanDialog`, `SummaryCards`, `UnverifiedBanner`, `WarningsPanel`, `InventoryGrid`, `VulnerabilityDetail`), the
+  tab's `ScanSession`, the theme and the JavaScript module (staging, submit with upload progress, download text, copy,
+  browser time zone, connection watcher); the Application's `UploadLimits`, so the page's checks word the limits as
+  the API does.
 - **Tests**: bUnit — Risk shows the highest severity (defect 2), Method labels product matches (defect 1), filter by
   package or CVE, selection by package identity, Unverified banner, inert placeholders (defect 16), dismissing the
-  stop dialog, timer format; then a manual end-to-end pass in the browser pane against a real NVD key.
+  stop dialog, timer format, every tab following the active scan — the rule-to-test map of U5's functional design;
+  then a manual end-to-end pass in the browser pane against a real NVD key.
 - **Provides**: the finished application for packaging.
 
 ## U6 — Delivery

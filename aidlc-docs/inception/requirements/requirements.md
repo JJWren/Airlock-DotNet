@@ -109,7 +109,9 @@
 - **FR-25 Control Center** — Status pill (ONLINE / DEGRADED with reason / OFFLINE / LOADING); Local Directory Path
   (default `/uploads`); artifact picker (multiple files, staged list with remove); HTTP upload with a progress bar;
   Execute (disabled while a scan runs or when DEGRADED; tactical relabel while active); elapsed timer; phase and
-  n-of-total progress; docked mini Terminal; inline error on failure. *(Q4, N2, N6)*
+  n-of-total progress; docked mini Terminal; inline error on failure. While artifacts are staged, the scan uploads
+  them alone and the path is dimmed (Q-U5-1). Every tab follows the active scan, whoever started it (Q-U5-2).
+  *(Q4, N2, N6, Q-U5-1, Q-U5-2)*
 - **FR-26 Active Logs** — Header with the real machine name, elapsed timer, full-height Terminal. *(Q4)*
 - **FR-27 Terminal** — Minimize toggle, auto-scroll, empty state, Export Logs (`.log` file), Emergency Stop behind a
   confirmation dialog; cleared when a scan starts. *(Q4)*
@@ -117,13 +119,16 @@
   Export PDF, Rescan; summary cards Total, Critical findings (pulses when > 0), High findings, Clean; Unverified banner
   when > 0; inventory grid with Risk (highest severity, or UNVERIFIED), Package, Version, Method (CPE match or
   Product match) and Findings count, filterable by package name or CVE id; detail pane with CVE link to NVD, copy
-  description, CVSS bar with version, description and package type; successful scans open `/reports/{id}`, which
-  survives a page refresh while the scan is retained. *(Q4, Q5-A, Q6, N1; defects 1, 2)*
-- **FR-29 Rescan** — Re-submits the same target; for upload scans it needs the files still staged in this browser
-  session, otherwise it opens Control Center with a hint to re-select them. *(derived)*
+  description, CVSS bar with version, description and package type; successful scans open `/reports/{id}` in the tab
+  that submitted them, and other tabs offer the report (Q-U5-2); the address survives a page refresh while the scan
+  is retained. *(Q4, Q5-A, Q6, N1, Q-U5-2; defects 1, 2)*
+- **FR-29 Rescan** — Re-submits the same target; for upload scans it needs the files the page uploaded, which it keeps
+  until it is reloaded, otherwise it opens Control Center with a hint to re-select them. *(derived)*
 - **FR-30 Visual identity** — MudBlazor components themed with the original palette (#09090B background, #18181B
   surfaces, #3B82F6 primary, #EF4444 error, #71717A secondary), Inter and JetBrains Mono, uppercase monospace labels,
-  and the original layout; the tactical on-screen copy is kept. *(N4, N5, Q14; ADR-0005)*
+  and the original layout; the tactical on-screen copy is kept, except where the rebuild's scope changes its meaning:
+  "Artifact Upload", the findings cards, the Emergency Stop question (U5 UR-35). Text colours are lightened where the
+  original's fall below WCAG 2.2 AA contrast (Q-U5-N1). *(N4, N5, Q14, Q-U5-N1; ADR-0005)*
 - **FR-31 Time display** — Times are stored in UTC and shown in the browser's time zone; elapsed time is `mm:ss`
   (`h:mm:ss` past an hour). *(derived)*
 
@@ -157,7 +162,7 @@
   CodeQL for C#; Dependabot; a multi-stage Dockerfile and docker-compose with the `/uploads` mount; nothing is pushed
   without the owner's explicit approval. *(Q18)*
 - **NFR-12 Usability and accessibility** — Standard MudBlazor components; every action reachable by keyboard; severity
-  is never conveyed by colour alone (badges carry text).
+  is never conveyed by colour alone (badges carry text); the pages meet WCAG 2.2 AA, contrast included (Q-U5-N1).
 
 ## 4. Constraints and assumptions
 
@@ -213,3 +218,6 @@
 | Q-U4-1 Enumeration values in JSON | FR-20 |
 | Q-U4-2 Problem types | FR-20 |
 | Q-U4-3 Requests from other websites | NFR-03; ADR-0007 |
+| Q-U5-1 A path and staged artifacts together | FR-25 |
+| Q-U5-2 Every tab follows the active scan | FR-25, FR-28 |
+| Q-U5-N1 Contrast against the original's grey | FR-30, NFR-12 |

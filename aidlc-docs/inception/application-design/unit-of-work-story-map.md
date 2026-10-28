@@ -50,7 +50,7 @@ pane during U5 and Build and Test, where an automated test would only re-test th
 | E03 | A second submission while a scan runs | U4 |
 | E03 | The report is not ready yet | U4 |
 | E03 | Retention | U3 (registry), U4 (404) |
-| E04 | A second scan is refused | U2, U5 (inline message) |
+| E04 | A second scan is refused | U2, U4 (409), U5 (Execute disabled in every tab; the inline message when a submission races) |
 | E04 | A missing NVD key blocks scanning | U2, U4 (503), U5 (pill and Execute) |
 | E04 | Syft is unavailable | U2, U4 (503), U5 (pill) |
 | E04 | Nothing to scan | U2 |
