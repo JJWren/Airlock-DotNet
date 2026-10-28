@@ -1,0 +1,33 @@
+@* UR-25: an Incomplete scan's unverified packages, never counted as clean; five, then Show all. It cannot be dismissed. *@
+@if (Packages.Count > 0)
+{
+    <section class="airlock-banner" aria-label="Unverified packages">
+        <p class="airlock-banner__summary"><strong>INCOMPLETE</strong> — @Sentence</p>
+        <ul class="airlock-banner__list">
+            @foreach (var package in showAll ? Packages : Packages.Take(Shown))
+            {
+                <li @key="package.Package">@UiFormat.Label(package.Package) — @UiFormat.Reason(package)</li>
+            }
+        </ul>
+        @if (Packages.Count > Shown)
+        {
+            <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Warning" OnClick="Toggle">
+                @(showAll ? "Show fewer" : $"Show all ({Packages.Count})")
+            </MudButton>
+        }
+    </section>
+}
+
+@code {
+    private const int Shown = 5;
+    private bool showAll;
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<UnverifiedPackage> Packages { get; set; } = [];
+
+    private string Sentence => Packages.Count == 1
+        ? "1 package could not be verified and is not counted as clean"
+        : $"{Packages.Count} packages could not be verified and are not counted as clean";
+
+    private void Toggle() => showAll = !showAll;
+}

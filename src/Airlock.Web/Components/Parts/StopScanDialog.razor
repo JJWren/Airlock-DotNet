@@ -1,0 +1,18 @@
+@* UR-20: Cancel is focused first; Cancel, Escape or a click outside changes nothing, and the focus stays inside. *@
+<MudDialog DefaultFocus="DefaultFocus.FirstChild" Class="airlock-dialog">
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Terminate">Terminate</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    public const string Question = "CRITICAL: Terminate the active scan?";
+
+    [CascadingParameter]
+    private IMudDialogInstance Dialog { get; set; } = default!;
+
+    private void Cancel() => Dialog.Cancel();
+
+    private void Terminate() => Dialog.Close(DialogResult.Ok(true));
+}

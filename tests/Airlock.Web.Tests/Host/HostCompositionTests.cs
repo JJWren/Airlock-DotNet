@@ -125,6 +125,8 @@ public sealed class HostCompositionTests
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
+            // As Program's own builder is named, so MapStaticAssets finds Airlock.Web's manifest (U5).
+            ApplicationName = typeof(Program).Assembly.GetName().Name,
             EnvironmentName = "Production",
             Args = ["--urls=http://127.0.0.1:0", $"--Airlock:Staging:Root={stagingRoot}", .. args],
         });

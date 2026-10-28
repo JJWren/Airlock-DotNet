@@ -1,0 +1,94 @@
+@* UR-01 to UR-03, UR-05, UR-14, UR-40: the shell every page shares; the tab's session starts here. *@
+@inherits LayoutComponentBase
+@implements IDisposable
+@using Airlock.Web.Theme
+@inject ScanSession Session
+@inject AirlockJs Js
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<MudThemeProvider Theme="Theme" IsDarkMode="true" />
+<MudPopoverProvider />
+<MudDialogProvider CloseOnEscapeKey="true" BackdropClick="true" />
+<MudSnackbarProvider />
+
+<ConnectionBar />
+<Announcer />
+
+<MudLayout Class="airlock-layout">
+    <MudAppBar Elevation="0" Fixed="true" Class="airlock-appbar">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Class="airlock-menu-button" aria-label="Menu" OnClick="ToggleDrawer" />
+        <span class="airlock-brand">Airlock</span>
+        <MudSpacer />
+        @* UR-02: inert placeholders, which neither navigate nor reload (defect 16). *@
+        <MudIconButton Icon="@Icons.Material.Outlined.Notifications" aria-label="Notifications" Class="airlock-placeholder" />
+        <MudIconButton Icon="@Icons.Material.Outlined.Settings" aria-label="Settings" Class="airlock-placeholder" />
+        <MudIconButton Icon="@Icons.Material.Outlined.AccountCircle" aria-label="Profile" Class="airlock-placeholder" />
+    </MudAppBar>
+    <MudDrawer @bind-Open="drawerOpen" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Responsive"
+               Breakpoint="Breakpoint.Md" Elevation="0" Class="airlock-drawer">
+        <NavMenu />
+    </MudDrawer>
+    <MudMainContent Class="airlock-main">
+        <AirlockErrorBoundary @ref="boundary">
+            @Body
+        </AirlockErrorBoundary>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private static readonly MudTheme Theme = AirlockTheme.Create();
+    private AirlockErrorBoundary? boundary;
+    private bool drawerOpen = true;
+
+    public void Dispose() => Session.ScanEnded -= OnScanEnded;
+
+    protected override void OnInitialized()
+    {
+        // Refinement 5: only components can read the fingerprinted addresses.
+        Js.UseModuleAddress(Assets[AirlockJs.ModulePath]);
+        Session.ScanEnded += OnScanEnded;
+    }
+
+    // A page that failed gets a fresh chance on the next navigation.
+    protected override void OnParametersSet() => boundary?.Recover();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Session.StartAsync();
+        }
+    }
+
+    private void ToggleDrawer() => drawerOpen = !drawerOpen;
+
+    private void OnScanEnded(ScanEnding ending) => _ = InvokeAsync(() => Show(ending));
+
+    // UR-14: the submitter opens the report wherever the analyst is; every other tab gets the snackbar. The session has
+    // set and announced the matching notice already.
+    private void Show(ScanEnding ending)
+    {
+        var scan = ending.Scan;
+        switch (scan.Status)
+        {
+            case ScanStatus.Completed or ScanStatus.Incomplete when ending.SubmittedHere:
+                Navigation.NavigateTo(UiFormat.ReportHref(scan.Id));
+                break;
+            case ScanStatus.Completed or ScanStatus.Incomplete:
+                Snackbar.Add(Finished(scan), scan.Status == ScanStatus.Completed ? Severity.Success : Severity.Warning);
+                break;
+            case ScanStatus.Failed:
+                Snackbar.Add("Scan failed: " + scan.Failure?.Reason, Severity.Error, StayUntilClosed);
+                break;
+            case ScanStatus.Cancelled:
+                Snackbar.Add("Scan cancelled: " + scan.CancellationReason, Severity.Info);
+                break;
+        }
+    }
+
+    private static void StayUntilClosed(SnackbarOptions options) => options.RequireInteraction = true;
+
+    private static RenderFragment Finished(Scan scan) =>
+        @<span>Scan @UiFormat.Status(scan.Status) — <a href="@UiFormat.ReportHref(scan.Id)">View report</a></span>;
+}

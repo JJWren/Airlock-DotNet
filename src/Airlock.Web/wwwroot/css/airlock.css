@@ -1,0 +1,1134 @@
+/* Airlock's one stylesheet (U5-NFR-15): what MudBlazor's theme cannot express — the fonts, the shell, the terminal,
+   the connection bar, badges, the grid, the pulse and the motion rules. The colours are the U5 theme tokens; every
+   text colour meets WCAG 2.2 AA on its background (Q-U5-N1). */
+
+/* Fonts, served by Airlock itself (UR-36); the licences sit beside the files. */
+@font-face {
+    font-family: "Inter";
+    src: url("../fonts/inter/InterVariable.woff2") format("woff2");
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Inter";
+    src: url("../fonts/inter/Inter-BlackItalic.woff2") format("woff2");
+    font-weight: 900;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "JetBrains Mono";
+    src: url("../fonts/jetbrains-mono/JetBrainsMono-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "JetBrains Mono";
+    src: url("../fonts/jetbrains-mono/JetBrainsMono-Bold.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    --airlock-background: #09090B;
+    --airlock-surface: #18181B;
+    --airlock-top-bar: #131315;
+    --airlock-drawer: #1C1B1D;
+    --airlock-primary: #3B82F6;
+    --airlock-primary-text: #60A5FA;
+    --airlock-secondary: #71717A;
+    --airlock-secondary-text: #A1A1AA;
+    --airlock-error: #EF4444;
+    --airlock-error-text: #F87171;
+    --airlock-high: #FB923C;
+    --airlock-high-card: #F97316;
+    --airlock-warning: #EAB308;
+    --airlock-clean: #10B981;
+    --airlock-heading: #FFFFFF;
+    --airlock-text: #E2E8F0;
+    --airlock-terminal-text: #CBD5E1;
+    --airlock-label-text: #94A3B8;
+    --airlock-line: rgba(255, 255, 255, 0.05);
+    --airlock-border: rgba(255, 255, 255, 0.1);
+    --airlock-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+    --airlock-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html,
+body {
+    margin: 0;
+    background: var(--airlock-background);
+    color: var(--airlock-text);
+    font-family: var(--airlock-sans);
+}
+
+h1:focus {
+    outline: none;
+}
+
+/* U5-NFR-07: a visible focus everywhere, 2 pixels of the lighter blue. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--airlock-primary-text) !important;
+    outline-offset: 2px !important;
+}
+
+.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.airlock-mono {
+    font-family: var(--airlock-mono);
+}
+
+/* The static shell until the circuit draws the first page (U5-NFR-11). */
+.airlock-boot {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--airlock-primary);
+    font: italic 900 28px var(--airlock-sans);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+body:has(.mud-layout) .airlock-boot {
+    display: none;
+}
+
+/* Shown by blazor.web.js when a circuit fails; its Reload link is wired there. */
+#blazor-error-ui {
+    display: none;
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 3000;
+    padding: 12px 24px;
+    background: #2E1C1F;
+    color: var(--airlock-error-text);
+    font-weight: 600;
+}
+
+#blazor-error-ui .reload {
+    margin-left: 12px;
+    color: var(--airlock-primary-text);
+}
+
+/* Labels, titles and hints (UR-35, UR-36). */
+.airlock-title {
+    margin: 0;
+    color: var(--airlock-heading);
+    font: italic 900 28px/1.1 var(--airlock-sans);
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+}
+
+.airlock-subtitle {
+    margin: 6px 0 0;
+    color: var(--airlock-secondary-text);
+    font-size: 14px;
+}
+
+.airlock-label {
+    color: var(--airlock-secondary-text);
+    font: 700 11px var(--airlock-mono);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.airlock-section-title {
+    margin: 0;
+    color: var(--airlock-heading);
+    font: 700 12px var(--airlock-mono);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.airlock-hint {
+    margin: 8px 0 0;
+    color: var(--airlock-secondary-text);
+    font-size: 13px;
+}
+
+.airlock-empty {
+    margin: 0;
+    padding: 32px 16px;
+    color: var(--airlock-secondary-text);
+    text-align: center;
+}
+
+/* The top bar and the drawer (UR-01, UR-40). */
+.airlock-appbar {
+    border-bottom: 1px solid var(--airlock-line);
+}
+
+.airlock-brand {
+    color: var(--airlock-primary);
+    font: italic 900 20px var(--airlock-sans);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.airlock-placeholder {
+    color: var(--airlock-secondary-text) !important;
+}
+
+.airlock-drawer {
+    border-right: 1px solid var(--airlock-line);
+}
+
+.airlock-drawer .mud-drawer-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.airlock-drawer__heading {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 24px 20px 16px;
+}
+
+.airlock-drawer__title {
+    color: var(--airlock-heading);
+    font: 700 12px var(--airlock-mono);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.airlock-drawer__subtitle {
+    color: var(--airlock-secondary-text);
+    font: 400 11px var(--airlock-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.airlock-nav .mud-nav-link {
+    font: 700 12px var(--airlock-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.airlock-nav .mud-nav-link.active:not(.mud-nav-link-disabled) {
+    background-color: #2A2A2C;
+    color: var(--airlock-primary-text);
+}
+
+.airlock-nav .mud-nav-link.active:not(.mud-nav-link-disabled) .mud-nav-link-icon {
+    color: var(--airlock-primary-text);
+}
+
+.airlock-drawer__footer {
+    margin-top: auto;
+    padding: 20px;
+}
+
+.airlock-menu-button {
+    margin-right: 8px;
+}
+
+@media (min-width: 960px) {
+    .airlock-menu-button {
+        display: none !important;
+    }
+}
+
+.airlock-dot {
+    display: inline-block;
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--airlock-secondary);
+}
+
+.airlock-dot--clean {
+    background: var(--airlock-clean);
+}
+
+.airlock-dot--critical {
+    margin-right: 8px;
+    background: var(--airlock-error);
+}
+
+/* Pages. */
+.airlock-page {
+    padding: 32px;
+}
+
+.airlock-page__header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.airlock-card {
+    border: 1px solid var(--airlock-line);
+    border-radius: 12px;
+    background: var(--airlock-surface);
+}
+
+.airlock-empty-state {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+    padding: 96px 16px;
+    color: var(--airlock-secondary-text);
+    text-align: center;
+}
+
+.airlock-empty-state__icon {
+    width: 48px !important;
+    height: 48px !important;
+    color: var(--airlock-secondary);
+}
+
+.airlock-error {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 48px 32px;
+}
+
+.airlock-plain__bar {
+    display: flex;
+    align-items: center;
+    height: 56px;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--airlock-line);
+    background: var(--airlock-top-bar);
+}
+
+/* Buttons drawn as links: the exports and the error page's Reload. */
+.airlock-action {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 16px;
+    border: 1px solid var(--airlock-border);
+    border-radius: 8px;
+    color: var(--airlock-text);
+    font: 700 12px var(--airlock-sans);
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.airlock-action:hover {
+    border-color: var(--airlock-primary);
+}
+
+.airlock-action.is-disabled {
+    border-color: var(--airlock-line);
+    color: var(--airlock-secondary);
+    cursor: not-allowed;
+}
+
+.airlock-input {
+    box-sizing: border-box;
+    padding: 8px 12px;
+    border: 1px solid var(--airlock-secondary);
+    border-radius: 8px;
+    background: var(--airlock-background);
+    color: var(--airlock-text);
+    font: 400 12px var(--airlock-mono);
+}
+
+.airlock-input::placeholder {
+    color: var(--airlock-secondary-text);
+    letter-spacing: 0.1em;
+}
+
+/* The status pill (UR-04, UR-05): OFFLINE follows the page's connection state. */
+.airlock-pill {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 14px;
+    border: 1px solid var(--airlock-border);
+    border-radius: 999px;
+    background: var(--airlock-surface);
+    font: 700 11px var(--airlock-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.airlock-pill__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--airlock-secondary);
+}
+
+.airlock-pill--loading .airlock-pill__dot {
+    animation: airlock-pulse 1.5s ease-in-out infinite;
+}
+
+.airlock-pill--online .airlock-pill__dot {
+    background: var(--airlock-clean);
+}
+
+.airlock-pill--degraded .airlock-pill__dot {
+    background: var(--airlock-warning);
+}
+
+.airlock-pill--degraded .airlock-pill__state {
+    color: var(--airlock-warning);
+}
+
+.airlock-pill__offline {
+    display: none;
+    color: var(--airlock-error-text);
+}
+
+html[data-connection] .airlock-pill__state,
+html[data-connection] .airlock-pill .visually-hidden {
+    display: none;
+}
+
+html[data-connection] .airlock-pill__offline {
+    display: inline;
+}
+
+html[data-connection] .airlock-pill__dot {
+    background: var(--airlock-error);
+    animation: none;
+}
+
+/* UR-09: Execute and the other actions the server answers are unreachable while the connection is down. */
+html[data-connection] :is(.airlock-execute, .airlock-report__actions, .airlock-terminal__actions) :is(.mud-button-root, a) {
+    opacity: 0.38;
+    pointer-events: none;
+}
+
+/* The connection bar (UR-05): Blazor's state classes show it. */
+#components-reconnect-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 2000;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 4px 16px;
+    background: #2E1C1F;
+    color: var(--airlock-error-text);
+    font: 700 12px var(--airlock-mono);
+    letter-spacing: 0.08em;
+}
+
+#components-reconnect-modal.components-reconnect-show,
+#components-reconnect-modal.components-reconnect-retrying,
+#components-reconnect-modal.components-reconnect-failed,
+#components-reconnect-modal.components-reconnect-rejected,
+#components-reconnect-modal.components-reconnect-paused,
+#components-reconnect-modal.components-reconnect-resume-failed {
+    display: flex;
+}
+
+#components-reconnect-modal .airlock-connection__failed,
+#components-reconnect-modal .airlock-connection__button {
+    display: none;
+}
+
+#components-reconnect-modal:is(.components-reconnect-failed, .components-reconnect-rejected, .components-reconnect-paused, .components-reconnect-resume-failed) .airlock-connection__reconnecting {
+    display: none;
+}
+
+#components-reconnect-modal:is(.components-reconnect-failed, .components-reconnect-rejected, .components-reconnect-paused, .components-reconnect-resume-failed) .airlock-connection__failed,
+#components-reconnect-modal:is(.components-reconnect-failed, .components-reconnect-rejected, .components-reconnect-paused, .components-reconnect-resume-failed) [data-airlock-reload],
+#components-reconnect-modal.components-reconnect-failed [data-airlock-retry] {
+    display: inline-block;
+}
+
+.airlock-connection__button {
+    padding: 2px 12px;
+    border: 1px solid rgba(248, 113, 113, 0.4);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--airlock-error-text);
+    font: inherit;
+    cursor: pointer;
+}
+
+/* Control Center (UR-06 to UR-16, UR-40). */
+.airlock-cc {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.airlock-path,
+.airlock-upload {
+    padding: 24px;
+}
+
+.airlock-path {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.airlock-path.is-dimmed {
+    opacity: 0.6;
+}
+
+.airlock-dropzone {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    padding: 28px 16px;
+    border: 1px dashed var(--airlock-border);
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.airlock-dropzone:hover,
+.airlock-dropzone:focus-visible {
+    border-color: var(--airlock-primary);
+}
+
+.airlock-dropzone__icon {
+    color: var(--airlock-primary);
+}
+
+.airlock-staged {
+    margin-top: 16px;
+}
+
+.airlock-staged__list {
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.airlock-staged__item {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--airlock-line);
+}
+
+.airlock-staged__name {
+    flex: 1;
+    overflow: hidden;
+    font: 400 13px var(--airlock-mono);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.airlock-staged__size {
+    color: var(--airlock-secondary-text);
+    font: 400 12px var(--airlock-mono);
+}
+
+.airlock-execute {
+    max-width: 640px;
+    margin-top: 24px;
+}
+
+.airlock-execute__status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: baseline;
+    margin-top: 16px;
+}
+
+.airlock-timer {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.airlock-timer__value {
+    color: var(--airlock-heading);
+    font: 700 28px var(--airlock-mono);
+}
+
+.airlock-progress {
+    min-width: 280px;
+}
+
+.airlock-progress__line {
+    margin: 6px 0 0;
+    color: var(--airlock-secondary-text);
+    font: 400 12px var(--airlock-mono);
+    letter-spacing: 0.05em;
+}
+
+/* Inline notices (UR-12). */
+.airlock-notice {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding: 8px 8px 8px 16px;
+    border: 1px solid;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.airlock-notice a {
+    color: inherit;
+    font-weight: 700;
+}
+
+.airlock-notice--error {
+    border-color: rgba(239, 68, 68, 0.2);
+    background: #2E1C1F;
+    color: var(--airlock-error-text);
+}
+
+.airlock-notice--warning {
+    border-color: rgba(234, 179, 8, 0.2);
+    background: rgba(234, 179, 8, 0.1);
+    color: var(--airlock-warning);
+}
+
+.airlock-notice--success {
+    border-color: rgba(16, 185, 129, 0.2);
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--airlock-clean);
+}
+
+.airlock-notice--info {
+    border-color: rgba(59, 130, 246, 0.2);
+    background: #1C2331;
+    color: var(--airlock-primary-text);
+}
+
+/* The terminal (UR-17 to UR-20). */
+.airlock-terminal {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--airlock-border);
+    border-radius: 12px;
+    background: #000000;
+}
+
+/* Control Center's small terminal floats at the bottom right where the page leaves room for it, and sits under the
+   page otherwise. */
+.airlock-terminal--docked {
+    margin: 0 32px 32px;
+}
+
+@media (min-width: 1280px) {
+    .airlock-terminal--docked {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        z-index: 1000;
+        width: 520px;
+        margin: 0;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    }
+
+    .airlock-execute {
+        max-width: min(640px, calc(100% - 560px));
+    }
+}
+
+.airlock-terminal--full {
+    height: calc(100vh - 56px - 200px);
+    min-height: 320px;
+}
+
+.airlock-terminal__header,
+.airlock-terminal__actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px 4px 16px;
+    background: var(--airlock-drawer);
+}
+
+.airlock-terminal__title {
+    color: var(--airlock-secondary-text);
+    font: 700 11px var(--airlock-mono);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.airlock-terminal__lines {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px;
+    color: var(--airlock-terminal-text);
+    font: 400 12px/1.6 var(--airlock-mono);
+}
+
+.airlock-terminal--docked .airlock-terminal__lines {
+    height: 220px;
+    flex: none;
+}
+
+.airlock-terminal__empty {
+    margin: 0;
+    color: var(--airlock-secondary-text);
+}
+
+.airlock-terminal__line {
+    overflow-wrap: anywhere;
+}
+
+.airlock-terminal__time {
+    color: var(--airlock-label-text);
+}
+
+.airlock-terminal__level {
+    font-weight: 700;
+}
+
+.airlock-terminal__line--warning {
+    color: var(--airlock-warning);
+}
+
+.airlock-terminal__line--error {
+    color: var(--airlock-error-text);
+}
+
+/* Active Logs (UR-21). */
+.airlock-logs .airlock-subtitle {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* Reports (UR-22 to UR-33). */
+.airlock-report__header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.airlock-report__title-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.airlock-report__time {
+    margin: 6px 0 0;
+    color: var(--airlock-secondary-text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+}
+
+.airlock-report__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.airlock-report__reason {
+    margin: 24px 0;
+    font-size: 16px;
+}
+
+.airlock-report__body {
+    margin-top: 24px;
+}
+
+.airlock-report__body.has-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.airlock-cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.airlock-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px;
+    border: 1px solid var(--airlock-line);
+    border-radius: 12px;
+    background: var(--airlock-surface);
+}
+
+.airlock-stat__label {
+    display: flex;
+    align-items: center;
+    color: var(--airlock-secondary-text);
+    font: 700 11px var(--airlock-mono);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.airlock-stat__value {
+    font: 900 32px var(--airlock-sans);
+}
+
+.airlock-stat--total .airlock-stat__value {
+    color: var(--airlock-primary);
+}
+
+.airlock-stat--critical .airlock-stat__value {
+    color: var(--airlock-error);
+}
+
+.airlock-stat--high .airlock-stat__value {
+    color: var(--airlock-high-card);
+}
+
+.airlock-stat--clean .airlock-stat__value {
+    color: var(--airlock-clean);
+}
+
+.airlock-banner {
+    margin-top: 16px;
+    padding: 16px 20px;
+    border: 1px solid rgba(234, 179, 8, 0.2);
+    border-radius: 12px;
+    background: rgba(234, 179, 8, 0.1);
+    color: var(--airlock-warning);
+}
+
+.airlock-banner__summary {
+    margin: 0;
+}
+
+.airlock-banner__list {
+    margin: 8px 0 0;
+    padding-left: 20px;
+    font: 400 13px var(--airlock-mono);
+}
+
+.airlock-warnings {
+    margin-top: 16px;
+    padding: 12px 20px;
+}
+
+.airlock-warnings__summary {
+    color: var(--airlock-warning);
+    font: 700 12px var(--airlock-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.airlock-warnings__list {
+    margin: 8px 0 0;
+    padding-left: 20px;
+}
+
+/* The inventory grid (UR-27 to UR-29, U5-NFR-04): rows of a fixed 48 pixels in a scroll area of their own. */
+.airlock-grid {
+    overflow: hidden;
+}
+
+.airlock-grid__header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--airlock-line);
+}
+
+.airlock-grid__filter {
+    width: min(320px, 100%);
+}
+
+.airlock-grid__table {
+    background: transparent !important;
+}
+
+.airlock-grid__table .mud-table-container {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.airlock-grid__table th {
+    color: var(--airlock-secondary-text) !important;
+    font: 700 11px var(--airlock-mono) !important;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.airlock-grid__row {
+    cursor: pointer;
+}
+
+.airlock-grid__row td {
+    box-sizing: border-box;
+    height: 48px;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    white-space: nowrap;
+}
+
+.airlock-grid__name {
+    color: var(--airlock-heading);
+    font-weight: 600;
+}
+
+.airlock-grid__row.is-selected {
+    background: #1C2331;
+}
+
+.airlock-grid__row.is-selected .airlock-grid__name {
+    color: var(--airlock-primary-text);
+}
+
+.airlock-grid__row.is-selected .airlock-grid__count {
+    color: var(--airlock-primary-text);
+}
+
+/* Badges carry their text; colour is never the only signal (UR-37). */
+.airlock-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid;
+    border-radius: 4px;
+    font: 700 10px var(--airlock-mono);
+    letter-spacing: 0.1em;
+}
+
+.airlock-badge--critical {
+    border-color: rgba(239, 68, 68, 0.2);
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--airlock-error-text);
+}
+
+.airlock-badge--high {
+    border-color: rgba(251, 146, 60, 0.2);
+    background: rgba(251, 146, 60, 0.1);
+    color: var(--airlock-high);
+}
+
+.airlock-badge--unverified {
+    border-color: rgba(234, 179, 8, 0.2);
+    background: rgba(234, 179, 8, 0.1);
+    color: var(--airlock-warning);
+}
+
+.airlock-badge--clean {
+    border-color: rgba(16, 185, 129, 0.2);
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--airlock-clean);
+}
+
+.airlock-badge--neutral {
+    border-color: var(--airlock-border);
+    color: var(--airlock-secondary-text);
+}
+
+.airlock-text--critical {
+    color: var(--airlock-error-text);
+}
+
+.airlock-text--high {
+    color: var(--airlock-high);
+}
+
+/* The detail pane (UR-30, UR-31). */
+.airlock-detail {
+    position: sticky;
+    top: 72px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.airlock-detail__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.airlock-detail__package {
+    margin: 12px 0 4px;
+    color: var(--airlock-heading);
+    font-weight: 700;
+}
+
+.airlock-detail__match {
+    margin: 0 0 16px;
+    color: var(--airlock-secondary-text);
+    font-size: 12px;
+    word-break: break-all;
+}
+
+.airlock-detail__unverified {
+    color: var(--airlock-warning);
+}
+
+.airlock-finding {
+    padding: 16px 0;
+    border-top: 1px solid var(--airlock-line);
+}
+
+.airlock-finding__header,
+.airlock-finding__score {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.airlock-finding__id {
+    color: var(--airlock-primary-text);
+    font: 700 14px var(--airlock-mono);
+}
+
+.airlock-finding__score {
+    margin-top: 8px;
+}
+
+.airlock-finding__value {
+    font: 700 13px var(--airlock-mono);
+}
+
+.airlock-scorebar {
+    height: 6px;
+    margin-top: 8px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--airlock-line);
+}
+
+.airlock-scorebar__fill {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+}
+
+.airlock-scorebar__fill--critical {
+    background: var(--airlock-error);
+}
+
+.airlock-scorebar__fill--high {
+    background: var(--airlock-high);
+}
+
+.airlock-finding__description {
+    margin: 12px 0 0;
+    color: var(--airlock-terminal-text);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* Motion (UR-38): what the original intended but never ran (defect 17). */
+.airlock-fade {
+    animation: airlock-fade 200ms ease-out both;
+}
+
+.airlock-slide {
+    animation: airlock-slide 250ms ease-out both;
+}
+
+.airlock-pulse {
+    animation: airlock-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes airlock-fade {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes airlock-slide {
+    from {
+        opacity: 0;
+        transform: translateX(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes airlock-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.35;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .airlock-fade,
+    .airlock-slide,
+    .airlock-pulse,
+    .airlock-pill__dot {
+        animation: none !important;
+    }
+}
+
+/* Below 960 pixels: the panels stack, the pane goes under the grid, the terminal leaves its corner (UR-40). */
+@media (max-width: 959.98px) {
+    .airlock-page {
+        padding: 20px 16px;
+    }
+
+    .airlock-cc,
+    .airlock-report__body.has-detail {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .airlock-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .airlock-detail {
+        position: static;
+        max-height: none;
+    }
+
+    .airlock-terminal--docked {
+        margin: 0 16px 16px;
+    }
+}

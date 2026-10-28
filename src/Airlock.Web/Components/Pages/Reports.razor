@@ -1,0 +1,238 @@
+@* UR-22 to UR-33: which scan Reports shows and how — the spinner, the analysis, a failure or a cancellation, or not
+   found — with the header, the exports and Rescan. *@
+@page "/reports/{Id:guid?}"
+@inherits SessionComponent
+@using Airlock.Web.Api
+@inject GetScan Scans
+@inject NavigationManager Navigation
+
+<PageTitle>Reports · Airlock</PageTitle>
+
+<div class="airlock-page airlock-reports airlock-fade">
+    @{
+        var scan = Shown;
+    }
+    @switch (ViewOf(scan))
+    {
+        case ReportView.None:
+            <h1 class="visually-hidden">Reports</h1>
+            <div class="airlock-empty-state">
+                <MudIcon Icon="@Icons.Material.Outlined.Assessment" Class="airlock-empty-state__icon" />
+                <p>No audit data available. Execute a scan to begin.</p>
+            </div>
+            break;
+        case ReportView.NotFound:
+            <div class="airlock-empty-state">
+                <h1 class="airlock-title">Scan not found or no longer retained</h1>
+                <MudButton Href="/" Variant="Variant.Outlined" Color="Color.Primary">Back to Control Center</MudButton>
+            </div>
+            break;
+        case ReportView.InProgress:
+            <div class="airlock-empty-state" role="status">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+                <h1 class="airlock-title">Vetting In Progress</h1>
+                <p class="airlock-subtitle">Building Security Matrix...</p>
+                <ScanProgress />
+            </div>
+            <ScanNotice />
+            break;
+        default:
+            var shown = scan!;
+            <header class="airlock-report__header">
+                <div class="airlock-report__heading">
+                    <div class="airlock-report__title-row">
+                        <h1 class="airlock-title">Post-Scan Analysis</h1>
+                        <span class="airlock-badge airlock-badge--@StatusClass(shown.Status)">@UiFormat.Status(shown.Status)</span>
+                    </div>
+                    <p class="airlock-subtitle">@UiFormat.Target(shown.Target)</p>
+                    <p class="airlock-report__time airlock-mono">@TimeLine(shown)</p>
+                </div>
+                @* UR-32: links to the API, so the files are its answers byte for byte; Failed and Cancelled have no PDF. *@
+                <div class="airlock-report__actions">
+                    <a class="airlock-action" href="@ApiPath(shown)" download="@(Stem(shown) + ".json")">Export JSON</a>
+                    @if (HasReport(shown))
+                    {
+                        <a class="airlock-action" href="@(ApiPath(shown) + "/report.pdf")" download="@(Stem(shown) + ".pdf")">Export PDF</a>
+                    }
+                    else
+                    {
+                        <a class="airlock-action is-disabled" aria-disabled="true">Export PDF</a>
+                    }
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Replay"
+                               Disabled="@(!State.CanExecute)" OnClick="() => RescanAsync(shown)">
+                        Rescan Project
+                    </MudButton>
+                </div>
+            </header>
+            <ScanNotice />
+            @if (shown.Status == ScanStatus.Failed)
+            {
+                <p class="airlock-report__reason airlock-text--critical">Scan failed: @shown.Failure?.Reason</p>
+            }
+            else if (shown.Status == ScanStatus.Cancelled)
+            {
+                <p class="airlock-report__reason">Scan cancelled: @shown.CancellationReason</p>
+            }
+            else
+            {
+                if (shown.Summary is { } summary)
+                {
+                    <SummaryCards Summary="summary" />
+                }
+                <UnverifiedBanner Packages="shown.UnverifiedPackages" />
+                <WarningsPanel Warnings="shown.Warnings" />
+                var detail = DetailFor(shown);
+                <div class="airlock-report__body @(detail is null ? null : "has-detail")">
+                    <InventoryGrid Scan="shown" @bind-Selected="selected" />
+                    @if (detail is not null)
+                    {
+                        <VulnerabilityDetail Scan="shown" Package="detail" Closed="CloseDetail" />
+                    }
+                </div>
+            }
+            break;
+    }
+</div>
+
+@code {
+    private Scan? lookedUp;
+    private Package? selected;
+    private Guid? shownId;
+    private bool rescanning;
+    private bool disposed;
+
+    private enum ReportView
+    {
+        None,
+        InProgress,
+        Analysis,
+        Ended,
+        NotFound,
+    }
+
+    /// <summary>The scan's id; a malformed one is an unknown address (UR-39).</summary>
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private protected override SessionChange RedrawsFor =>
+        SessionChange.Scan | SessionChange.Slot | SessionChange.Upload | SessionChange.Health | SessionChange.TimeZone;
+
+    // UR-22: the session's scan while the tab follows it; otherwise GetScan's, remembered once it has finished.
+    private Scan? Shown
+    {
+        get
+        {
+            if (Id is not { } guid)
+            {
+                return State.Current;
+            }
+
+            if (guid == Guid.Empty)
+            {
+                return null;
+            }
+
+            var id = new ScanId(guid);
+            if (State.Current is { } current && current.Id == id)
+            {
+                return current;
+            }
+
+            if (lookedUp is not { IsFinished: true } || lookedUp.Id != id)
+            {
+                lookedUp = Scans.Execute(id);
+            }
+
+            return lookedUp;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (shownId != Id)
+        {
+            // A new address ends a rescan's spinner: the page now shows the accepted scan.
+            shownId = Id;
+            selected = null;
+            rescanning = false;
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        disposed = true;
+        base.Dispose(disposing);
+    }
+
+    private ReportView ViewOf(Scan? scan)
+    {
+        if (rescanning || (Id is null && State.IsPreparing))
+        {
+            return ReportView.InProgress;
+        }
+
+        if (scan is null)
+        {
+            return Id is null ? ReportView.None : ReportView.NotFound;
+        }
+
+        return scan.Status switch
+        {
+            ScanStatus.Running => ReportView.InProgress,
+            ScanStatus.Completed or ScanStatus.Incomplete => ReportView.Analysis,
+            _ => ReportView.Ended,
+        };
+    }
+
+    // UR-23: the finish time in the browser's zone and the duration in seconds.
+    private string TimeLine(Scan scan) => scan.FinishedAt is { } finishedAt
+        ? UiFormat.Timestamp(finishedAt, State.TimeZone) + " // SCAN TIME: " + UiFormat.Seconds(scan.Duration ?? TimeSpan.Zero) + "S"
+        : string.Empty;
+
+    private static string StatusClass(ScanStatus status) => status switch
+    {
+        ScanStatus.Completed => "clean",
+        ScanStatus.Incomplete => "unverified",
+        ScanStatus.Failed => "critical",
+        _ => "neutral",
+    };
+
+    private static string ApiPath(Scan scan) => ApiEndpoints.GroupPrefix + "/scans/" + scan.Id;
+
+    private static string Stem(Scan scan) => UiFormat.ExportStem(scan.FinishedAt ?? scan.StartedAt);
+
+    private static bool HasReport(Scan scan) => scan.Status is ScanStatus.Completed or ScanStatus.Incomplete;
+
+    // The pane shows only for a package the scan lists.
+    private Package? DetailFor(Scan scan) =>
+        selected is { } package
+        && (scan.VulnerablePackages.Any(candidate => candidate.Package.Equals(package))
+            || scan.UnverifiedPackages.Any(candidate => candidate.Package.Equals(package)))
+            ? package
+            : null;
+
+    private void CloseDetail() => selected = null;
+
+    // UR-33: the new scan's spinner while its files transfer; its address once the server has accepted it.
+    private async Task RescanAsync(Scan scan)
+    {
+        rescanning = true;
+        var outcome = await Session.RescanAsync(scan);
+        if (disposed)
+        {
+            return;
+        }
+
+        if (outcome is { Kind: SubmissionKind.Accepted, ScanId: { } id })
+        {
+            Navigation.NavigateTo(UiFormat.ReportHref(id));
+            return;
+        }
+
+        rescanning = false;
+        if (outcome.Kind == SubmissionKind.NoFiles)
+        {
+            Navigation.NavigateTo("/");
+        }
+    }
+}

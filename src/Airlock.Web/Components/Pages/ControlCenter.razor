@@ -1,0 +1,69 @@
+@* UR-04 to UR-16: the scan target, staging and its checks, Execute and its reasons, the transfer, the timer, the
+   progress and the notice, with the terminal docked at the bottom right. *@
+@page "/"
+@inherits SessionComponent
+
+<PageTitle>Control Center · Airlock</PageTitle>
+
+<div class="airlock-page airlock-fade">
+    <header class="airlock-page__header">
+        <div>
+            <h1 class="airlock-title">Control Center</h1>
+            <p class="airlock-subtitle">Prepare your assets for deep analysis. Select a path or upload artifacts.</p>
+        </div>
+        <StatusPill />
+    </header>
+
+    <div class="airlock-cc">
+        @* Q-U5-1: while any artifact is staged, the path is dimmed, keeps its text and is not sent. *@
+        <section class="airlock-card airlock-path @(HasStaged ? "is-dimmed" : null)">
+            <label for="target-path" class="airlock-label">Local Directory Path</label>
+            <MudTextField T="string" InputId="target-path" Value="@State.DirectoryPath" ValueChanged="SetPath" Immediate="true"
+                          Disabled="@HasStaged" Variant="Variant.Outlined" Margin="Margin.Dense" Class="airlock-mono"
+                          HelperText="@(HasStaged ? "Staged artifacts are scanned instead of this path" : null)" />
+        </section>
+        <ArtifactPicker />
+    </div>
+
+    <section class="airlock-execute">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" FullWidth="true" StartIcon="@Icons.Material.Outlined.PlayArrow"
+                   Disabled="@(!State.CanExecute)" OnClick="ExecuteAsync">
+            @(State.SlotHeld ? "Vetting Sequence Active..." : "Execute Security Audit")
+        </MudButton>
+        @if (Reason is { } reason)
+        {
+            <p class="airlock-hint airlock-execute__reason">@reason</p>
+        }
+        <ScanNotice />
+        <div class="airlock-execute__status">
+            <div class="airlock-timer">
+                <span class="airlock-label">Elapsed Time</span>
+                <ElapsedTimer Scan="State.Current" />
+            </div>
+            <ScanProgress />
+        </div>
+    </section>
+</div>
+
+<Terminal Compact="true" />
+
+@code {
+    private protected override SessionChange RedrawsFor =>
+        SessionChange.Health | SessionChange.Slot | SessionChange.Staging | SessionChange.Upload | SessionChange.Scan;
+
+    private bool HasStaged => !State.Staged.IsEmpty;
+
+    // UR-09: why Execute is disabled while the slot is free; under OFFLINE the connection bar says why.
+    private string? Reason => State.SlotHeld
+        ? null
+        : State.Health switch
+        {
+            null => "Checking system status...",
+            { Status: HealthStatus.Degraded } health => UiFormat.NotReady(health),
+            _ => null,
+        };
+
+    private void SetPath(string? path) => Session.SetDirectoryPath(path);
+
+    private Task ExecuteAsync() => Session.ExecuteAsync();
+}

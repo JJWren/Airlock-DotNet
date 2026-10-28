@@ -1,0 +1,108 @@
+@* UR-17 to UR-20: the Live Log with level names and colours, following the newest line; minimize; Export Logs; and
+   Emergency Stop behind its question. *@
+@inherits SessionComponent
+@using Airlock.Web.Api
+@inject AirlockJs Js
+@inject IDialogService Dialogs
+@inject ISnackbar Snackbar
+
+<section class="airlock-terminal @(Compact ? "airlock-terminal--docked" : "airlock-terminal--full")" aria-labelledby="terminal-title">
+    <header class="airlock-terminal__header">
+        <span id="terminal-title" class="airlock-terminal__title">Global Terminal</span>
+        <MudIconButton Icon="@(minimized ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Size="Size.Small"
+                       aria-label="@(minimized ? "Restore terminal" : "Minimize terminal")" aria-expanded="@(minimized ? "false" : "true")"
+                       OnClick="Toggle" />
+    </header>
+    @if (!minimized)
+    {
+        <div @ref="scrollArea" class="airlock-terminal__lines" role="log" aria-live="off" aria-labelledby="terminal-title" tabindex="0">
+            @if (State.Lines.IsEmpty)
+            {
+                <p class="airlock-terminal__empty">📡 Standing by for telemetry...</p>
+            }
+            @foreach (var line in State.Lines)
+            {
+                <div @key="line.Sequence" class="airlock-terminal__line airlock-terminal__line--@LevelClass(line.Level)">
+                    <span class="airlock-terminal__time">@UiFormat.Clock(line.Timestamp, State.TimeZone)</span>
+                    <span class="airlock-terminal__level">@UiFormat.Level(line.Level)</span>
+                    <span class="airlock-terminal__message">@line.Message</span>
+                </div>
+            }
+        </div>
+        <footer class="airlock-terminal__actions">
+            <MudButton Size="Size.Small" Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.Download" OnClick="ExportAsync">
+                Export Logs
+            </MudButton>
+            <MudButton @ref="stopButton" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Outlined.Dangerous"
+                       Disabled="@(!State.Active.IsActive)" OnClick="ConfirmStopAsync">
+                Emergency Stop
+            </MudButton>
+        </footer>
+    }
+</section>
+
+@code {
+    private ElementReference scrollArea;
+    private MudButton? stopButton;
+    private bool minimized;
+    private bool follow = true;
+
+    /// <summary>Docked at the bottom right on Control Center; full height on Active Logs (UR-17).</summary>
+    [Parameter]
+    public bool Compact { get; set; }
+
+    private protected override SessionChange RedrawsFor => SessionChange.Lines | SessionChange.Slot | SessionChange.TimeZone;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // The script follows the newest line itself, with no round trip per line.
+        if (follow && !minimized)
+        {
+            follow = false;
+            await Js.FollowTerminalAsync(scrollArea);
+        }
+    }
+
+    private void Toggle()
+    {
+        minimized = !minimized;
+        follow = !minimized;
+    }
+
+    private static string LevelClass(LogLevel level) => level switch
+    {
+        LogLevel.Warning => "warning",
+        LogLevel.Error or LogLevel.Critical => "error",
+        _ => "info",
+    };
+
+    // UR-19: the tab's lines as shown; the server is not asked.
+    private async Task ExportAsync()
+    {
+        var now = Clock.GetUtcNow();
+        var text = UiFormat.LogExport(State.Lines, State.TimeZone, now, SystemEndpoints.Version);
+        await Js.DownloadTextAsync(UiFormat.LogFileName(now), text);
+    }
+
+    // UR-20, UR-37: the focus returns to Emergency Stop when the dialog closes.
+    private async Task ConfirmStopAsync()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, BackdropClick = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+        var dialog = await Dialogs.ShowAsync<StopScanDialog>(StopScanDialog.Question, options);
+        var result = await dialog.Result;
+        if (result is { Canceled: false })
+        {
+            var stopped = await Session.StopAsync(CancellationToken.None);
+            if (!stopped.Stopped)
+            {
+                Snackbar.Add("No active scan", Severity.Info);
+                Session.Announce("No active scan");
+            }
+        }
+
+        if (stopButton is not null)
+        {
+            await stopButton.FocusAsync();
+        }
+    }
+}

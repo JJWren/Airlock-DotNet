@@ -1,0 +1,18 @@
+@* UR-26: the scan's warnings as it states them, in a collapsed panel; a scan without warnings shows none. *@
+@if (Warnings.Count > 0)
+{
+    <details class="airlock-card airlock-warnings">
+        <summary class="airlock-warnings__summary">Warnings (@Warnings.Count)</summary>
+        <ul class="airlock-warnings__list">
+            @foreach (var warning in Warnings)
+            {
+                <li>@warning.Message</li>
+            }
+        </ul>
+    </details>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<ScanWarning> Warnings { get; set; } = [];
+}

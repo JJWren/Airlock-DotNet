@@ -16,4 +16,8 @@ internal static class WebModel
 
     /// <summary>The API: every type in <c>Airlock.Web.Api</c> and its namespaces.</summary>
     public static GivenTypesConjunction ApiTypes() => Types().That().ResideInNamespaceMatching("^Airlock[.]Web[.]Api([.].+)?$");
+
+    /// <summary>The UI (U5): the components, the tab's state and the browser interop.</summary>
+    public static GivenTypesConjunction UiTypes() =>
+        Types().That().ResideInNamespaceMatching("^Airlock[.]Web[.](Components|State|Interop)([.].+)?$");
 }

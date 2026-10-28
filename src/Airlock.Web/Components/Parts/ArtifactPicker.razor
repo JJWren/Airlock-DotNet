@@ -1,0 +1,45 @@
+@* UR-07, UR-08: the Artifact Upload panel opens the file dialog in the browser, by click, Enter or Space; the page keeps
+   the files and the session their names and sizes. *@
+@inherits SessionComponent
+@inject AirlockJs Js
+
+<section class="airlock-card airlock-upload">
+    <div @ref="panel" class="airlock-dropzone" tabindex="0" role="button" aria-describedby="upload-limits">
+        <MudIcon Icon="@Icons.Material.Outlined.CloudUpload" Class="airlock-dropzone__icon" />
+        <span class="airlock-label">Artifact Upload</span>
+        <span id="upload-limits" class="airlock-hint">@UiFormat.Limits(Session.Limits)</span>
+    </div>
+    <input @ref="input" type="file" multiple class="visually-hidden" tabindex="-1" aria-hidden="true" />
+    @if (!State.Staged.IsEmpty)
+    {
+        <div class="airlock-staged">
+            <div class="airlock-label">@State.Staged.Count File(s) Staged</div>
+            <ul class="airlock-staged__list">
+                @foreach (var artifact in State.Staged)
+                {
+                    <li @key="artifact.Id" class="airlock-staged__item">
+                        <span class="airlock-staged__name">@artifact.FileName</span>
+                        <span class="airlock-staged__size">@UiFormat.Size(artifact.SizeBytes)</span>
+                        <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" aria-label="@($"Remove {artifact.FileName}")"
+                                       OnClick="() => Session.UnstageAsync(artifact.Id)" />
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+</section>
+
+@code {
+    private ElementReference panel;
+    private ElementReference input;
+
+    private protected override SessionChange RedrawsFor => SessionChange.Staging;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Js.BindArtifactPickerAsync(panel, input, Session.Sink);
+        }
+    }
+}

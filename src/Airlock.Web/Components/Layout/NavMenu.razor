@@ -1,0 +1,18 @@
+@* UR-01: the drawer's heading, its items with the current one highlighted, and Execute Audit, which starts no scan. *@
+<div class="airlock-drawer__heading">
+    <span class="airlock-dot airlock-dot--clean" aria-hidden="true"></span>
+    <div>
+        <div class="airlock-drawer__title">Control Center</div>
+        <div class="airlock-drawer__subtitle">Tactical Observer</div>
+    </div>
+</div>
+<MudNavMenu Class="airlock-nav">
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Dashboard">Control Center</MudNavLink>
+    <MudNavLink Href="logs" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Terminal">Active Logs</MudNavLink>
+    <MudNavLink Href="reports" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Assessment">Reports</MudNavLink>
+</MudNavMenu>
+<div class="airlock-drawer__footer">
+    <MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" StartIcon="@Icons.Material.Outlined.Security">
+        Execute Audit
+    </MudButton>
+</div>

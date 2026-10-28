@@ -1,0 +1,29 @@
+@* UR-39, U5-NFR-12: an unexpected error in a page shows "Something went wrong" with Reload, never the exception, and
+   is logged once at Error. *@
+@inherits ErrorBoundaryBase
+@using Airlock.Application.Logging
+@using Airlock.Web.Logging
+@inject ILogger<AirlockErrorBoundary> Logger
+@inject NavigationManager Navigation
+
+@if (CurrentException is null)
+{
+    @ChildContent
+}
+else
+{
+    <div class="airlock-error airlock-fade" role="alert">
+        <h1 class="airlock-title">Something went wrong</h1>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="Reload">Reload</MudButton>
+    </div>
+}
+
+@code {
+    protected override Task OnErrorAsync(Exception exception)
+    {
+        Logger.PageFailed(exception, ExternalText.Clean(exception.Message));
+        return Task.CompletedTask;
+    }
+
+    private void Reload() => Navigation.Refresh(forceReload: true);
+}

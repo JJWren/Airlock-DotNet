@@ -1,4 +1,3 @@
-using System.Globalization;
 using Airlock.Application.Logging;
 using Airlock.Application.Options;
 using Airlock.Application.Outcomes;
@@ -20,9 +19,6 @@ public sealed class ScanReservation : IAsyncDisposable
     internal const string NotBothMessage = "Choose a directory or upload artifacts, not both";
     internal const string InvalidPathMessage = "Target path is not valid";
     internal const string StoppedMessage = "Emergency Stop ended the upload before the scan started";
-
-    private const long Mebibyte = 1024 * 1024;
-    private const long Gibibyte = 1024 * Mebibyte;
 
     private readonly ReservationTicket ticket;
     private readonly ScanCoordinator coordinator;
@@ -65,9 +61,7 @@ public sealed class ScanReservation : IAsyncDisposable
 
         if ((stagingArea?.Artifacts.Count ?? 0) >= settings.Limits.MaxArtifactsPerScan)
         {
-            return Refuse<Artifact>(
-                RefusalCode.TooManyArtifacts,
-                string.Create(CultureInfo.InvariantCulture, $"At most {settings.Limits.MaxArtifactsPerScan} files per scan"));
+            return Refuse<Artifact>(UploadLimits.TooManyArtifacts(settings.Limits));
         }
 
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ticket.StopToken);
@@ -79,7 +73,7 @@ public sealed class ScanReservation : IAsyncDisposable
             var outcome = await stagingArea.AddAsync(ArtifactName.Sanitize(fileName), content, remaining, linked.Token);
             return outcome is ArtifactStaged staged
                 ? Outcome.Success(staged.Artifact.Artifact)
-                : Refuse<Artifact>(RefusalCode.TooLarge, $"Uploads are limited to {Size(settings.Limits.MaxBytesPerScan)} per scan");
+                : Refuse<Artifact>(UploadLimits.TooLarge(settings.Limits));
         }
         catch (OperationCanceledException) when (ticket.IsStopped)
         {
@@ -250,17 +244,14 @@ public sealed class ScanReservation : IAsyncDisposable
         return refusal;
     }
 
-    private Outcome<T> Refuse<T>(RefusalCode code, string message)
+    private Outcome<T> Refuse<T>(RefusalCode code, string message) => Refuse<T>(new Refusal(code, message));
+
+    private Outcome<T> Refuse<T>(Refusal refused)
     {
-        refusal = new Refusal(code, message);
-        logger.ScanRefused(message);
-        return Outcome.Refused<T>(refusal);
+        refusal = refused;
+        logger.ScanRefused(refused.Message);
+        return Outcome.Refused<T>(refused);
     }
 
     private Refusal RefuseEarly(string message) => Blocked() ?? Refuse<Scan>(RefusalCode.InvalidTarget, message).Refusal!;
-
-    private static string Size(long bytes) =>
-        bytes % Gibibyte == 0
-            ? string.Create(CultureInfo.InvariantCulture, $"{bytes / Gibibyte} GB")
-            : string.Create(CultureInfo.InvariantCulture, $"{bytes / (double)Mebibyte:0.#} MB");
 }

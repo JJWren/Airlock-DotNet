@@ -1,0 +1,37 @@
+@* UR-04, UR-05: LOADING, ONLINE and DEGRADED from the health read; OFFLINE from the page's script, through the
+   stylesheet. DEGRADED's tooltip opens on focus as well as on hover, and screen readers hear its details. *@
+@inherits SessionComponent
+
+<MudTooltip ShowOnFocus="true" ShowOnHover="true" Disabled="@(Details.Count == 0)" Placement="Placement.Bottom" Arrow="true">
+    <ChildContent>
+        <div class="airlock-pill airlock-pill--@StateName.ToLowerInvariant()" tabindex="0" role="status">
+            <span class="airlock-pill__dot" aria-hidden="true"></span>
+            <span class="airlock-pill__text">System Status: <span class="airlock-pill__state">@StateName</span><span class="airlock-pill__offline">OFFLINE</span></span>
+            @if (Details.Count > 0)
+            {
+                <span class="visually-hidden">: @string.Join("; ", Details)</span>
+            }
+        </div>
+    </ChildContent>
+    <TooltipContent>
+        @foreach (var detail in Details)
+        {
+            <div class="airlock-pill__detail">@detail</div>
+        }
+    </TooltipContent>
+</MudTooltip>
+
+@code {
+    private protected override SessionChange RedrawsFor => SessionChange.Health;
+
+    private string StateName => State.Health switch
+    {
+        null => "LOADING",
+        { Status: HealthStatus.Online } => "ONLINE",
+        _ => "DEGRADED",
+    };
+
+    private IReadOnlyList<string> Details => State.Health is { Status: HealthStatus.Degraded } health
+        ? [.. health.Checks.Where(check => !check.Passing).Select(check => check.Detail)]
+        : [];
+}

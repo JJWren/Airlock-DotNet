@@ -1,0 +1,27 @@
+@* UR-39, refinement 2: an unexpected error outside a page's circuit, drawn by the server alone, without MudBlazor or
+   the tab's session, and never showing the exception. *@
+@page "/error"
+@attribute [ExcludeFromInteractiveRouting]
+@layout PlainLayout
+@using Microsoft.AspNetCore.Diagnostics
+
+<PageTitle>Something went wrong · Airlock</PageTitle>
+
+<div class="airlock-error" role="alert">
+    <h1 class="airlock-title">Something went wrong</h1>
+    <a class="airlock-action" href="@ReloadHref" data-enhance-nav="false">Reload</a>
+</div>
+
+@code {
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+
+    // Reload asks for the page that failed again, when it is one of Airlock's own paths; otherwise Control Center.
+    private string ReloadHref =>
+        HttpContext?.Features.Get<IExceptionHandlerPathFeature>()?.Path is { } path
+        && path.StartsWith('/')
+        && !path.StartsWith("//", StringComparison.Ordinal)
+        && !path.StartsWith("/\\", StringComparison.Ordinal)
+            ? path
+            : "/";
+}

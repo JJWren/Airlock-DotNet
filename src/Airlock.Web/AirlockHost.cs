@@ -3,6 +3,7 @@ using Airlock.Application.Options;
 using Airlock.Infrastructure;
 using Airlock.Web.Api;
 using Airlock.Web.Api.Docs;
+using Airlock.Web.Components;
 
 namespace Airlock.Web;
 
@@ -30,13 +31,18 @@ internal static class AirlockHost
         builder.Services.AddAirlockApplication();
         builder.Services.AddAirlockInfrastructure(builder.Configuration);
         builder.Services.AddAirlockApi();
+        builder.Services.AddAirlockUi(builder.Environment);
     }
 
     public static void ConfigurePipeline(WebApplication app)
     {
         ArgumentNullException.ThrowIfNull(app);
+        app.UseAirlockPages();
         app.UseAirlockApi();
+        app.UseAntiforgery();
+        app.MapStaticAssets();
         app.MapAirlockApi();
         app.MapAirlockDocs();
+        app.MapAirlockUi();
     }
 }

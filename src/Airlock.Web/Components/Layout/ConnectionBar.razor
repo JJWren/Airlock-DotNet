@@ -1,0 +1,8 @@
+@* UR-05, U5-NFR-06: with this element present, Blazor puts its reconnection state classes here instead of showing
+   its own dialog; the stylesheet shows the bar and airlock.js wires the buttons. *@
+<div id="components-reconnect-modal" class="airlock-connection" role="status" data-nosnippet>
+    <span class="airlock-connection__reconnecting">Connection lost — reconnecting…</span>
+    <span class="airlock-connection__failed">Connection lost.</span>
+    <button type="button" class="airlock-connection__button" data-airlock-retry>Retry</button>
+    <button type="button" class="airlock-connection__button" data-airlock-reload>Reload</button>
+</div>

@@ -1,0 +1,123 @@
+@* UR-27 to UR-29, U5-NFR-04: vulnerable, then unverified packages in the scan's order; filtered by name or CVE id
+   200 ms after the last keystroke; selected by package identity; rows drawn as they scroll into view. *@
+@implements IDisposable
+@inject TimeProvider Clock
+
+<section class="airlock-card airlock-grid" aria-labelledby="grid-title">
+    <header class="airlock-grid__header">
+        <h2 id="grid-title" class="airlock-section-title">Inventory Matrix</h2>
+        <input class="airlock-input airlock-grid__filter" type="search" placeholder="FILTER BY PACKAGE OR CVE..."
+               aria-label="Filter by package or CVE" @oninput="OnFilterInput" />
+    </header>
+    @if (all.Count == 0)
+    {
+        <p class="airlock-empty">
+            @(Scan.Summary?.TotalPackages > 0 ? "No HIGH or CRITICAL findings: every package is clean." : "No packages identified in the scan target.")
+        </p>
+    }
+    else if (rows.Length == 0)
+    {
+        <p class="airlock-empty">No matching assets found in project inventory.</p>
+    }
+    else
+    {
+        <div class="airlock-grid__scroll">
+            <MudSimpleTable Hover="true" FixedHeader="true" Elevation="0" Class="airlock-grid__table">
+                <thead>
+                    <tr>
+                        <th scope="col">Risk</th>
+                        <th scope="col">Package Name</th>
+                        <th scope="col">Version</th>
+                        <th scope="col">Method</th>
+                        <th scope="col">Findings</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <Virtualize Items="rows" ItemSize="48" OverscanCount="10" SpacerElement="tr" Context="row">
+                        <tr @key="row.Package" class="airlock-grid__row @(IsSelected(row) ? "is-selected" : null)" tabindex="0"
+                            aria-selected="@(IsSelected(row) ? "true" : "false")" data-airlock-selectable
+                            @onclick="() => SelectAsync(row)" @onkeydown="args => OnRowKeyAsync(args, row)">
+                            <td><span class="airlock-badge airlock-badge--@row.RiskClass">@row.Risk</span></td>
+                            <td class="airlock-grid__name">@row.Package.Name</td>
+                            <td class="airlock-mono">@row.Package.Version</td>
+                            <td>@row.Method</td>
+                            <td class="airlock-mono airlock-grid__count">@row.Findings</td>
+                        </tr>
+                    </Virtualize>
+                </tbody>
+            </MudSimpleTable>
+        </div>
+    }
+</section>
+
+@code {
+    private static readonly TimeSpan FilterDelay = TimeSpan.FromMilliseconds(200);
+    private Scan? shown;
+    private IReadOnlyList<InventoryRow> all = [];
+    private InventoryRow[] rows = [];
+    private string filter = string.Empty;
+    private string? pendingFilter;
+    private ITimer? filterTimer;
+
+    [Parameter, EditorRequired]
+    public Scan Scan { get; set; } = default!;
+
+    /// <summary>The selected row's package (refinement 1: parameters are of public types).</summary>
+    [Parameter]
+    public Package? Selected { get; set; }
+
+    [Parameter]
+    public EventCallback<Package?> SelectedChanged { get; set; }
+
+    public void Dispose() => filterTimer?.Dispose();
+
+    // The rows are computed once per scan and per filter, never per redraw.
+    protected override void OnParametersSet()
+    {
+        if (!ReferenceEquals(shown, Scan))
+        {
+            shown = Scan;
+            all = InventoryRow.For(Scan);
+            rows = [.. InventoryRow.Filter(all, filter)];
+        }
+    }
+
+    private bool IsSelected(InventoryRow row) => row.Package.Equals(Selected);
+
+    // UR-29: selecting the selected row again keeps it selected.
+    private Task SelectAsync(InventoryRow row) => IsSelected(row) ? Task.CompletedTask : SelectedChanged.InvokeAsync(row.Package);
+
+    private Task OnRowKeyAsync(KeyboardEventArgs args, InventoryRow row) => args.Key switch
+    {
+        "Enter" or " " => SelectAsync(row),
+        "Escape" when Selected is not null => SelectedChanged.InvokeAsync(null),
+        _ => Task.CompletedTask,
+    };
+
+    private void OnFilterInput(ChangeEventArgs args)
+    {
+        pendingFilter = args.Value as string ?? string.Empty;
+        filterTimer ??= Clock.CreateTimer(state => _ = InvokeAsync(ApplyFilterAsync), null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        filterTimer.Change(FilterDelay, Timeout.InfiniteTimeSpan);
+    }
+
+    private async Task ApplyFilterAsync()
+    {
+        if (pendingFilter is not { } text)
+        {
+            return;
+        }
+
+        pendingFilter = null;
+        filter = text;
+        rows = [.. InventoryRow.Filter(all, filter)];
+
+        // UR-29: the filter keeps the selection while its row shows, and clears it otherwise.
+        if (Selected is not null && !Array.Exists(rows, row => row.Package.Equals(Selected)))
+        {
+            await SelectedChanged.InvokeAsync(null);
+        }
+
+        StateHasChanged();
+    }
+}

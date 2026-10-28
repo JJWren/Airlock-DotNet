@@ -1,0 +1,41 @@
+@* UR-36, UR-39, U5-NFR-08, U5-NFR-11: the static shell. Every page is interactive without prerendering, except the
+   error page, which the server draws alone (refinement 2). No ImportMap: its inline script would break the policy. *@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" />
+    <link rel="stylesheet" href="@Assets["css/airlock.css"]" />
+    <link rel="icon" type="image/svg+xml" href="@Assets["favicon.svg"]" />
+    <HeadOutlet @rendermode="PageRenderMode" />
+</head>
+
+<body>
+    @if (PageRenderMode is not null)
+    {
+        <div class="airlock-boot" aria-hidden="true">Airlock</div>
+    }
+    <Routes @rendermode="PageRenderMode" />
+    <div id="blazor-error-ui" role="alert" data-nosnippet>
+        Something went wrong
+        <a href="" class="reload">Reload</a>
+    </div>
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script src="@Assets["_content/MudBlazor/MudBlazor.min.js"]"></script>
+</body>
+
+</html>
+
+@code {
+    private static readonly IComponentRenderMode Interactive = new InteractiveServerRenderMode(prerender: false);
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    // .NET 10's pattern for pages excluded from interactive routing: they render on the server only.
+    private IComponentRenderMode? PageRenderMode => HttpContext.AcceptsInteractiveRouting() ? Interactive : null;
+}

@@ -1,0 +1,26 @@
+@* UR-21: the machine Airlock runs on, the elapsed timer and the terminal at full height. *@
+@page "/logs"
+@inherits SessionComponent
+
+<PageTitle>Active Logs · Airlock</PageTitle>
+
+<div class="airlock-page airlock-logs airlock-fade">
+    <header class="airlock-page__header">
+        <div>
+            <h1 class="airlock-title">System Vulnerability Scan</h1>
+            <p class="airlock-subtitle airlock-mono">Node: @MachineName // Mode: Tactical Analysis</p>
+        </div>
+        <div class="airlock-timer">
+            <span class="airlock-label">Elapsed Time</span>
+            <ElapsedTimer Scan="State.Current" />
+        </div>
+    </header>
+    <Terminal Compact="false" />
+</div>
+
+@code {
+    // FR-26: the machine's real name; in a container, its host name.
+    private static readonly string MachineName = Environment.MachineName;
+
+    private protected override SessionChange RedrawsFor => SessionChange.Scan;
+}

@@ -1,0 +1,26 @@
+@* U5-NFR-07: a visually hidden live region that repeats each notice and snackbar for screen readers. *@
+@implements IDisposable
+@inject ScanSession Session
+
+<div class="visually-hidden" role="status" aria-live="polite" aria-atomic="true">
+    @if (announcement is { } current)
+    {
+        <span @key="current.Sequence">@current.Text</span>
+    }
+</div>
+
+@code {
+    private (long Sequence, string Text)? announcement;
+    private long sequence;
+
+    public void Dispose() => Session.Announced -= OnAnnounced;
+
+    protected override void OnInitialized() => Session.Announced += OnAnnounced;
+
+    // A new element for every announcement, so the same words are read again.
+    private void OnAnnounced(string text) => _ = InvokeAsync(() =>
+    {
+        announcement = (++sequence, text);
+        StateHasChanged();
+    });
+}

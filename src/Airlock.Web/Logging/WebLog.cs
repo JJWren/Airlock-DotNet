@@ -26,4 +26,14 @@ internal static partial class WebLog
 
     [LoggerMessage(EventId = 3301, Level = LogLevel.Debug, Message = "An event stream ended because the server is stopping")]
     public static partial void StreamEndedByShutdown(this ILogger logger);
+
+    // U5-NFR-12: the UI's failures, at Error; routine UI activity logs nothing at Information.
+    [LoggerMessage(EventId = 3401, Level = LogLevel.Error, Message = "💥 A page failed: {Reason}")]
+    public static partial void PageFailed(this ILogger logger, Exception exception, string reason);
+
+    [LoggerMessage(EventId = 3402, Level = LogLevel.Error, Message = "⚠️ A call into the browser failed: {Function}: {Reason}")]
+    public static partial void BrowserCallFailed(this ILogger logger, string function, string reason);
+
+    [LoggerMessage(EventId = 3403, Level = LogLevel.Error, Message = "⚠️ A tab stopped following {Feed}: {Reason}")]
+    public static partial void SessionFeedFailed(this ILogger logger, Exception exception, string feed, string reason);
 }

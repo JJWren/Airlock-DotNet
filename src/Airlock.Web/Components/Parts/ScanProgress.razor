@@ -1,0 +1,25 @@
+@* UR-11, UR-13, UR-16: this tab's transfer, another tab's upload being received, then where the scan is. *@
+@inherits SessionComponent
+
+@if (State.Upload is { } upload)
+{
+    <div class="airlock-progress">
+        <MudProgressLinear Color="Color.Primary" Value="upload.Percent" Rounded="true" aria-label="Upload progress" />
+        <p class="airlock-progress__line">@UiFormat.Transfer(upload)</p>
+    </div>
+}
+else if (State.IsPreparing)
+{
+    if (State.Active.ReceivingUpload)
+    {
+        <p class="airlock-progress__line">Receiving artifacts…</p>
+    }
+}
+else if (State.Current is { IsFinished: false } scan)
+{
+    <p class="airlock-progress__line">@UiFormat.Phase(scan)</p>
+}
+
+@code {
+    private protected override SessionChange RedrawsFor => SessionChange.Upload | SessionChange.Slot | SessionChange.Scan;
+}

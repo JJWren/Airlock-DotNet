@@ -1,0 +1,34 @@
+@* UR-15: whole seconds from the scan's start, redrawn once a second while it runs; stopped at its finish; 00:00 without
+   a scan. It counts the scan, not the upload before it, so every tab shows the same time. *@
+@implements IDisposable
+@inject TimeProvider Clock
+
+<span class="airlock-timer__value">@UiFormat.Elapsed(Elapsed)</span>
+
+@code {
+    private static readonly TimeSpan Tick = TimeSpan.FromSeconds(1);
+    private ITimer? ticker;
+
+    [Parameter]
+    public Scan? Scan { get; set; }
+
+    private TimeSpan Elapsed => Scan is null ? TimeSpan.Zero : (Scan.FinishedAt ?? Clock.GetUtcNow()) - Scan.StartedAt;
+
+    public void Dispose()
+    {
+        ticker?.Dispose();
+        ticker = null;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (Scan is { IsFinished: false })
+        {
+            ticker ??= Clock.CreateTimer(state => _ = InvokeAsync(StateHasChanged), null, Tick, Tick);
+        }
+        else
+        {
+            Dispose();
+        }
+    }
+}

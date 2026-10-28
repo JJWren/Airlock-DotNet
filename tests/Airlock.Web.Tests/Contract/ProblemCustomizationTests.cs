@@ -65,12 +65,29 @@ public sealed class ProblemCustomizationTests
         var writer = new RecordingProblemDetailsService();
         var handler = new ApiExceptionHandler(writer, NullLogger<ApiExceptionHandler>.Instance);
         var context = new DefaultHttpContext();
+        context.Request.Path = "/api/v2/scans";
 
         var handled = await handler.TryHandleAsync(context, new BadHttpRequestException("Request body too large.", 413), Test.Token);
 
         Assert.True(handled);
         Assert.Equal(413, context.Response.StatusCode);
         Assert.Equal(413, writer.Written!.ProblemDetails.Status);
+    }
+
+    [Fact]
+    public async Task An_exception_outside_the_api_is_left_to_the_pages_error_page()
+    {
+        // U5: every exception handler in the host asks the API's first; the pages draw their own error page.
+        var writer = new RecordingProblemDetailsService();
+        var handler = new ApiExceptionHandler(writer, NullLogger<ApiExceptionHandler>.Instance);
+        var context = new DefaultHttpContext();
+        context.Request.Path = "/reports";
+
+        var handled = await handler.TryHandleAsync(context, new InvalidOperationException("A page failed."), Test.Token);
+
+        Assert.False(handled);
+        Assert.Null(writer.Written);
+        Assert.Equal(200, context.Response.StatusCode);
     }
 
     private static ProblemDetailsContext Context(ProblemDetails problem) =>

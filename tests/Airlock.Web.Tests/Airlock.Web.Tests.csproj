@@ -8,7 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- ASP.NET Core and Microsoft.Extensions come from the shared framework, as in the running app. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="xunit.v3" />
+    <PackageReference Include="bunit" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" />

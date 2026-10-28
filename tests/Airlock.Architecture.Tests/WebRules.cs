@@ -1,4 +1,5 @@
 using ArchUnitNET.xUnitV3;
+using Microsoft.AspNetCore.Components;
 using static ArchUnitNET.Fluent.ArchRuleDefinition;
 
 namespace Airlock.Architecture.Tests;
@@ -40,10 +41,45 @@ public sealed class WebApiRules
     }
 
     [Fact]
-    public void Every_Web_type_but_Program_is_internal()
+    public void Every_Web_type_but_Program_and_the_components_is_internal()
     {
-        var exported = WebModel.Assembly.GetExportedTypes().Select(type => type.FullName).ToList();
+        // U5 refinement 1: Razor makes every component a public class, and so their base, and the class of its _Imports
+        // file; nothing else is exported.
+        var exported = WebModel.Assembly.GetExportedTypes();
 
-        Assert.Equal(["Program"], exported);
+        Assert.Equal(
+            ["Airlock.Web.Components._Imports", "Program"],
+            exported.Where(type => !typeof(IComponent).IsAssignableFrom(type)).Select(type => type.FullName).Order(StringComparer.Ordinal));
+        Assert.All(
+            exported.Where(type => typeof(IComponent).IsAssignableFrom(type)),
+            component => Assert.StartsWith("Airlock.Web.Components.", component.FullName, StringComparison.Ordinal));
+    }
+}
+
+// U5-NFR-01, UR-41: the UI calls the Application in-process; no UI type uses an HttpClient, so the server never calls
+// its own API and only the browser posts to it (ADR-0001). Rule 5 above already keeps the UI from the Infrastructure.
+public sealed class WebUiRules
+{
+    [Fact]
+    public void Ui_types_depend_on_no_HttpClient()
+    {
+        WebModel.UiTypes()
+            .Should().NotDependOnAny(Types(true).That().HaveFullName("System.Net.Http.HttpClient"))
+            .Check(WebModel.Architecture);
+    }
+
+    [Fact]
+    public void The_ui_types_are_among_those_the_rule_checks()
+    {
+        Assert.NotEmpty(WebModel.UiTypes().GetObjects(WebModel.Architecture));
+    }
+
+    [Fact]
+    public void A_page_does_reach_an_Application_use_case()
+    {
+        // Positive control: Reports reads a scan through GetScan, in-process.
+        Types().That().HaveFullName("Airlock.Web.Components.Pages.Reports")
+            .Should().DependOnAny(Types(true).That().HaveFullName("Airlock.Application.UseCases.GetScan"))
+            .Check(WebModel.Architecture);
     }
 }

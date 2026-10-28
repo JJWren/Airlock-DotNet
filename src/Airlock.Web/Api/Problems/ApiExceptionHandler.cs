@@ -15,6 +15,12 @@ internal sealed class ApiExceptionHandler(IProblemDetailsService problems, ILogg
         ArgumentNullException.ThrowIfNull(httpContext);
         ArgumentNullException.ThrowIfNull(exception);
 
+        // Every exception handler in the host asks this one first; the pages outside /api draw their own error page (U5).
+        if (!httpContext.Request.Path.StartsWithSegments(ApiEndpoints.ApiPrefix))
+        {
+            return false;
+        }
+
         // A request the server itself refused to read — a body past its limit, a broken request — keeps its status.
         var status = exception is BadHttpRequestException badRequest ? badRequest.StatusCode : StatusCodes.Status500InternalServerError;
         if (status >= StatusCodes.Status500InternalServerError)

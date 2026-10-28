@@ -1,0 +1,27 @@
+@* UR-24, UR-38: the summary's own counts, which the UI never computes; the Critical dot pulses above zero. *@
+<div class="airlock-cards">
+    <div class="airlock-stat airlock-stat--total">
+        <span class="airlock-stat__label">Total Packages</span>
+        <span class="airlock-stat__value">@Summary.TotalPackages</span>
+    </div>
+    <div class="airlock-stat airlock-stat--critical">
+        <span class="airlock-stat__label">
+            <span class="airlock-dot airlock-dot--critical @(Summary.CriticalFindings > 0 ? "airlock-pulse" : null)" aria-hidden="true"></span>
+            Critical Findings
+        </span>
+        <span class="airlock-stat__value">@Summary.CriticalFindings</span>
+    </div>
+    <div class="airlock-stat airlock-stat--high">
+        <span class="airlock-stat__label">High Findings</span>
+        <span class="airlock-stat__value">@Summary.HighFindings</span>
+    </div>
+    <div class="airlock-stat airlock-stat--clean">
+        <span class="airlock-stat__label">Clean Packages</span>
+        <span class="airlock-stat__value">@Summary.CleanPackages</span>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public ScanSummary Summary { get; set; } = default!;
+}

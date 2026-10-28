@@ -1,0 +1,29 @@
+@* UR-12: the tab's one inline notice, with ✕; a finished scan's links to its report. The announcer reads it aloud. *@
+@inherits SessionComponent
+
+@if (State.Notice is { } notice)
+{
+    <div class="airlock-notice airlock-notice--@Look(notice)">
+        <span class="airlock-notice__text">
+            @notice.Text
+            @if (notice is { Kind: NoticeKind.Finished, ScanId: { } id })
+            {
+                <text> — </text><a href="@UiFormat.ReportHref(id)">View report</a>
+            }
+        </span>
+        <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" aria-label="Dismiss notice" OnClick="Session.DismissNotice" />
+    </div>
+}
+
+@code {
+    private protected override SessionChange RedrawsFor => SessionChange.Notice;
+
+    // U5 domain entities, "An inline notice": error, information, success for COMPLETED, warning for INCOMPLETE.
+    private static string Look(InlineNotice notice) => notice.Kind switch
+    {
+        NoticeKind.Refusal or NoticeKind.Interrupted or NoticeKind.Failed => "error",
+        NoticeKind.Finished when notice.Text.EndsWith("INCOMPLETE", StringComparison.Ordinal) => "warning",
+        NoticeKind.Finished => "success",
+        _ => "info",
+    };
+}
