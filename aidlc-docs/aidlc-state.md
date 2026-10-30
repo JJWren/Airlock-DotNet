@@ -4,9 +4,8 @@
 **Project type**: Greenfield target workspace; brownfield source system (remote repository)
 **Workflow path**: Full (decision N8)
 **Current phase**: CONSTRUCTION
-**Current stage**: U6 Delivery — Functional Design, starting (U5 Code Generation approved 2026-10-28T14:00:29Z and
-committed on `feature/u5-web-ui`)
-**Last updated**: 2026-10-28T14:00:29Z
+**Current stage**: Build and Test — planning (U6 Code Generation approved 2026-10-30T16:08:25Z)
+**Last updated**: 2026-10-30T16:08:25Z
 
 ## INCEPTION PHASE
 
@@ -30,7 +29,7 @@ committed on `feature/u5-web-ui`)
 | U3 Infrastructure | [x] | [x] | [x] | n/a | [x] |
 | U4 Web API | [x] | [x] | [x] | [x] | [x] |
 | U5 Web UI | [x] | [x] | [x] | n/a | [x] |
-| U6 Delivery | [ ] | [ ] | [ ] | [ ] | [ ] |
+| U6 Delivery | [x] | [x] | [x] | [x] | [x] |
 
 - [ ] Build and Test
 

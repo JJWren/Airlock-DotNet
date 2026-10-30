@@ -837,3 +837,195 @@ UI does NOT go through HTTP API (API tested separately), "Q4 — Is the reverse-
 **Context**: CONSTRUCTION — U5 Code Generation approved; U6 Delivery Functional Design next
 
 ---
+
+## U5 Code Generation — Commits
+**Timestamp**: 2026-10-28T14:04:10Z
+**User Input**: "(none — carrying out Q-CG5-2 = A)"
+**AI Response**: "Scanned the added lines of each commit for keys, tokens, cookies, e-mail addresses, user paths, the machine's name and its time zone: none (the words 'scratchpad' and 'user secrets' only; the drive named in U4's port-check entry, as before). The four font files' staged blobs match their release tags' Git blob hashes. Committed on feature/u5-web-ui: 243194e 'Add U5 Web UI design documents' (23 files) and 0ee5cd1 'Add U5 Web UI: Blazor pages, the tab's scan session, MudBlazor theme and component tests' (82 files, the code generation summary among them). .claude/ stays untracked (Q-CG4-3). Nothing pushed."
+**Context**: CONSTRUCTION — U5 committed
+
+---
+
+## U6 Functional Design — Plan and questions
+**Timestamp**: 2026-10-28T14:09:52Z
+**User Input**: "(none — continuing after the U5 Code Generation approval)"
+**AI Response**: "Read the U6 inputs: NFR-01, NFR-03, NFR-06, NFR-07, NFR-10 and NFR-11; stories E13 to E15; U6 in unit-of-work.md and workflow-planning.md; the constraints U3, U4 and U5 handed to U6; the install scripts and the U1 README; the original's Dockerfile, compose file, CI and CodeQL workflows. Wrote construction/plans/u6-delivery-functional-design-plan.md (Minimal depth, started 2026-10-28T14:04:16Z) with two questions — Q-U6-1, whether CI asks the real NVD with a repository secret, and Q-U6-2, whether CI publishes the image — and ten decisions taken by default, open to objection at the gate: running locally as U3 and U5 left it; one image; one compose service on 127.0.0.1 with the read-only /uploads mount, a staging volume, host name airlock and restart unless-stopped; a health check that accepts DEGRADED; CI on Linux and Windows enforcing the coverage targets U1 to U5 set, with an image smoke test on Linux; CodeQL for C# and JavaScript; Dependabot for NuGet, Docker and Actions, with Syft's version changed by hand; the README's sections and credits; nothing pushed; the cross-platform comparison and a real-key scan left to Build and Test. Asked Q-U6-1 and Q-U6-2."
+**Context**: CONSTRUCTION — U6 Delivery Functional Design, questions
+
+---
+
+## U6 Functional Design — Answers
+**Timestamp**: 2026-10-28T14:21:38Z
+**User Input**: "\"Q-U6-1: Should CI ask the real NVD? Right now every test runs offline. The one live NVD test runs without a key, and only when AIRLOCK_LIVE_NVD=1. A full scan against the real NVD in CI would need an NVD_API_KEY repository secret.\"=\"A) Offline (Recommended)\", \"Q-U6-2: Should CI publish the Docker image? Either way, CI builds the image and smoke-tests it.\"=\"B) GHCR on tags\""
+**AI Response**: "Recorded Q-U6-1 = A (CI stays offline: no NVD key and no secret, and the live test stays skipped; it and a full scan with a real key belong to Build and Test) and Q-U6-2 = B (publish to the GitHub Container Registry on version tags). B adds .github/workflows/release.yml to U6, and with it these decisions, open to objection at the gate: the tag must equal Version in Directory.Build.props; CI's checks run on the tagged commit first; the image that passed the smoke test is the one pushed, as X.Y.Z and, without a pre-release suffix, latest, for linux/amd64; only the publishing job has packages: write, through the run's own token; OCI labels link the package to the repository; compose runs the published image unless --build is given; and, because the published image redistributes Syft and the NuGet packages, a THIRD-PARTY-NOTICES.md that ships in the image. Writing the functional design documents."
+**Context**: CONSTRUCTION — U6 Delivery Functional Design, answers
+
+---
+
+## U6 Functional Design — Completion prompt
+**Timestamp**: 2026-10-28T14:30:26Z
+**User Input**: "(pending)"
+**AI Response**: "Wrote construction/u6-delivery/functional-design/domain-entities.md (the delivered files; the image's parts; the compose service and its five .env variables; the three workflows and their permissions; the coverage targets CI enforces; Dependabot's ecosystems; the README's sections), business-rules.md (DR-01 to DR-26: running from source; the image, Syft's one version, the third-party notices and what stays out of the build context; compose, the required scan folder and the settings files; health; CI's triggers, test job and image job; CodeQL; Dependabot; the README and its licensing lines; releases — the tag and version agreement, publishing a version once, publishing only what was tested, least privilege, labels and the owner's steps; nothing pushed) and business-logic-model.md (three flows — a change through CI, docker compose up, a release — validated with Mermaid 11.4.1, each with a text alternative; the rule-to-check map; the stories' scenarios; what is left to NFR Requirements, NFR Design and Infrastructure Design; what goes to Build and Test). Found while writing: Polly.Core and Polly.RateLimiting are BSD-3-Clause, which NFR-10 did not allow for. Amended NFR-10 (Polly; the third-party notices) and NFR-11 (Q-U6-1, Q-U6-2, CodeQL for JavaScript), the traceability table, stories E14 and E15, and U6 in unit-of-work.md. Nothing committed. Asked: 'Functional design complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U6 NFR Requirements)."
+**Context**: CONSTRUCTION — U6 Delivery Functional Design approval gate
+
+---
+
+## U6 Functional Design — Approval
+**Timestamp**: 2026-10-28T21:53:29Z
+**User Input**: "B) Continue"
+**AI Response**: "Recorded approval of U6 Functional Design (B, Continue to Next Stage), with its decisions as written: linux/amd64 only, CodeQL for JavaScript as well as C#, restart unless-stopped, DEGRADED counted as healthy, SCAN_UPLOAD_PATH required. Starting U6 Delivery — NFR Requirements (Standard depth)."
+**Context**: CONSTRUCTION — U6 Delivery Functional Design approved; U6 NFR Requirements next
+
+---
+
+## U6 NFR Requirements — Plan and questions
+**Timestamp**: 2026-10-28T21:59:57Z
+**User Input**: "(none — continuing after the U6 Functional Design approval)"
+**AI Response**: "Checked the facts the stage depends on: the .NET 10 image variants (dotnet/dotnet-docker: `10.0` is Ubuntu 24.04 at 10.0.14; chiseled-extra, Alpine extra, Ubuntu 26.04 and Azure Linux variants exist) and their linux/amd64 download sizes from mcr.microsoft.com (93.1 MiB full Ubuntu, 69.2 MiB noble chiseled-extra, 68.3 MiB Alpine extra); the shared libraries QuestPDF 2026.9.1's Linux native code links (the C and C++ runtime only, plus zlib for document operations Airlock does not call; no font library); the sizes of Syft and of a linux-x64 publish; that Syft's temporary files already go to the scan's staging folder and that Syft's status is cached; how long an unreachable NVD takes to mark a package Unverified; Dependabot's dotnet-sdk ecosystem and cooldown; where artifact attestations are available; the March 2026 trivy-action tag hijacking (CVE-2026-33634). Wrote construction/plans/u6-delivery-nfr-requirements-plan.md (Standard depth, started 2026-10-28T21:53:29Z) with four questions — Q-U6-N1 the runtime image (correcting U5's note that a chiseled image lacks ICU and time-zone data: the chiseled-extra variant has both), Q-U6-N2 scanning the image with Grype, Q-U6-N3 attestations for published images, Q-U6-N4 pinning actions and images — and thirteen targets taken by default, open to objection at the gate, among them a real scan in CI's smoke test with a stand-in key and NVD unreachable, which amends DR-13. Asked the four questions."
+**Context**: CONSTRUCTION — U6 Delivery NFR Requirements, questions
+
+---
+
+## U6 NFR Requirements — Answers
+**Timestamp**: 2026-10-28T22:40:34Z
+**User Input**: "\"Q-U6-N1: Which runtime image should Airlock ship on? The design picked full Ubuntu because the plain chiseled image lacks ICU and time-zone data, but Microsoft's chiseled-extra variant has both. QuestPDF's native code needs only the C and C++ runtime, which every option carries.\"=\"A) Chiseled-extra (Recommended)\", \"Q-U6-N2: Should CI scan the image for vulnerabilities? NuGet's audit and Dependabot cover Airlock's own packages, but nothing checks the whole image: its Ubuntu libraries, the .NET runtime, or Syft's Go libraries. Grype, from the makers of Syft, needs no account or key.\"=\"A) Gate on fixable (Recommended)\", \"Q-U6-N3: Should published images carry signed proof of where they came from? GitHub artifact attestations sign which workflow and commit built each version (provenance) and what it contains (an SBOM made by Syft). Anyone can check them with gh attestation verify. They're free for public repositories; private ones need GitHub Enterprise Cloud. The publishing job would gain id-token: write and attestations: write.\"=\"A) Provenance + SBOM (Recommended)\", \"Q-U6-N4: How should CI pin the actions and images it uses? A tag like @v4 or 10.0 can be moved to point at other code: in March 2026, 75 of trivy-action's 76 tags were (CVE-2026-33634). A commit SHA or an image digest can't be moved.\"=\"A) Pin all, 7-day wait (Recommended)\""
+**AI Response**: "Recorded Q-U6-N1 = A (the runtime image is aspnet:10.0-noble-chiseled-extra; the health check runs a small exec-form probe that ships with Airlock; debugging is from outside the container), Q-U6-N2 = A (Grype scans the image in CI and before every publish, failing on a fixable High or Critical; the report kept; accepted findings in .grype.yaml with a reason and a review date), Q-U6-N3 = A (signed build provenance and a signed SBOM made by Syft for every published version, as GitHub artifact attestations; the README shows how to verify them) and Q-U6-N4 = A (actions pinned to commit SHAs and images to digests; Dependabot waits 7 days after a release except for security updates and Microsoft's .NET images; CI rejects an unpinned reference). Writing the NFR requirements and tech-stack decisions."
+**Context**: CONSTRUCTION — U6 Delivery NFR Requirements, answers
+
+---
+
+## U6 NFR Requirements — Completion prompt
+**Timestamp**: 2026-10-28T22:51:57Z
+**User Input**: "(pending)"
+**AI Response**: "Checked the tools the answers name: Grype 0.121.0 (2026-10-19, a checksums file with a Sigstore bundle), actionlint 1.7.12 (2026-03-30, a checksums file), zizmor 1.31.1 (2026-10-15, per-asset SHA-256 digests); actions/attest v4, which actions/attest-sbom and attest-build-provenance now wrap (needs id-token: write and attestations: write, plus artifact-metadata: write only for storage records; SPDX or CycloneDX up to 16 MB); the runner labels (ubuntu-24.04 and windows-2025 are today's -latest). Wrote construction/u6-delivery/nfr-requirements/nfr-requirements.md (U6-NFR-01 to U6-NFR-18: pinning, updates with the 7-day cooldown, GitHub's own actions only and named runners, workflow security, secrets, vulnerability management with the Grype gate, release integrity with attestations and tags set last, the chiseled runtime image, runtime hardening, disk, health, the image's two-phase smoke test with a real scan against an unreachable NVD, budgets — 150 MiB, 20 minutes for a pull request, 30 for a release — portability, maintainability, observability, licensing, documentation; where each check runs; five defaults open to objection: the .NET SDK skipping the cooldown, a passed review date failing CI, tags set last, storage records off so only the permissions Q-U6-N3 named are needed, the real scan in the smoke test) and tech-stack-decisions.md (the images, the build, the probe, QuestPDF's native libraries, compose's hardening, the runners, the actions, the registry, the SBOM, Grype, the attestations, the linters, coverage, CodeQL, Dependabot, the repository tests, the versions checked). Amended the functional design: DR-02 to DR-04, DR-07, DR-10 to DR-14, DR-16, DR-22 and DR-23, with DR-27 to DR-31 added (pinning, workflow checks, hardening, the image scan, attestations); the files, image, compose, workflow and Dependabot tables and the README's sections in domain-entities.md; the CI and release flows redrawn and the compose flow's start node, all three validated with Mermaid 11.4.1 (15, 12 and 17 nodes), with their text alternatives; the rule-to-check map and the stories table. Amended NFR-03 and NFR-11 and the traceability table (Q-U6-N1 to Q-U6-N4), stories E14 and E15 (a scenario for verifying a published image), U6 in unit-of-work.md, and U5's note on chiseled images. Nothing committed. Asked: 'NFR requirements complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U6 NFR Design)."
+**Context**: CONSTRUCTION — U6 Delivery NFR Requirements approval gate
+
+---
+
+## U6 NFR Requirements — Approval
+**Timestamp**: 2026-10-29T01:51:00Z
+**User Input**: "B) Continue"
+**AI Response**: "Recorded approval of U6 NFR Requirements (B, Continue to Next Stage), with its defaults as written: the .NET SDK skipping Dependabot's cooldown, a passed review date failing CI, tags set last on the same image that was tested, attestation storage records off, the real scan against an unreachable NVD in the smoke test. Starting U6 Delivery — NFR Design (Minimal depth)."
+**Context**: CONSTRUCTION — U6 Delivery NFR Requirements approved; U6 NFR Design next
+
+---
+
+## U6 NFR Design — Completion prompt
+**Timestamp**: 2026-10-29T02:19:55Z
+**User Input**: "(pending)"
+**AI Response**: "Checked the facts the patterns depend on. Started Airlock's Debug build in Production three times, with a scratch staging root and nothing downloaded: with ASPNETCORE_URLS=http://127.0.0.1:18081 it still listened on http://localhost:8080, the Urls in appsettings.json; with URLS=http://127.0.0.1:18082 it listened there; with URLS and ASPNETCORE_HTTP_PORTS both set it warned that URLS overrides HTTP_PORTS. Also checked: ASP.NET Core logs an antiforgery cookie it cannot read at Error (AntiforgeryLoggerExtensions.cs); zizmor's audits (since v1.20.0 unpinned-uses requires a SHA for every action by default; forbidden-uses takes an allow-list; dependabot-cooldown; impostor-commit and known-vulnerable-actions need the network); Grype's configuration (only-fixed and fail-on-severity are configuration keys; --only-fixed adds ignore rules, so the JSON report keeps ignoredMatches; ignore rules carry a reason and no date; a database older than 120 hours is refused); U3's install scripts check Syft against the same release's checksums file. Wrote construction/plans/u6-delivery-nfr-design-plan.md (Minimal depth, no open question, twelve choices open to objection). Wrote construction/u6-delivery/nfr-design/nfr-design-patterns.md: a pattern for each of U6-NFR-01 to U6-NFR-18; the release's steps (build once, smoke test, SBOM and Grype, push without a tag, attest, verify with gh attestation verify, tag the digest); the writable places (the staging root and the data-protection keys on the volume, /tmp in memory); two findings (the listening address; Syft's checksum). Wrote logical-components.md: the smoke test and its compose override, the image scan, the promotion, the run summary, the coverage checker, the tool pins, the expected start warnings and the keys' folder; how the workflows share them, validated with Mermaid 11.4.1 (11 nodes) with a text alternative; the checks; what is left to Infrastructure Design. Brought in line: DR-02 (URLS, with ASPNETCORE_HTTP_PORTS cleared), DR-03 (the keys on the volume), DR-04 (committed hashes), DR-11 (a release skips CI's image job), DR-13's trace, DR-16 (Dependabot stays on .NET 10 LTS), DR-22 (one image, verified before it is tagged) and DR-29; domain-entities.md; business-logic-model.md (the CI and release flows redrawn and revalidated with the compose flow, 15, 12 and 17 nodes; their text alternatives; the rule-to-check map; what is left); U6-NFR-01, U6-NFR-02, U6-NFR-07, U6-NFR-09 and the tech-stack decisions; U4's infrastructure design (the listening-address rows, the configuration sources, data protection) and deployment architecture; U6 in unit-of-work.md. Nothing committed. Asked: 'NFR design complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U6 Infrastructure Design)."
+**Context**: CONSTRUCTION — U6 Delivery NFR Design approval gate
+
+---
+
+## U6 NFR Design — Approval
+**Timestamp**: 2026-10-29T22:17:19Z
+**User Input**: "B) Continue"
+**AI Response**: "Recorded approval of U6 NFR Design (B, Continue to Next Stage), with its choices as written: URLS with ASPNETCORE_HTTP_PORTS cleared, the data-protection keys on the volume, committed checksums, one image per release verified before it is tagged, the smoke test through the compose file, Grype's policy in .grype.yaml with review-by dates, Dependabot held on .NET 10 LTS, zizmor online with forbidden-uses, fixed concurrency groups, the image size reported with a warning, one list of expected start warnings. Starting U6 Delivery — Infrastructure Design (Standard depth)."
+**Context**: CONSTRUCTION — U6 Delivery NFR Design approved; U6 Infrastructure Design next
+
+---
+
+## U6 Infrastructure Design — Plan and question
+**Timestamp**: 2026-10-29T22:28:05Z
+**User Input**: "(none — continuing after the U6 NFR Design approval)"
+**AI Response**: "Checked the facts the stage depends on, reading registry manifests, release lists and release metadata without pulling an image or installing anything. The runtime image is aspnet:10.0.14-noble-chiseled-extra (Ubuntu 24.04 slices with a dpkg status file for scanners, /home/app owned by UID 1654). sdk:10.0-noble is SDK 10.0.403, and the 3xx image tags stop at 10.0.302. .NET 10's release metadata shows 10.0.303 (August) as the last 3xx SDK, the September and October security releases shipping 4xx and 1xx SDKs only, and 10.0.400 needing Visual Studio 18.9. The runners: ubuntu-24.04 carries SDKs 10.0.303 and 10.0.403 with Docker 28.0.4; windows-2025 carries 10.0.303 and 10.0.402. The tool images: Syft, Grype and zizmor on ghcr.io; actionlint and BuildKit on Docker Hub only; Syft's and Grype's images hold no licence file. The latest action releases and their SHAs, each at least 7 days old. actions/attest's storage-record default (true). imagetools create --prefer-index. zizmor's token variables and ignore syntax. YamlDotNet 18.1.0. Wrote construction/plans/u6-delivery-infrastructure-design-plan.md (Standard depth) with one question, Q-U6-I1: which .NET SDK feature band Airlock builds with — A) move to 10.0.4xx, B) stay on 10.0.3xx, C) keep global.json as it is. Asked the question."
+**Context**: CONSTRUCTION — U6 Delivery Infrastructure Design, question
+
+---
+
+## U6 Infrastructure Design — Answer
+**Timestamp**: 2026-10-29T22:40:40Z
+**User Input**: "\"Q-U6-I1: Which .NET SDK feature band should Airlock build with? global.json pins 10.0.303 but lets newer bands build, and Microsoft's SDK images carry only 10.0.403. So today your machine, Linux CI and the image, and Windows CI would use three different SDKs (10.0.303, 10.0.403, 10.0.402). The 3xx band is no longer patched: its last SDK shipped in August, and the September and October security releases were 4xx-only. 4xx is .NET 10's last band.\"=\"A) Move to 10.0.4xx (Recommended)\""
+**AI Response**: "Recorded Q-U6-I1 = A: global.json becomes SDK 10.0.403 with rollForward latestPatch; the image builds from sdk:10.0.403-noble; CI installs 10.0.403 on both runners; Dependabot keeps them current; the owner installs SDK 10.0.403 before Code Generation, and building inside Visual Studio needs 18.9 or later. Writing the infrastructure design and the deployment architecture."
+**Context**: CONSTRUCTION — U6 Delivery Infrastructure Design, answer
+
+---
+
+## U6 Infrastructure Design — Completion prompt
+**Timestamp**: 2026-10-29T22:55:39Z
+**User Input**: "(pending)"
+**AI Response**: "Read the remaining facts: the chiseled runtime image's /usr/bin/dotnet link; Grype's image (FROM scratch, no licence) and its database (187.3 MiB); zizmor's online and ignore settings; the download sizes for Code Generation (images about 620 MiB in all, SDK 10.0.403 for Windows 205.4 MiB, YamlDotNet 18.1.0 777 KiB, published 2026-06-26). Wrote construction/u6-delivery/infrastructure-design/infrastructure-design.md: the pins (seven images by tag and digest; five actions by commit SHA, each at least 7 days old; Syft's archive hashes in the install scripts); the SDK (Q-U6-I1 = A: global.json 10.0.403 with latestPatch, sdk:10.0.403-noble, setup-dotnet on both runners); the image's stages, runtime contents, environment, health check, entry point, labels, allowlist .dockerignore (with .editorconfig) and licence files; two small Airlock.Web changes (the --health-probe mode, the Airlock:DataProtection:KeysPath setting); the container's settings; compose key by key; ci.yml, codeql.yml and release.yml job by job; building in a pinned BuildKit container, exporting into Docker and as an OCI archive, pushing the same cache by digest with the configuration-digest check, attesting, verifying with gh attestation verify, tagging with imagetools create --prefer-index=false; the image scan (one Syft run, two SBOM formats; Grype under .grype.yaml); the smoke test; the CI tools' Dockerfile; Dependabot and zizmor; no caching; the scripts; tests/Airlock.Delivery.Tests with YamlDotNet; the coverage checker; the downloads for Code Generation; what Code Generation checks again. Wrote deployment-architecture.md: the places, the running container and its filesystem, start, stop and restart, the pipeline from a change to a published image (both diagrams validated with Mermaid 11.4.1, 9 and 14 nodes, with text alternatives), what each job talks to, identities and secrets, failures and recovery. Brought in line DR-01, DR-02, DR-10 and DR-13; domain-entities.md; the CI flow (revalidated with the compose and release flows: 15, 12 and 17 nodes) and the hand-over list; the tech-stack decisions; the NFR requirements' and NFR design's hand-over lists; U4's configuration table, health wiring and data protection; U1's SDK row; U6 in unit-of-work.md; NFR-01 and the traceability table (Q-U6-I1). Listed sixteen choices open to objection in the plan. Nothing committed. Asked: 'Infrastructure design complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: U6 Code Generation)."
+**Context**: CONSTRUCTION — U6 Delivery Infrastructure Design approval gate
+
+---
+
+## U6 Infrastructure Design — Approval
+**Timestamp**: 2026-10-30T00:30:46Z
+**User Input**: "B) Continue"
+**AI Response**: "Recorded approval of U6 Infrastructure Design (B, Continue to Next Stage), with its sixteen choices as written: the CI tools as images pinned by digest in .github/ci-tools/Dockerfile; the .NET images pinned by version tag; one build in a pinned BuildKit container, exported into Docker and as an OCI archive, then pushed by digest with the configuration-digest check; tags added with imagetools create --prefer-index=false, rehearsed with a fallback; the --health-probe mode; the Airlock:DataProtection:KeysPath setting; the volume airlock-data on /var/lib/airlock and a 64 MiB noexec /tmp; the allowlist .dockerignore with .editorconfig; one Syft run writing two SBOMs; no caching; bash and file-based C# scripts; tests/Airlock.Delivery.Tests with YamlDotNet 18.1.0; CodeQL's build modes and schedule; the smoke test's port, project and unreachable NVD; Dependabot's Syft and SDK arrangements; the time limits. Starting U6 Delivery — Code Generation (Standard depth), Part 1: planning."
+**Context**: CONSTRUCTION — U6 Delivery Infrastructure Design approved; U6 Code Generation next
+
+---
+
+## U6 Code Generation — Plan and questions
+**Timestamp**: 2026-10-30T00:42:35Z
+**User Input**: "(none — continuing after the U6 Infrastructure Design approval)"
+**AI Response**: "Checked this machine without changing it: the installed .NET SDKs stop at 10.0.303, so SDK 10.0.403 is still to be installed; Docker Engine 29.1.3, Buildx 0.30.1 and Compose 5.0.0; WSL's Ubuntu 24.04 with bash and Docker's command line but no jq; no container, volume or compose project named airlock, and ports 18080 and 15000 free. S0's Syft v1.55.0 checksums file holds the five archive hashes, and the LICENSE from S0's verified Windows archive has the Git blob hash of LICENSE at Syft's v1.55.0 tag, so nothing more is fetched from Syft's release. YamlDotNet 18.1.0 is MIT with no dependencies; registry 3.1.1 is 19.2 MiB; jq 1.7.1 for Linux is 2.21 MiB; Airlock.Web's 24 NuGet packages come to about 66.5 MiB. Wrote construction/plans/u6-delivery-code-generation-plan.md (Standard depth): the inputs, the ground rules (nothing committed during generation; SDK 10.0.403 installed by the owner before Part 2; the downloads with their sizes, about 670 MiB of images, Grype's 187.3 MiB database, about 66.5 MiB of NuGet packages per image build from nothing and 3.6 MiB of small files; every pin read again; Docker names checked unused and nothing of the owner's touched; no secret read; warnings as errors; no test on the network), three design refinements (the smoke test reads no .env; the C# scripts turn native AOT off; the repository tests reference Airlock.Web without its assembly and carry the coverage extension), and steps A to J: prerequisites and pins, the two Airlock.Web changes and their tests, the image, compose, the scripts, the GitHub files, the repository tests, the README, verification (build, tests, coverage, each repository test shown to fail once, the linters, the image, the smoke test, the image scan, the release rehearsal against a local registry, Compose's fallback, clean-up) and documentation. Asked Q-CG6-1 (the branch: A fast-forward main to feature/u5-web-ui and branch feature/u6-delivery from it, B branch from feature/u5-web-ui, C keep working on feature/u5-web-ui) and for the plan's approval (A Request Changes, B Approve and generate)."
+**Context**: CONSTRUCTION — U6 Delivery Code Generation, Part 1: plan and questions
+
+---
+
+## U6 Code Generation — Answers and approval
+**Timestamp**: 2026-10-30T00:43:49Z
+**User Input**: "\"Q-CG6-1: Which branch should U6 go on? U5 is committed on feature/u5-web-ui, and main holds U4.\"=\"A) Fast-forward main (Recommended)\", \"Approve the U6 Code Generation plan and generate? SDK 10.0.403 isn't installed yet (10.0.303 is the newest here). Install it before choosing B, or Part 2 stops at its first step.\"=\"B) Approve and generate (Recommended)\""
+**AI Response**: "Recorded Q-CG6-1 = A (fast-forward main to feature/u5-web-ui, then branch feature/u6-delivery from main) and the plan's approval (B, Approve and generate, with the downloads it lists). Started Part 2 at step A1: dotnet --list-sdks still shows 10.0.303 as the newest SDK, so, as the plan says, stopped there and asked the owner to install SDK 10.0.403 (dotnet-sdk-10.0.403-win-x64.exe, 205.4 MiB, from builds.dotnet.microsoft.com, with the SHA-512 from .NET 10's release metadata). Nothing else changed: no branch, no download, no file outside aidlc-docs."
+**Context**: CONSTRUCTION — U6 Delivery Code Generation, Part 2: approved; waiting at step A1 for SDK 10.0.403
+
+---
+
+## U6 Code Generation — SDK installed
+**Timestamp**: 2026-10-30T12:55:00Z
+**User Input**: "Installed, continue"
+**AI Response**: "dotnet --list-sdks now lists 10.0.403 beside 8.0.427, 9.0.320, 10.0.300-preview.0.26177.108 and 10.0.303, so step A1 passes. Continuing Part 2 at step A2 (the branch, per Q-CG6-1 = A)."
+**Context**: CONSTRUCTION — U6 Delivery Code Generation, Part 2: step A1 passed; generation resumes
+
+---
+
+## U6 Code Generation — Image scan question
+**Timestamp**: 2026-10-30T14:17:12Z
+**User Input**: "(pending)"
+**AI Response**: "Generated steps A2 to I6 and I8 to I9 of the plan. A2: fast-forwarded main to feature/u5-web-ui and branched feature/u6-delivery. A3: every image digest, action SHA and Syft hash read again, unchanged. A4: global.json moved to 10.0.403 with latestPatch; U1 to U5 built with no warning and 1,128 of 1,131 tests passed, as before. B: the --health-probe mode and the Airlock:DataProtection:KeysPath setting, with their tests; found that each health check after Syft's 30-second status cache added a Live Log line, so SyftStatusProbe now logs only a change of status (U6-NFR-11). C to H: the Dockerfile, .dockerignore, the notices (with QuestPDF's and ASP.NET Core's licence texts in licenses/), compose, .env.example, the install scripts' hashes, the scripts in scripts/ci, the smoke files, .grype.yaml, the GitHub files, tests/Airlock.Delivery.Tests (85 tests) and the README. Found and fixed: the design's image-job condition inputs.image != false would skip the job on every push and pull request, since GitHub's loose equality makes null equal false, so ci.yml uses toJSON(inputs.image) != 'false'; with two outputs BuildKit's metadata names no configuration digest, so build-image.sh reads it from the archive's manifest; files copied from a permissive build context were world-writable in /app, so the build stage now sets /app's modes; the units' coverage script skipped branch lines with fractional percentages, so the checker's correct branch figures are lower (Web 86.4 %, Infrastructure 85.5 %), still above the targets. Verified: the solution builds with no warning; 1,235 of 1,238 tests pass, the 3 skipped as before; coverage meets the four targets; each of the 12 repository test classes failed once on a temporary edit that was then undone; actionlint, shellcheck and zizmor (offline) report nothing but the accepted self-repository finding; the image downloads in 112.7 MiB; the smoke test passes both phases in 48 s; the release rehearsal against a local registry kept the tested configuration digest, tagged the pushed digest without a new manifest, and refused a moved tag and a republished version; Compose builds this copy when the tag cannot be pulled and pulls a published image otherwise. I7: Grype fails the image on 12 fixable vulnerabilities, all in Syft v1.55.0's binary (11 in Go 1.26.8's standard library, 1 in go-jose 4.1.5), and Syft has no newer release. Asked Q-CG6-2: A) accept the 12 in .grype.yaml with location /app/bin/syft and review-by 2026-11-30 (recommended), B) the same with review-by 2026-11-13, C) accept nothing, D) other. Nothing committed."
+**Context**: CONSTRUCTION — U6 Delivery Code Generation, Part 2: I7 waits on Q-CG6-2
+
+---
+
+## U6 Code Generation — Image scan answer
+**Timestamp**: 2026-10-30T15:31:22Z
+**User Input**: "\"Q-CG6-2: Grype fails the image on 12 fixable vulnerabilities, all inside Syft v1.55.0's own binary (/app/bin/syft): 11 in Go 1.26.8's standard library (2 Critical, 9 High, fixed in Go 1.26.9) and 1 High in go-jose 4.1.5 (fixed in 4.1.6). Nothing else fails the gate, and Syft has no newer release yet. How should .grype.yaml handle them?\"=\"A) Accept to 2026-11-30 (Recommended)\""
+**AI Response**: "Recorded Q-CG6-2 = A: the 12 findings are accepted in .grype.yaml, each naming its vulnerability, its package and the location /app/bin/syft, with the reason 'review-by 2026-11-30: in Syft v1.55.0's binary (Go 1.26.8, go-jose 4.1.5); gone when a Syft release built with Go 1.26.9 or later replaces it'. Rerunning the scan under the new policy, then I10 and the documentation."
+**Context**: CONSTRUCTION — U6 Delivery Code Generation, Part 2: Q-CG6-2 answered; I7 resumes
+
+---
+
+## U6 Code Generation — Completion prompt
+**Timestamp**: 2026-10-30T15:38:24Z
+**User Input**: "(pending)"
+**AI Response**: "Wrote the 12 acceptances of Q-CG6-2 in .grype.yaml (each limited to /app/bin/syft, review-by 2026-11-30); the scan then passed, with 2 Medium and 3 Unknown findings with a fix and 9 without one left under the gate. Corrected the run summary to read the tested configuration digest from image-id. Added to the README that Compose builds this copy when a tag cannot be pulled, and that a plain docker run needs a volume on /var/lib/airlock. Reran everything on the final files: the build with no warning; 1,236 of 1,239 tests passed, 3 skipped as before; coverage Domain 100 %/99.3 %, Application 97.1 %/94.7 %, Infrastructure 95.6 %/85.5 %, Web 96.3 %/86.6 %; actionlint, shellcheck and zizmor with nothing unaccepted. I10: no container, volume or network of this work is left; the builder airlock-dotnet is stopped and kept with its cache; Grype's database deleted; airlock-dotnet:smoke and the pulled tool images kept. Wrote construction/u6-delivery/code/code-generation-summary.md (results, files, the image, the scan and Q-CG6-2, 13 deviations, what is left for Build and Test and the first push), and brought the infrastructure design, domain-entities.md and DR-05 in line. Ticked every step of the plan; U6 Code Generation marked done in aidlc-state.md. Nothing committed or pushed. Proposed two commits, made only on the owner's word: the U6 design documents with the documents they amended and the audit entries since U5's commits; and the U6 code. Asked: 'Code generation complete. Choose: A) Request Changes  B) Continue to Next Stage' (next: Build and Test)."
+**Context**: CONSTRUCTION — U6 Delivery Code Generation approval gate
+
+---
+
+## U6 Code Generation — Approval
+**Timestamp**: 2026-10-30T16:08:25Z
+**User Input**: "B) Continue"
+**AI Response**: "Recorded approval of U6 Delivery Code Generation (B, Continue to Next Stage), with its 13 deviations and Q-CG6-2's acceptances as written. No commit was asked for, so none is made. Every unit's Code Generation is now done. Starting Build and Test."
+**Context**: CONSTRUCTION — U6 Delivery Code Generation approved; Build and Test next
+
+---
+
+## Build and Test — Plan and questions
+**Timestamp**: 2026-10-30T16:16:27Z
+**User Input**: "(none — continuing after the U6 Code Generation approval)"
+**AI Response**: "Collected what U1 to U6 left to Build and Test: the performance targets measured here (U1-NFR-05, U2-NFR-10, U3-NFR-10, U4-NFR-08), the install scripts' download path, U5's browser checks (findings with a real key, axe-core, copying over plain HTTP from another host name, reduced motion, timings in a visible pane), and U6's (E14's three scenarios with a real key, the live NVD test, stopping the container during a scan, time zones in the container, the quick start from a fresh clone, CI's first run and the first release after the push). Checked this machine without changing it: Airlock run in Development reported 'NVD API key not configured', so no key is in user-secrets; ports 8080 and 18080 free; the stopped builder airlock-dotnet with its cache. Read the sizes of what the checks would download (Syft's Windows and Linux archives, 28.6 and 29.8 MiB; axe-core 4.14.0 from npm, about 1 MiB; about 480 MiB through Docker's default builder for the fresh clone). Wrote construction/plans/build-and-test-plan.md (Standard depth): inputs, ground rules (nothing pushed; the key never read or printed; about 1,200 NVD requests with the key; airlock-bt-… names; the downloads), three refinements (the performance tests write their measurements, with a new Domain test for U1-NFR-05; the ten-tab measurement shares the large keyed scan; reduced motion checked in the stylesheets), and steps A to H. Asked Q-BT-1 (the key: A you store it in user-secrets and a .env, B user-secrets only, C no key), Q-BT-2 (commit first: A the two proposed commits now, B no commit), Q-BT-3 (copying over plain HTTP: A the container's port on this machine's network address for that check, B skip it) and for the plan's approval."
+**Context**: CONSTRUCTION — Build and Test, plan and questions
+
+---
+
+## Build and Test — Answers and approval
+**Timestamp**: 2026-10-30T16:42:36Z
+**User Input**: "\"Q-BT-1: No NVD key is in user-secrets, and the keyed checks need one: E14 from source and in the container, the end-to-end pass with real findings, and the 281-package scan of NVD's pace. How should your key be provided? I never read or print it.\"=\"A) User-secrets and .env (Recommended)\", \"Q-BT-2: The quick start from a fresh clone needs the U6 work in a commit, and CI needs commits to push. Should I make the two proposed commits now on feature/u6-delivery? Nothing would be pushed.\"=\"A) Commit now (Recommended)\", \"Q-BT-3: The copy buttons' fallback for plain HTTP can only be seen from another host name, which means Airlock answering on this machine's network address. For that one check, should the container's port be published there, briefly?\"=\"A) Publish briefly (Recommended)\", \"Approve the Build and Test plan and run it? That's about 540 MiB of downloads (Syft's two archives, axe-core 4.14.0, and the images and NuGet packages a fresh build pulls through Docker's default builder), about 1,200 NVD requests with your key, and small test-only changes that record performance measurements.\"=\"B) Approve and run (Recommended)\""
+**AI Response**: "Recorded Q-BT-1 = A (the owner stores the key in user-secrets and in .env; it is never read or printed), Q-BT-2 = A (the two U6 commits now, on feature/u6-delivery, nothing pushed), Q-BT-3 = A (the container's port briefly on this machine's network address for the copy check), and the plan's approval (B, with its downloads, NVD traffic and test-only changes). Making the two commits, then running the plan's steps; the keyed steps wait until the owner says the key is stored."
+**Context**: CONSTRUCTION — Build and Test, answers and approval
+
+---

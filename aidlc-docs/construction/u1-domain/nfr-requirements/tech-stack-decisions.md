@@ -9,7 +9,7 @@ resolved to the latest stable releases at Code Generation and recorded in `Direc
 
 | Item | Decision |
 |---|---|
-| SDK | .NET SDK 10.0.303 pinned in `global.json`, `rollForward: latestFeature` |
+| SDK | .NET SDK 10.0.303 pinned in `global.json`, `rollForward: latestFeature`. U6 moves it to 10.0.403 with `rollForward: latestPatch`, .NET 10's last feature band (Q-U6-I1) |
 | Language | C# 14 (the `net10.0` default) |
 | Solution file | `Airlock.slnx` |
 | `Directory.Build.props` | `net10.0`; `Nullable` enable; `ImplicitUsings` enable; `TreatWarningsAsErrors` true; `AnalysisLevel` latest-recommended; `EnforceCodeStyleInBuild` true; `Deterministic` true |
