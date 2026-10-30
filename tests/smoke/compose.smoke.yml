@@ -1,0 +1,9 @@
+# The smoke test's override of docker-compose.yml (DR-13, U6-NFR-12). It sets only the built image, which is never
+# pulled, and NVD's address, which the second phase points at a closed port. Everything else, the hardening included,
+# is docker-compose.yml's own, and a repository test keeps this file to these keys.
+services:
+  airlock:
+    image: ${AIRLOCK_SMOKE_IMAGE:?Set AIRLOCK_SMOKE_IMAGE to the image to test}
+    pull_policy: never
+    environment:
+      Airlock__Nvd__BaseUrl: ${AIRLOCK_SMOKE_NVD_URL:-https://services.nvd.nist.gov/rest/json/cves/2.0}

@@ -1,0 +1,28 @@
+# zizmor's settings (DR-28, U6-NFR-04). Any finding fails the lint job unless it is accepted here, with its reason. A
+# repository test rejects inline ignore comments, so this file holds every acceptance, and checks that each still
+# names the line it was written for.
+rules:
+  # Every action is pinned by its full commit SHA, GitHub's own included.
+  unpinned-uses:
+    config:
+      policies:
+        "*": hash-pin
+
+  # GitHub's own actions only. Docker, Syft, Grype and the linters run as command-line tools (U6-NFR-03).
+  forbidden-uses:
+    config:
+      allow:
+        - actions/*
+        - github/codeql-action/*
+
+  dependabot-cooldown:
+    ignore:
+      # The .NET SDK's entry has no cooldown: its updates carry security fixes, for which Dependabot raises no alert
+      # (U6-NFR-02).
+      - dependabot.yml:56
+
+  self-repository:
+    ignore:
+      # release.yml calls ci.yml by its workspace path. actionlint 1.7.12 rejects GitHub's newer $/ form, so the
+      # workspace form stays until a pinned actionlint accepts $/.
+      - release.yml:52

@@ -1,0 +1,17 @@
+# DR-06: an allowlist. Nothing enters the image's build context but what the build and the notices need, so no .env
+# file, .git, the developer's bin/syft.exe, the tests, the documents or .claude/ can reach a layer. .editorconfig is
+# in: the build's style checks read it.
+*
+!global.json
+!Directory.Build.props
+!Directory.Packages.props
+!.editorconfig
+!src/
+!LICENSE
+!THIRD-PARTY-NOTICES.md
+!licenses/
+
+# Build output, and any .env file, even inside an allowed folder (U6-NFR-05).
+**/bin/
+**/obj/
+**/.env*

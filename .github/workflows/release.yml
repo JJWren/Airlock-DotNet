@@ -1,0 +1,140 @@
+# Release (DR-19 to DR-25, DR-30, DR-31, U6-NFR-07). A pushed version tag publishes one image to
+# ghcr.io/jjwren/airlock-dotnet. The image is built from nothing, smoke-tested, scanned, pushed by digest with no tag,
+# attested, and both attestations verified; only then is the digest tagged. It runs in JJWren/Airlock-DotNet only, and
+# a newer tag never cancels a release in progress.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # DR-20, DR-21: the tag agrees with Directory.Build.props, and the version is not published yet.
+  version:
+    name: Version
+    if: github.repository == 'JJWren/Airlock-DotNet'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      packages: read
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      latest: ${{ steps.check.outputs.latest }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check the tag
+        id: check
+        run: bash scripts/ci/check-release.sh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  # DR-22: CI's lint and test jobs on the tagged commit. The image job is left out: publish builds and tests the image.
+  ci:
+    name: CI
+    needs: version
+    if: github.repository == 'JJWren/Airlock-DotNet'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci.yml
+    with:
+      image: false
+
+  # DR-22, DR-23, DR-31: the one image, then its proof of origin, then its tags.
+  publish:
+    name: Publish
+    needs: [version, ci]
+    if: github.repository == 'JJWren/Airlock-DotNet'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: Note the start
+        run: echo "AIRLOCK_JOB_STARTED=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: bash scripts/ci/build-image.sh load
+
+      - name: Smoke test
+        run: dotnet run scripts/ci/smoke-test.cs -- --image airlock-dotnet:smoke
+
+      - name: Scan
+        run: bash scripts/ci/scan-image.sh
+
+      - name: Sign in to ghcr.io
+        run: printf '%s' "$GITHUB_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Push by digest
+        id: push
+        run: |
+          bash scripts/ci/build-image.sh push
+          echo "digest=$(cat "$RUNNER_TEMP/airlock-ci/image-digest")" >> "$GITHUB_OUTPUT"
+
+      - name: Attest the build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-name: ghcr.io/jjwren/airlock-dotnet
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+          create-storage-record: false
+
+      - name: Attest the SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-name: ghcr.io/jjwren/airlock-dotnet
+          subject-digest: ${{ steps.push.outputs.digest }}
+          sbom-path: ${{ runner.temp }}/airlock-ci/sbom.spdx.json
+          push-to-registry: true
+          create-storage-record: false
+
+      - name: Verify both attestations
+        run: bash scripts/ci/promote.sh verify
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Tag
+        run: bash scripts/ci/promote.sh tag "$VERSION"
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+
+      - name: Summary
+        if: always()
+        run: dotnet run scripts/ci/summary.cs -- --image "$RUNNER_TEMP/airlock-ci"
+
+      - name: Keep the image's metadata and scan
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-image
+          path: ${{ runner.temp }}/airlock-ci/*.json
+          retention-days: 14
+          if-no-files-found: ignore

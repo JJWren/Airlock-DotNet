@@ -1,0 +1,9 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <!-- DR-12: dotnet test puts each test project's results, its coverage report among them, in TestResults/<project>, so
+       the coverage checker reads each project's coverage from its own tests' report. -->
+  <PropertyGroup Condition="'$(MSBuildProjectName.EndsWith(`.Tests`))' == 'True'">
+    <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --results-directory TestResults/$(MSBuildProjectName)</TestingPlatformCommandLineArguments>
+  </PropertyGroup>
+</Project>

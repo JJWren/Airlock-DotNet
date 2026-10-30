@@ -1,0 +1,62 @@
+# Weekly update proposals, each a pull request through CI (DR-16, DR-27, U6-NFR-02). Minor and patch updates are grouped
+# per ecosystem, and a major update comes alone. A version update waits 7 days after its release; security updates
+# never wait. Airlock stays on .NET 10 LTS: no major update of the SDK, of Microsoft's .NET images, or of the
+# Microsoft.Extensions and Microsoft.AspNetCore packages is proposed, so moving to the next LTS is a deliberate change.
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      nuget:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "Microsoft.Extensions.*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "Microsoft.AspNetCore.*"
+        update-types: ["version-update:semver-major"]
+
+  # The Dockerfile's images, and the CI tools' in .github/ci-tools/Dockerfile, by tag and digest. Syft's comes alone,
+  # since its version is also in the install scripts, the README and the Syft tests (DR-04). Dependabot names an image
+  # by its repository, without the registry, so *dotnet/* covers Microsoft's. Their updates do not wait: they carry
+  # security fixes, for which Dependabot raises no alert.
+  - package-ecosystem: docker
+    directories: [/, /.github/ci-tools]
+    schedule:
+      interval: weekly
+    groups:
+      docker:
+        patterns: ["*"]
+        exclude-patterns: ["*anchore/syft*"]
+        update-types: [minor, patch]
+    cooldown:
+      default-days: 7
+      exclude: ["*dotnet/*"]
+    ignore:
+      - dependency-name: "*dotnet/*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    cooldown:
+      default-days: 7
+
+  # The SDK in global.json. No cooldown: SDK updates carry security fixes, for which Dependabot raises no alert
+  # (U6-NFR-02). zizmor's finding about it is accepted in .github/zizmor.yml.
+  - package-ecosystem: dotnet-sdk
+    directory: /
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]

@@ -1,0 +1,3 @@
+# The warnings a clean start of the image may log, one per line as category[event id] (U6-NFR-16). The smoke test
+# fails on any other warning, and on any error, before "Application started". README.md explains each one.
+Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[35]

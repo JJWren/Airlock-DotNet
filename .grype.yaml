@@ -1,0 +1,70 @@
+# Grype's policy for Airlock's image (DR-30, U6-NFR-06): a High or Critical vulnerability that has a fix fails the
+# scan. Every match is still kept in grype.json, the ones without a fix under ignoredMatches.
+#
+# A finding is accepted only here. Each acceptance names the vulnerability and the package, and its reason begins with
+# the date to review it by; a repository test fails once that date has passed (UTC).
+only-fixed: true
+fail-on-severity: high
+ignore:
+  # Q-CG6-2 (2026-10-30): Syft v1.55.0, the newest Syft, is built with Go 1.26.8 and go-jose 4.1.5. Airlock runs Syft
+  # on local files only: it serves no HTTP and parses no JWKs.
+  - vulnerability: GO-2026-6612
+    package:
+      name: stdlib
+      location: /app/bin/syft
+    reason: "review-by 2026-11-30: in Syft v1.55.0's binary (Go 1.26.8, go-jose 4.1.5); gone when a Syft release built with Go 1.26.9 or later replaces it"
+  - vulnerability: GO-2026-6604
+    package:
+      name: stdlib
+      location: /app/bin/syft
+    reason: "review-by 2026-11-30: in Syft v1.55.0's binary (Go 1.26.8, go-jose 4.1.5); gone when a Syft release built with Go 1.26.9 or later replaces it"
+  - vulnerability: GO-2026-6603
+    package:
+      name: stdlib
+      location: /app/bin/syft
+    reason: "review-by 2026-11-30: in Syft v1.55.0's binary (Go 1.26.8, go-jose 4.1.5); gone when a Syft release built with Go 1.26.9 or later replaces it"
+  - vulnerability: GO-2026-6605
+    package:
+      name: stdlib
+      location: /app/bin/syft
+    reason: "review-by 2026-11-30: in Syft v1.55.0's binary (Go 1.26.8, go-jose 4.1.5); gone when a Syft release built with Go 1.26.9 or later replaces it"
+  - vulnerability: GO-2026-6607
+    package:
+      name: stdlib
+      location: /app/bin/syft
+    reason: "review-by 2026-11-30: in Syft v1.55.0's binary (Go 1.26.8, go-jose 4.1.5); gone when a Syft release built with Go 1.26.9 or later replaces it"
+  - vulnerability: GO-2026-6608
+    package:
+      name: stdlib
+      location: /app/bin/syft
+    reason: "review-by 2026-11-30: in Syft v1.55.0's binary (Go 1.26.8, go-jose 4.1.5); gone when a Syft release built with Go 1.26.9 or later replaces it"
+  - vulnerability: GO-2026-6609
+    package:
+      name: stdlib
+      location: /app/bin/syft
+    reason: "review-by 2026-11-30: in Syft v1.55.0's binary (Go 1.26.8, go-jose 4.1.5); gone when a Syft release built with Go 1.26.9 or later replaces it"
+  - vulnerability: GO-2026-6610
+    package:
+      name: stdlib
+      location: /app/bin/syft
+    reason: "review-by 2026-11-30: in Syft v1.55.0's binary (Go 1.26.8, go-jose 4.1.5); gone when a Syft release built with Go 1.26.9 or later replaces it"
+  - vulnerability: GO-2026-6611
+    package:
+      name: stdlib
+      location: /app/bin/syft
+    reason: "review-by 2026-11-30: in Syft v1.55.0's binary (Go 1.26.8, go-jose 4.1.5); gone when a Syft release built with Go 1.26.9 or later replaces it"
+  - vulnerability: GO-2026-6613
+    package:
+      name: stdlib
+      location: /app/bin/syft
+    reason: "review-by 2026-11-30: in Syft v1.55.0's binary (Go 1.26.8, go-jose 4.1.5); gone when a Syft release built with Go 1.26.9 or later replaces it"
+  - vulnerability: GO-2026-6617
+    package:
+      name: stdlib
+      location: /app/bin/syft
+    reason: "review-by 2026-11-30: in Syft v1.55.0's binary (Go 1.26.8, go-jose 4.1.5); gone when a Syft release built with Go 1.26.9 or later replaces it"
+  - vulnerability: GHSA-mgcc-cww5-fp2q
+    package:
+      name: github.com/go-jose/go-jose/v4
+      location: /app/bin/syft
+    reason: "review-by 2026-11-30: in Syft v1.55.0's binary (Go 1.26.8, go-jose 4.1.5); gone when a Syft release built with go-jose 4.1.6 or later replaces it"
