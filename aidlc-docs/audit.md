@@ -1029,3 +1029,59 @@ UI does NOT go through HTTP API (API tested separately), "Q4 — Is the reverse-
 **Context**: CONSTRUCTION — Build and Test, answers and approval
 
 ---
+
+## Build and Test — Keyless steps run
+**Timestamp**: 2026-10-30T17:48:08Z
+**User Input**: "(none in chat; the owner started a scan of /uploads from the browser pane at 17:25:21Z, which finished Incomplete at 17:26:36Z and was left to run)"
+**AI Response**: "Ran the steps that need no key: A2, A3, C1 to C3, D1, E1, E5, E6, E8 and F1 to F6, and ticked them. Found and fixed six defects, none in a commit yet: (1) blazor.web.js answered 404 in the image, since its build stage restores before the components are copied and the SDK then leaves out the framework's script package (RequiresAspNetWebAssets set in Airlock.Web.csproj; a Dockerfile test; the smoke test checks every script); (2) the inventory grid had no scroll area of its own, as a MudBlazor selector of higher specificity set max-height: 100%, so past about 120 rows the table was blank (F3); (3) the active nav item kept MudBlazor's colours, 4.25:1, for the same reason (E8); (4) the hint under the dimmed path field fell below 4.5:1 (E8); (5) the finished-scan snackbar's link read 1.66:1 on the warning fill (E8); (6) no main landmark (E8, moderate). Airlock.Web's tests: 403 passed after the fixes. After them, axe-core 4.14.0 found no violation on six page states and a check of every MudBlazor override found none defeated. Measured: F3 2,001 rows drawn in 69 ms, filtered in 234 ms (with the 200 ms debounce), selected in 31 ms; F4 1 GiB uploaded in about 7 s while changing pages, the server process's memory steady; F5 OFFLINE 354 ms after the stop, Reload offered after the restart; F6 1.41 MB from one host, interactive at 141 ms; E1 the live NVD test passed without a key. Headless Edge stood in for the pane where the pane's window was hidden or the page's CSP would block axe-core."
+**Context**: CONSTRUCTION — Build and Test, keyless steps done; keyed steps (E2 to E4, E7, E9, F2) wait for the key
+
+---
+
+## Build and Test — Key question
+**Timestamp**: 2026-10-30T17:48:08Z
+**User Input**: "(asked next)"
+**AI Response**: "Asked whether the key is stored as Q-BT-1 = A says (user-secrets and .env), so the keyed steps E2 to E4, E7, E9 and F2 can run: A) both stored, run them all; B) user-secrets only, run the steps from source and leave the container's to the instructions; C) not now, leave every keyed step to the instructions and finish the stage."
+**Context**: CONSTRUCTION — Build and Test, A1 prerequisite
+
+---
+
+## Build and Test — Key answer
+**Timestamp**: 2026-11-02T13:36:36Z
+**User Input**: "\"Is your NVD key stored as Q-BT-1 says: in user-secrets (dotnet user-secrets set Airlock:Nvd:ApiKey <your-key> --project src/Airlock.Web) and after NVD_API_KEY= in the repository's .env? The keyed steps (E2–E4, E7, E9, F2) make about 1,200 NVD requests. I never read or print the key.\"=\"A) Both stored, run all (Recommended)\""
+**AI Response**: "Recorded A1: the key is stored in user-secrets and in .env by the owner, unread. Running the keyed steps E2, E3, E4, E7, E9 and F2."
+**Context**: CONSTRUCTION — Build and Test, keyed steps start
+
+---
+
+## Build and Test — Keyed steps run; user-secrets question
+**Timestamp**: 2026-11-02T14:21:08Z
+**User Input**: "(none in chat; the owner used the browser pane at times, which moved its tab to Active Logs)"
+**AI Response**: "Ran E3, E7, E9 and F2 with the key from .env (the container reported it configured; .env never read). E3: docker compose up -d --build in the repository, with SCAN_UPLOAD_PATH and AIRLOCK_PORT=18081 given in the shell, ONLINE, /uploads scanned as the worked example: pyyaml 5.3 (2 CRITICAL by CPE), jinja2 2.10 (1 CRITICAL by product), flask 0.12.2 (3 HIGH by product), requests clean. E7 passed after two more fixes: the PDF's CVE column broke ids longer than 13 characters (defect 7), and a scan ending under Emergency Stop's open question ended the circuit when the focus went back to a button no longer on the page (defect 8); each has a test that failed before and passes after, and the rebuilt container shows both fixed. A real NVD outage (503s, 13:45 to 13:46Z) ended a rescan Incomplete with every package Unverified, as designed. E9: the copy fallback works over plain HTTP from the network address, published from 13:54:46Z to 14:02:09Z and then put back on 127.0.0.1. F2: 619 NVD requests, all answered 200, no 429, at most 50 in any 30 seconds; ten tabs added about 0.5 % to the scan's length against a no-tab run (8.9 % and 9.5 % over the pure pace in both, from 3-second pauses after the image's health checks, recorded as an observation). A source instance appearing at 13:37:08Z, not started by the AI, was stopped when it held the build's files. About 920 NVD requests used. E2 cannot run: Airlock.Web has no user-secrets store on this account (only the folder's existence was checked). Asked whether to run E2 and E4 once the key is stored there, or leave them to the instructions."
+**Context**: CONSTRUCTION — Build and Test, keyed steps E3, E7, E9, F2 done; E2 and E4 wait
+
+---
+
+## Build and Test — User-secrets answer
+**Timestamp**: 2026-11-02T14:27:11Z
+**User Input**: "\"E2 (run from source with your key) needs the key in user-secrets, but Airlock.Web has no user-secrets store on this Windows account yet (I only checked that its folder exists). From the repository's root, `dotnet user-secrets set Airlock:Nvd:ApiKey <your-key> --project src/Airlock.Web` creates it. How should I go on?\"=\"A) Stored now, run E2/E4 (Recommended)\""
+**AI Response**: "The store's folder now exists with a secrets.json (not opened). Running E2 from source and E4's comparison with E3."
+**Context**: CONSTRUCTION — Build and Test, E2 and E4
+
+---
+
+## Build and Test — Complete; approval prompt
+**Timestamp**: 2026-11-02T14:33:32Z
+**User Input**: "(none — continuing after the user-secrets answer)"
+**AI Response**: "E2: Airlock from source on Windows, the key from user-secrets, ONLINE; the worked example COMPLETED with 3 vulnerable packages and 1 clean. E4: E2's and E3's scans identical in status, summary and every finding. Then every test again after the fixes: 1,253, of which 1,250 passed and 3 were skipped by design, 0 warnings, coverage above every target (Domain 100.0/99.3, Application 97.1/94.7, Infrastructure 95.6/85.5, Web 96.3/86.6); actionlint, shellcheck and zizmor offline with no unaccepted finding. G1: both Compose projects with their volumes, the two images built in this stage, the builder airlock-dotnet with its state, and the fresh clone removed; the pulled images kept. Wrote construction/build-and-test/build-instructions.md, unit-test-instructions.md, integration-test-instructions.md, performance-test-instructions.md and build-and-test-summary.md, ticked the plan and updated aidlc-state.md. Eight defects were found and fixed, none committed; five observations are left unchanged, the pauses in NVD's pace among them. Asked: 'Build and test instructions complete. Ready to proceed to Operations stage?', and whether to commit this stage's changes on feature/u6-delivery (nothing pushed)."
+**Context**: CONSTRUCTION — Build and Test complete, awaiting approval
+
+---
+
+## Build and Test — Approval and commit answer
+**Timestamp**: 2026-11-02T14:34:31Z
+**User Input**: "\"Build and test instructions complete. Ready to proceed to Operations stage?\"=\"A) Proceed (Recommended)\", \"Commit this stage's changes on feature/u6-delivery? Nothing would be pushed, and .claude/ stays out.\"=\"A) Two commits now (Recommended)\""
+**AI Response**: "Recorded the approval of Build and Test and the move to Operations, a placeholder stage: deployment follows once the owner creates JJWren/Airlock-DotNet and pushes, and integration-test-instructions.md says what to check then. Making the two commits on feature/u6-delivery after scanning the staged files for secrets and personal details: first the eight fixes with their tests, the smoke test's script check and the performance measurements; then the Build and Test plan, instructions, summary, state and audit. Nothing is pushed; .claude/ stays uncommitted."
+**Context**: CONSTRUCTION — Build and Test approved; OPERATIONS — placeholder
+
+---

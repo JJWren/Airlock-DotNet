@@ -3,9 +3,9 @@
 **Project**: Airlock-DotNet — rebuild of github.com/JJWren/Airlock (master @ 0a62ba3) on .NET 10 LTS with a Blazor UI
 **Project type**: Greenfield target workspace; brownfield source system (remote repository)
 **Workflow path**: Full (decision N8)
-**Current phase**: CONSTRUCTION
-**Current stage**: Build and Test — planning (U6 Code Generation approved 2026-10-30T16:08:25Z)
-**Last updated**: 2026-10-30T16:08:25Z
+**Current phase**: OPERATIONS
+**Current stage**: Operations — placeholder; Build and Test approved 2026-11-02T14:34:31Z
+**Last updated**: 2026-11-02T14:34:31Z
 
 ## INCEPTION PHASE
 
@@ -31,13 +31,15 @@
 | U5 Web UI | [x] | [x] | [x] | n/a | [x] |
 | U6 Delivery | [x] | [x] | [x] | [x] | [x] |
 
-- [ ] Build and Test
+- [x] Build and Test — Standard depth; every planned check run, 8 defects found and fixed, 1,253 tests; approved
+      2026-11-02T14:34:31Z (`construction/build-and-test/`)
 
 Per-unit stage applicability is confirmed during Workflow Planning.
 
 ## OPERATIONS PHASE
 
-- [ ] Operations — placeholder
+- [ ] Operations — placeholder: deployment follows the owner's creation of `JJWren/Airlock-DotNet` and the first push;
+      `construction/build-and-test/integration-test-instructions.md` ("After the push") lists what to check then
 
 ## Skipped stages
 
