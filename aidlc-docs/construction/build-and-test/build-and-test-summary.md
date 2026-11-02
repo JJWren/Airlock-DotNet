@@ -103,7 +103,7 @@ on it, Escape clears it, Space selects without scrolling. Reduced motion: the pa
 | U5-NFR-06 | OFFLINE within 5 s; Reload after a restart | OFFLINE 354 ms after `docker compose stop`; Reload offered 1.96 s after the container was healthy again, and it reloaded |
 | U5-NFR-11 | One host, under 2 MB, interactive within 2 s | 13 requests to one host, 1,414,580 bytes, nothing from cache; the layout drawn by the circuit at 141 ms, the first paint at 416 ms |
 | U3-NFR-03 | No 30-second span over 50 requests; 600 ms apart | 619 requests, every answer 200, no 429 and no retry; at most 50 in any 30 s; starts 599 to 605 ms apart (5th to 95th percentile) |
-| U5-NFR-02 | Ten tabs lengthen a scan by at most 5 % | All ten tabs followed the 281-package scan to its end; its length was 9.5 % over the pure pace, and 8.9 % with no tab open: about 0.5 % from the tabs |
+| U5-NFR-02 | Ten tabs lengthen a scan by at most 5 % | All ten tabs followed the 281-package scan to its end; its length was 9.5 % over the pure pace, and 8.9 % with no tab open, both from this machine's slow clock (observation 1): about 0.5 % from the tabs |
 
 U5-NFR-04, -05 and -11 were timed in a page that draws: the browser pane's page was hidden while its window was, which
 throttles frames and observers, so headless Microsoft Edge (`--headless=new`, a throwaway profile, the DevTools
@@ -126,10 +126,17 @@ Each fix was checked again in the rebuilt image.
 
 ## Observations, not changed
 
-1. **Pauses in NVD's pace.** In every keyed scan of some length, with or without tabs, no NVD request starts for 2.9
-   to 3.6 s about every 33 s, although lookups wait and Airlock logs nothing; without tabs each pause began 5.7 to 6.0
-   s after one of the image's health checks. Scans therefore take about 9 % longer than NVD's pace allows. An idle
-   server showed no delay over 75 s. The cause is not found; a follow-up is proposed.
+1. **Gaps in NVD's pace, from this machine's clock.** In the logs of every scan of some length, no NVD request seemed to
+   start for about 3 s every 33 s, and scans took about 9 % longer than 600 ms a request. Investigated on 2026-11-02
+   with a local stand-in for NVD, so no request reached NVD: the WSL2 virtual machine that WSL and Docker Desktop share
+   keeps time about 9 % slow on its `tsc` clock source (a 20-second `sleep` lasts about 21.7 s by the host's clock, in
+   WSL and in a container alike), and the host's time synchronisation steps the machine's wall clock forward about
+   3.2 s every 33 s, while the monotonic clock, which every timer uses, stays slow. Airlock's requests are evenly
+   spaced, 600 ms by that clock and about 660 ms in real time; each "gap" is the wall clock jumping in the log's
+   timestamps, matched to the millisecond by a second process in another container. Docker's 30-second health check
+   lasts 33 s for the same reason. Airlock is correct and stays within NVD's limit, so nothing in the code changes.
+   Switching the virtual machine's clock source to `hyperv_clocksource_tsc_page` may cure it; the owner's choice,
+   measured again with the same `sleep`.
 2. MudBlazor's own `MudBlazor.min.css` (624,712 bytes) and `MudBlazor.min.js` (70,128 bytes) are served without a
    compressed variant, unlike Airlock's files; the cold load stays within its 2 MB.
 3. After Emergency Stop's Terminate, the focus falls to the page: the button it returns to is then disabled.
@@ -160,7 +167,8 @@ Each fix was checked again in the rebuilt image.
   check, the performance tests' measurements (refinement 1), and these documents.
 - **After the push** (`integration-test-instructions.md`, "After the push"): CI's first run on Ubuntu and Windows,
   CodeQL, Dependabot, and the first release with its attestations.
-- **The pauses in NVD's pace** (observation 1).
+- **This machine's clock** (observation 1): the owner may switch the WSL2 virtual machine's clock source; Airlock needs
+  no change.
 - **The image scan's acceptance** of the findings in Syft's binary ends on 2026-11-30 (`.grype.yaml`).
 
 ## Changes made in this stage

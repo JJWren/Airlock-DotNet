@@ -82,3 +82,10 @@ loads, which the circuit asks for once it has drawn. Target: within 2 s on local
 
 Before the key goes into a Trace-level run, run the same at Trace with the smoke test's stand-in key and NVD at a
 closed port, and count the stand-in key and `apiKey` in the log: both 0.
+
+Check the clock first. Timers in a container keep the virtual machine's monotonic clock, and the log's timestamps its
+wall clock. On the machine Build and Test used, the WSL2 virtual machine ran about 9 % slow, and its wall clock was
+stepped forward about 3 s every 33 s: requests were evenly spaced in real time, yet the log showed 3-second "gaps" at
+each step, and every scan took about 9 % longer, with or without tabs. From the host, time a `sleep 20` in WSL and in
+a container (`wsl.exe -e sleep 20`; `docker run --rm --entrypoint sleep <an image with sleep> 20`): anything well over
+20 s plus start-up means a slow clock, and lengths are then compared as ratios against the same scan with no tab.

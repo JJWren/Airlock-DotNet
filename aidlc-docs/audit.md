@@ -1085,3 +1085,27 @@ UI does NOT go through HTTP API (API tested separately), "Q4 — Is the reverse-
 **Context**: CONSTRUCTION — Build and Test approved; OPERATIONS — placeholder
 
 ---
+
+## Investigation — Pauses in NVD's pace (Build and Test observation 1)
+**Timestamp**: 2026-11-02T14:39:22Z
+**User Input**: "Yes, investigate"
+**AI Response**: "Starting a diagnosis of the 2.9 to 3.6 s pauses in NVD requests about every 33 s during scans. Brownfield, on the committed Build and Test state; Requirements Analysis at minimal depth: the intent is to find the cause and, if it lies in Airlock, propose a fix. No code changes until the cause and a fix plan are approved. The diagnosis builds a feedback loop first: the image under Compose with a local HTTPS stand-in for NVD, so no request reaches NVD or uses the owner's key, and a script that turns red on any gap of over a second between request starts."
+**Context**: Investigation of Build and Test observation 1 (diagnosis, read-only towards the source)
+
+---
+
+## Investigation — Cause found
+**Timestamp**: 2026-11-02T15:15:22Z
+**User Input**: "(none — continuing the investigation)"
+**AI Response**: "Built a feedback loop that turns red on any gap of over a second between NVD request starts: the image under Compose as docker-compose.yml runs it, with a local HTTPS stand-in for NVD (a .NET file-based app with a test CA, in a second container from the same image), and a 400-package lock file. It reproduced a 3-second gap about every 33 s with no NVD traffic. Tested and ruled out, one variable at a time: the image's health check (gaps remained with it off), a request count (gaps stayed 33 s apart at 300 ms spacing), a pause of the whole process (reads every 100 ms from the host stayed under 300 ms during gaps), and late timers in the process (punctual by Stopwatch). Temporary, tagged instrumentation inside Airlock showed the pacer's 600 ms wait ending 3.5 s later by the wall clock while the monotonic clock had advanced only 600 ms. Cause: the WSL2 virtual machine that WSL and Docker Desktop share keeps time about 9 % slow on its tsc clock source (a 20-second sleep lasts about 21.7 s of host time in WSL and in a container), and the host's time synchronisation steps its wall clock forward about 3.2 s every 33 s; a second process in another container saw the jumps at the same milliseconds as Airlock's gaps. Airlock's requests are evenly spaced (about 660 ms in real time) and within NVD's limit: no code change. Removed the instrumentation (no DEBUG-b1t line left; the source equals the commit), the debug Compose project, its volume and image, and the test kit with its keys. Updated build-and-test-summary.md (observation 1, the U5-NFR-02 row, what is left) and performance-test-instructions.md (check the clock first); not committed. The owner may switch the virtual machine's clock source to hyperv_clocksource_tsc_page, a system setting left to them."
+**Context**: Investigation complete; environment cause, no code change
+
+---
+
+## Investigation — Commit answer
+**Timestamp**: 2026-11-02T22:54:00Z
+**User Input**: "Commit the docs"
+**AI Response**: "Answer to 'Commit the documentation update on feature/u6-delivery?', asked when the investigation ended. Committing build-and-test-summary.md, performance-test-instructions.md and this audit on feature/u6-delivery after scanning them for secrets and personal details, with a message naming the cause found: the WSL2 virtual machine's slow clock. Nothing is pushed; .claude/ stays uncommitted."
+**Context**: Investigation of Build and Test observation 1 — documents committed; OPERATIONS — placeholder
+
+---
