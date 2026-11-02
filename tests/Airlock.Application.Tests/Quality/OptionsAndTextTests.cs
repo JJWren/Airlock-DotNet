@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using Airlock.Application.Logging;
 using Airlock.Application.Options;
 using Airlock.Application.Ports;
@@ -133,24 +134,44 @@ public sealed class ExternalTextTests
     }
 }
 
-// U2-NFR-10: the Application adds little to NVD's time.
+// U2-NFR-10: the Application adds little to NVD's time. Build and Test reads the measurements from the test results.
 public sealed class PerformanceSmokeTests
 {
     [Fact]
     public async Task Ten_thousand_packages_correlate_well_within_ten_seconds()
     {
-        using var harness = new ScanHarness(configure: options => options.Correlation.MaxParallelism = 16);
+        var elapsed = await ScanAsync(10_000, parallelism: 16);
+
+        Measured($"a 10,000-package scan with a catalog that answers at once took {elapsed.TotalMilliseconds:0.0} ms (target 10,000 ms)");
+        Assert.True(elapsed < TimeSpan.FromSeconds(10), $"The scan took {elapsed}.");
+    }
+
+    [Fact]
+    public async Task Syfts_281_packages_correlate_well_within_ten_seconds()
+    {
+        var elapsed = await ScanAsync(281, parallelism: 4);
+
+        Measured($"a 281-package scan with a catalog that answers at once took {elapsed.TotalMilliseconds:0.0} ms (target 1,000 ms)");
+        Assert.True(elapsed < TimeSpan.FromSeconds(10), $"The scan took {elapsed}.");
+    }
+
+    private static async Task<TimeSpan> ScanAsync(int packages, int parallelism)
+    {
+        using var harness = new ScanHarness(configure: options => options.Correlation.MaxParallelism = parallelism);
         harness.Sbom.Produces(
             ScanHarness.Directory,
-            [.. Enumerable.Range(0, 10_000).Select(i => A.SbomPackage($"package-{i}", "1.0", "npm", $"vendor:package-{i}"))]);
+            [.. Enumerable.Range(0, packages).Select(i => A.SbomPackage($"package-{i}", "1.0", "npm", $"vendor:package-{i}"))]);
 
         var watch = Stopwatch.StartNew();
         var scan = await harness.RunDirectoryScanAsync();
         watch.Stop();
 
-        Assert.Equal(10_000, scan.Summary!.CleanPackages);
-        Assert.True(watch.Elapsed < TimeSpan.FromSeconds(10), $"The scan took {watch.Elapsed}.");
+        Assert.Equal(packages, scan.Summary!.CleanPackages);
+        return watch.Elapsed;
     }
+
+    private static void Measured(FormattableString measurement) =>
+        TestContext.Current.TestOutputHelper?.WriteLine("measured U2-NFR-10: " + measurement.ToString(CultureInfo.InvariantCulture));
 }
 
 // AddAirlockApplication wires every use case and checks the options at startup.

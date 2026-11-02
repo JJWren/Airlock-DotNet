@@ -90,6 +90,21 @@ public sealed class ScanReportRendererTests
         Assert.True(report.Contains("CVE-2026-0001"));
     }
 
+    // Build and Test (E7): the CVE column broke any id longer than 13 characters, so CVE-2020-14343 read "CVE-2020-1434"
+    // over a "3". Ids of five to seven digits, today's, are drawn whole; the link's last part, at 7 points, is not the id.
+    [Theory]
+    [InlineData("CVE-2023-30861")]
+    [InlineData("CVE-2018-1000656")]
+    public async Task A_CVE_id_is_drawn_whole_on_one_line(string id)
+    {
+        var scan = A.FinishedScan(1, [A.Vulnerable(A.Package(), new ProductMatch("flask"), A.Cve(id, 7.5m, Severity.High, "A description."))], []);
+
+        var pdf = await renderer.RenderPdfAsync(scan, Test.Token).Within(60);
+        using var document = PdfDocument.Open(pdf);
+
+        Assert.Contains(document.GetPages().SelectMany(page => page.GetWords()), word => word.Text == id && word.Letters[0].PointSize > 8);
+    }
+
     [Fact]
     public async Task A_cancelled_request_renders_nothing()
     {

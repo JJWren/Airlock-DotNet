@@ -4,6 +4,9 @@
     <UserSecretsId>6f0d3b8e-3c4a-4f63-9a2e-1b7d5c9e2a41</UserSecretsId>
     <!-- As .NET 10's Blazor template sets it: NavigateTo during a static render ends the response instead of throwing. -->
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <!-- The framework's scripts, blazor.web.js among them, come from a package that the SDK restores only once it sees a
+         .razor file. The image restores before the components are copied (Build and Test), so Airlock asks for it. -->
+    <RequiresAspNetWebAssets>true</RequiresAspNetWebAssets>
   </PropertyGroup>
 
   <ItemGroup>

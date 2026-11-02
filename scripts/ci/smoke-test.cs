@@ -29,7 +29,7 @@ try
     // Phase 1: no key.
     await compose.UpAsync(Phase.Keyless);
     await Smoke.HealthAsync(http);
-    await Smoke.PageAndStylesheetsAsync(http);
+    await Smoke.PageAndAssetsAsync(http);
     await Smoke.RefusedScanAsync(http);
     await Smoke.RunsAsAppAsync(compose);
     var keyless = await compose.LogsAsync(Phase.Keyless);
@@ -236,7 +236,9 @@ internal static partial class Smoke
             health.GetRawText());
     }
 
-    public static async Task PageAndStylesheetsAsync(HttpClient http)
+    // The page's stylesheets and scripts, Blazor's own among them: a published build must serve the framework's assets,
+    // which come from a package (Build and Test found blazor.web.js missing from an image).
+    public static async Task PageAndAssetsAsync(HttpClient http)
     {
         using var page = await http.GetAsync(new Uri("/", UriKind.Relative));
         var html = await page.Content.ReadAsStringAsync();
@@ -248,11 +250,13 @@ internal static partial class Smoke
             .Where(href => href.Success)
             .Select(href => WebUtility.HtmlDecode(href.Groups[1].Value))
             .ToList();
+        var scripts = ScriptSrc().Matches(html).Select(script => WebUtility.HtmlDecode(script.Groups[1].Value)).ToList();
         Check(stylesheets.Count > 0, "the page names its stylesheets");
-        foreach (var stylesheet in stylesheets)
+        Check(scripts.Exists(script => script.Contains("_framework/blazor.web", StringComparison.Ordinal)), "the page names Blazor's script", string.Join(", ", scripts));
+        foreach (var asset in stylesheets.Concat(scripts))
         {
-            using var response = await http.GetAsync(new Uri(http.BaseAddress!, stylesheet));
-            Check(response.StatusCode == HttpStatusCode.OK, $"its stylesheet {stylesheet} answers 200", response.StatusCode.ToString());
+            using var response = await http.GetAsync(new Uri(http.BaseAddress!, asset));
+            Check(response.StatusCode == HttpStatusCode.OK, $"its {asset} answers 200", response.StatusCode.ToString());
         }
     }
 
@@ -360,6 +364,9 @@ internal static partial class Smoke
 
     [GeneratedRegex("\\bhref=\"([^\"]+)\"", RegexOptions.IgnoreCase)]
     private static partial Regex Href();
+
+    [GeneratedRegex("<script\\b[^>]*\\bsrc=\"([^\"]+)\"", RegexOptions.IgnoreCase)]
+    private static partial Regex ScriptSrc();
 
     // The console's single-line format: the time, then "warn: Category[event id]".
     [GeneratedRegex("^\\S+ (warn|fail|crit): (\\S+\\[\\d+\\])")]

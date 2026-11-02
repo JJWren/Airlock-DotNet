@@ -224,9 +224,11 @@ body:has(.mud-layout) .airlock-boot {
     text-transform: uppercase;
 }
 
+/* MudBlazor's own rule for the active item has the stronger selector, which kept its #3B82F6 on its hover tint, 4.25:1
+   (Build and Test). */
 .airlock-nav .mud-nav-link.active:not(.mud-nav-link-disabled) {
-    background-color: #2A2A2C;
-    color: var(--airlock-primary-text);
+    background-color: #2A2A2C !important;
+    color: var(--airlock-primary-text) !important;
 }
 
 .airlock-nav .mud-nav-link.active:not(.mud-nav-link-disabled) .mud-nav-link-icon {
@@ -492,7 +494,9 @@ html[data-connection] :is(.airlock-execute, .airlock-report__actions, .airlock-t
     gap: 12px;
 }
 
-.airlock-path.is-dimmed {
+/* Q-U5-1: only the field is dimmed while artifacts are staged; the label and the hint saying why stay readable
+   (U5-NFR-07, Build and Test). */
+.airlock-path.is-dimmed .mud-input-control-input-container {
     opacity: 0.6;
 }
 
@@ -599,6 +603,14 @@ html[data-connection] :is(.airlock-execute, .airlock-report__actions, .airlock-t
 .airlock-notice a {
     color: inherit;
     font-weight: 700;
+}
+
+/* The finished scan's snackbar: its link takes the fill's text colour, where the page's read 1.66:1 on the warning
+   fill, and an underline, so colour is not what marks it (Build and Test). */
+.mud-snackbar a {
+    color: inherit;
+    font-weight: 700;
+    text-decoration: underline;
 }
 
 .airlock-notice--error {
@@ -876,8 +888,10 @@ html[data-connection] :is(.airlock-execute, .airlock-report__actions, .airlock-t
     background: transparent !important;
 }
 
+/* MudBlazor's sticky header sets max-height: 100% with a stronger selector, which let the grid grow to all its rows, so
+   Virtualize watched an area that never scrolled and drew only the first 120 (Build and Test). */
 .airlock-grid__table .mud-table-container {
-    max-height: 60vh;
+    max-height: 60vh !important;
     overflow-y: auto;
 }
 

@@ -27,6 +27,7 @@ public sealed class PerformanceSmokeTests
 
         var elapsed = await TimeAsync(async () => Assert.Equal(281, await ParseAsync(File.ReadAllBytes(Fixtures.SyftOutput("gobin-file")))));
 
+        Measured("U3-NFR-10", $"Syft's 281-package output parsed in {elapsed.TotalMilliseconds:0.0} ms (target 100 ms)");
         Assert.True(elapsed < TimeSpan.FromSeconds(1), $"Took {elapsed}.");
     }
 
@@ -45,6 +46,7 @@ public sealed class PerformanceSmokeTests
 
         var elapsed = await TimeAsync(async () => Assert.Equal(10_000, await ParseAsync(bytes)));
 
+        Measured("U3-NFR-10", $"a 10,000-package Syft output parsed in {elapsed.TotalMilliseconds:0.0} ms (target 2,000 ms)");
         Assert.True(elapsed < TimeSpan.FromSeconds(20), $"Took {elapsed}.");
     }
 
@@ -61,6 +63,7 @@ public sealed class PerformanceSmokeTests
         stopwatch.Stop();
 
         Assert.Equal(2_000, records.Count);
+        Measured("U3-NFR-10", $"a 2,000-record NVD page mapped in {stopwatch.Elapsed.TotalMilliseconds:0.0} ms (target 1,000 ms)");
         Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(10), $"Took {stopwatch.Elapsed}.");
     }
 
@@ -72,6 +75,7 @@ public sealed class PerformanceSmokeTests
 
         var elapsed = await TimeAsync(async () => Assert.NotEmpty(await renderer.RenderPdfAsync(scan, Test.Token)));
 
+        Measured("U3-NFR-10", $"a 500-finding report rendered in {elapsed.TotalMilliseconds:0.0} ms (target 5,000 ms)");
         Assert.True(elapsed < TimeSpan.FromSeconds(50), $"Took {elapsed}.");
     }
 
@@ -89,8 +93,13 @@ public sealed class PerformanceSmokeTests
         var allocated = GC.GetTotalAllocatedBytes(precise: true) - before;
 
         Assert.Equal(256L * 1024 * 1024, Assert.IsType<ArtifactStaged>(outcome).Artifact.Artifact.SizeBytes);
+        Measured("U3-NFR-05", $"staging a 256 MiB upload allocated {allocated / 1024.0 / 1024.0:0.0} MiB (target under 16 MB)");
         Assert.True(allocated < 16L * 1024 * 1024, $"Allocated {allocated:N0} bytes.");
     }
+
+    // Build and Test reads each measurement from the test results (refinement 1 of its plan).
+    private static void Measured(string requirement, FormattableString measurement) =>
+        TestContext.Current.TestOutputHelper?.WriteLine($"measured {requirement}: " + measurement.ToString(CultureInfo.InvariantCulture));
 
     private static async Task<int> ParseAsync(byte[] json)
     {

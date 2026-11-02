@@ -33,6 +33,19 @@ public sealed class DockerfileTests
         Assert.Contains(Stages[1].All("COPY"), copy => copy.Arguments == "global.json Directory.Build.props Directory.Packages.props .editorconfig ./");
     }
 
+    // Build and Test: the build stage restores before src/ is copied, when the SDK sees no .razor file, so it would leave
+    // out the package of the framework's scripts, and the image would answer 404 for blazor.web.js.
+    [Fact]
+    public void Airlock_Web_asks_for_the_frameworks_scripts_since_the_image_restores_before_its_components_are_copied()
+    {
+        var build = Stages[1].Instructions.ToList();
+        var restore = build.FindIndex(instruction => instruction.Keyword == "RUN" && instruction.Arguments.StartsWith("dotnet restore", StringComparison.Ordinal));
+        var sources = build.FindIndex(instruction => instruction is { Keyword: "COPY", Arguments: "src/ src/" });
+
+        Assert.True(restore >= 0 && restore < sources, "the build stage restores before it copies src/");
+        Assert.Contains("<RequiresAspNetWebAssets>true</RequiresAspNetWebAssets>", Repository.Read("src/Airlock.Web/Airlock.Web.csproj"), StringComparison.Ordinal);
+    }
+
     [Fact]
     public void The_notices_join_the_application_and_nothing_in_it_is_writable_but_by_root()
     {

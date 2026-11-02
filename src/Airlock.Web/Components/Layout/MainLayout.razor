@@ -30,9 +30,12 @@
         <NavMenu />
     </MudDrawer>
     <MudMainContent Class="airlock-main">
-        <AirlockErrorBoundary @ref="boundary">
-            @Body
-        </AirlockErrorBoundary>
+        @* Build and Test (axe-core): the one main landmark, without which each page's header was a second banner. *@
+        <main>
+            <AirlockErrorBoundary @ref="boundary">
+                @Body
+            </AirlockErrorBoundary>
+        </main>
     </MudMainContent>
 </MudLayout>
 
