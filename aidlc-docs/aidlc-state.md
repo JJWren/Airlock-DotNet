@@ -4,8 +4,8 @@
 **Project type**: Greenfield target workspace; brownfield source system (remote repository)
 **Workflow path**: Full (decision N8)
 **Current phase**: OPERATIONS
-**Current stage**: Operations — placeholder; Build and Test approved 2026-11-02T14:34:31Z
-**Last updated**: 2026-11-02T14:34:31Z
+**Current stage**: Operations — the first push to `JJWren/Airlock-DotNet`, 2026-11-03; Build and Test approved 2026-11-02T14:34:31Z
+**Last updated**: 2026-11-03T03:07:16Z
 
 ## INCEPTION PHASE
 
@@ -38,8 +38,9 @@ Per-unit stage applicability is confirmed during Workflow Planning.
 
 ## OPERATIONS PHASE
 
-- [ ] Operations — placeholder: deployment follows the owner's creation of `JJWren/Airlock-DotNet` and the first push;
-      `construction/build-and-test/integration-test-instructions.md` ("After the push") lists what to check then
+- [ ] Operations — the first push, 2026-11-03: main, then feature/u6-delivery as a pull request into main; then CI,
+      CodeQL, Dependabot and the first release, as `construction/build-and-test/integration-test-instructions.md`
+      ("After the push") lists
 
 ## Skipped stages
 

@@ -1109,3 +1109,35 @@ UI does NOT go through HTTP API (API tested separately), "Q4 — Is the reverse-
 **Context**: Investigation of Build and Test observation 1 — documents committed; OPERATIONS — placeholder
 
 ---
+
+## Operations — First push to GitHub
+**Timestamp**: 2026-11-03T03:07:16Z
+**User Input**: "The repo exists. I give you permission to push to and do what you need to do: https://github.com/JJWren/Airlock-DotNet"
+**AI Response**: "Entering Operations: the first push, then the checks under 'After the push' in integration-test-instructions.md. Found: JJWren/Airlock-DotNet is public, with GitHub's 'Initial commit' on main (README.md saying 'Placeholder', and a .gitignore); no branch protection or ruleset; Actions enabled, the workflows' token read-only by default; secret scanning and push protection on; Dependabot alerts and security updates off; CodeQL's default setup not configured, so the repository's own workflow can run. Plan: scan every commit for secrets and personal details before the history becomes public; join GitHub's initial commit to main with the ours strategy, so nothing is force-pushed and this repository's files stay as committed; push main (U1 to U5, no workflows yet); push feature/u6-delivery and open a pull request into main, so CI and CodeQL run on it; once they pass, merge it with a merge commit, which keeps the commit ids the documents cite; then the first release, tag v2.0.0 on main, the Version in Directory.Build.props. Turning on Dependabot alerts and security updates is a security setting left to the owner."
+**Context**: OPERATIONS — first push
+
+---
+
+## Operations — Scan of the history; question before the push
+**Timestamp**: 2026-11-03T03:14:23Z
+**User Input**: "(none — continuing the first push)"
+**AI Response**: "Scanned all 16 commits (535 paths) and the working tree: no key, token, private key or key assignment; no .env, certificate or key file (only .env.example); no blob over 1 MB; no machine name, time zone or LAN address; no email address but third parties' in licences and fixtures. The UUIDs are scan ids in examples and tests, NVD's own identifiers in fixtures, and the UserSecretsId. One finding: the Windows user folder path of the target workspace, in the first commit (166c275) and every later one, in this audit's first entry (line 12) and in inception/plans/workspace-detection.md (line 6); the approved code-generation plans keep personal paths out of commits, but this commit came before them. Asked: 'Your Windows user folder path is in two documents from the first commit. What should I do before pushing?' — A) Rewrite, then push (Recommended); B) Push as is; C) Fix the current files only."
+**Context**: OPERATIONS — first push, awaiting the owner's answer
+
+---
+
+## Operations — Answer: rewrite, then push
+**Timestamp**: 2026-11-03T03:21:47Z
+**User Input**: "\"Your Windows user folder (<path redacted>) appears in two documents from the very first commit: the audit's first entry and workspace-detection.md. Nothing else turned up: no keys, tokens, machine name, time zone or LAN address. The repository is public and nothing is pushed yet. What should I do before pushing?\"=\"A) Rewrite, then push (Recommended)\""
+**AI Response**: "The question's own text named the path; it is redacted above, as the answer asks. Rewriting before anything is pushed, with git filter-branch --index-filter (git filter-repo is not installed), on main and the six feature branches: in every commit, 'target folder <path> is empty' in this audit's first entry becomes 'the target folder is empty', and '`<path>` was empty' in inception/plans/workspace-detection.md becomes 'the target folder was empty'; the 12 commit ids cited in this audit and in build-and-test-summary.md become the rewritten commits' ids (each is cited only by later commits, so each is rewritten before it is cited). Commit messages, authors and dates are kept. A bundle of the history as it was stays in the session's scratchpad, outside the repository, until the push is verified; refs/original is removed before the push."
+**Context**: OPERATIONS — first push; history rewrite approved
+
+---
+
+## Operations — History rewritten
+**Timestamp**: 2026-11-03T03:24:43Z
+**User Input**: "(none — continuing the first push)"
+**AI Response**: "Rewrote the 15 commits on main and the six feature branches with the filter described above. Each new commit differs from its original only in this audit, inception/plans/workspace-detection.md and, from the Build and Test documents on, build-and-test-summary.md: the redacted line in each of the first two, and the cited ids. Messages, authors and dates are equal; each cited id names a commit with the same subject as before; no commit on the branches holds the path. Old → new ids: 166c275 → 31a5105, bbfeac2 → a323976, baa78c4 → e9a525e, 5955822 → 0aecba2, a772a2e → 453bd24, 80a898e → 0d32bb7, a8d531d → 2a59a8a, 190d7ae → b7701e9, c190f73 → 243194e, 507d66d → 0ee5cd1, 74e9436 → 19cdae4, 1d1734b → 28c7a36, f242334 → 542f1d6, e19a570 → 58c0c1e, 9088d18 → 4501a10; the scan entry above names the first commit by its old id. refs/original removed; the Operations entries and the state, set aside during the rewrite, restored unchanged. Next: GitHub's initial commit joined to main with the ours strategy, then the push."
+**Context**: OPERATIONS — first push; history rewritten, not yet pushed
+
+---
