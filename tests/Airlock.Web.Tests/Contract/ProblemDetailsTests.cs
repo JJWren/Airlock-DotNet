@@ -131,6 +131,7 @@ public sealed partial class ProblemDetailsTests
         return directory?.FullName ?? throw new InvalidOperationException("The repository root was not found.");
     }
 
-    [GeneratedRegex("^## ([a-z-]+)$", RegexOptions.Multiline)]
+    // \r?: a checkout on Windows ends the page's lines with CRLF, and $ matches only before \n.
+    [GeneratedRegex(@"^## ([a-z-]+)\r?$", RegexOptions.Multiline)]
     private static partial Regex Heading();
 }
