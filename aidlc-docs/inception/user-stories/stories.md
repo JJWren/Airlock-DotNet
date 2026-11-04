@@ -624,7 +624,9 @@ As a Platform Operator, I want to run Airlock with `dotnet run` on Windows or wi
 same behaviour, so that development and deployment match.
 
 - `scripts/install-tools.ps1` and `scripts/install-tools.sh` fetch Syft v1.55.0 into `./bin`.
-- One container image with Syft bundled; Docker Compose mounts `SCAN_UPLOAD_PATH` at `/uploads`.
+- One container image with Syft bundled, on a chiseled base with no shell, run with a read-only root filesystem
+  (Q-U6-N1); Docker Compose mounts `SCAN_UPLOAD_PATH` at `/uploads`.
+- `docker compose up` runs the published image; `docker compose up --build` builds the working copy (Q-U6-2).
 - The same target gives the same packages and findings on Windows and in the container.
 
 ```gherkin
@@ -645,7 +647,7 @@ Scenario: Same results on both platforms
   Then both results list the same packages and findings
 ```
 
-**Traceability**: NFR-01, NFR-06, NFR-11 · Q3, Q17, Q18, D3
+**Traceability**: NFR-01, NFR-06, NFR-11 · Q3, Q17, Q18, D3, Q-U6-2, Q-U6-N1
 
 ### E15 — Trust how Airlock is built and licensed
 **Persona**: Platform Operator · **Priority**: Should
@@ -654,7 +656,11 @@ As a Platform Operator, I want automated builds, tests, code scanning, dependenc
 that I can rely on Airlock and redistribute it.
 
 - GitHub Actions builds, tests and builds the Docker image on pushes and pull requests to `main`.
-- CodeQL for C# on pull requests and weekly; Dependabot for NuGet, Docker and GitHub Actions.
+- A version tag the owner pushes publishes the tested image to the GitHub Container Registry (Q-U6-2).
+- The image is scanned for known vulnerabilities before it is published (Q-U6-N2), and every published version
+  carries signed build provenance and an SBOM (Q-U6-N3).
+- Every action and base image is pinned to a commit SHA or digest (Q-U6-N4).
+- CodeQL for C# on pull requests and weekly; Dependabot for NuGet, Docker, GitHub Actions and the .NET SDK.
 - MIT licence; the README states the QuestPDF Community licence terms; the README describes actual behaviour.
 - Nothing is pushed to GitHub without the owner's explicit approval.
 
@@ -671,9 +677,15 @@ Scenario: Licensing is documented
   When I read the README
   Then it states that Airlock is MIT-licensed
   And it names the QuestPDF Community licence and its revenue threshold
+
+Scenario: A published image can be verified
+  Given a version the release workflow published
+  When I run "gh attestation verify" for its image
+  Then GitHub confirms the workflow and the commit that built it
+  And the image's SBOM attestation verifies as well
 ```
 
-**Traceability**: NFR-10, NFR-11 · Q13, Q18 · defect 18
+**Traceability**: NFR-10, NFR-11 · Q13, Q18, Q-U6-1, Q-U6-2, Q-U6-N2, Q-U6-N3, Q-U6-N4 · defect 18
 
 ---
 

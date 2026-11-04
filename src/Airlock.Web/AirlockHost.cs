@@ -32,6 +32,7 @@ internal static class AirlockHost
         builder.Services.AddAirlockInfrastructure(builder.Configuration);
         builder.Services.AddAirlockApi();
         builder.Services.AddAirlockUi(builder.Environment);
+        builder.Services.AddAirlockKeyStorage();
     }
 
     public static void ConfigurePipeline(WebApplication app)

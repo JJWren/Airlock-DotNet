@@ -30,6 +30,21 @@ public sealed class UiAccessibilityTests
         });
     }
 
+    // Build and Test (axe-core): without a main landmark, each page's header was a second banner and its content sat
+    // outside every landmark.
+    [Fact]
+    public async Task Each_page_sits_in_the_one_main_landmark()
+    {
+        await using var ui = new UiTestContext();
+        ui.PlanPage();
+        ui.PlanStart();
+        var layout = ui.Render<MainLayout>(parameters => parameters.Add(page => page.Body, Page<ControlCenter>()));
+
+        var main = Assert.Single(layout.FindAll("main"));
+        Assert.NotNull(main.QuerySelector("h1"));
+        Assert.Null(main.QuerySelector(".mud-appbar"));
+    }
+
     [Fact]
     public async Task Every_button_of_reports_has_a_name_and_rows_say_whether_they_are_selected()
     {

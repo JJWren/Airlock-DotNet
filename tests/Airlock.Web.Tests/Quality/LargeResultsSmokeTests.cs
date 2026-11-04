@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using Airlock.Web.Components.Pages;
 using Airlock.Web.Tests.Support;
 using Bunit;
@@ -33,6 +34,10 @@ public sealed class LargeResultsSmokeTests
         var selected = watch.Elapsed;
 
         Assert.Single(page.FindAll(".airlock-detail"));
+
+        // Build and Test reads the measurement from the test results; the browser's own figures are measured there too.
+        Xunit.TestContext.Current.TestOutputHelper?.WriteLine(string.Create(CultureInfo.InvariantCulture,
+            $"measured U5-NFR-04 (bUnit): 2,000 rows drawn in {drawn.TotalMilliseconds:0.0} ms (target 1,000 ms), filtered in {filtered.TotalMilliseconds:0.0} ms (target 300 ms), selected in {selected.TotalMilliseconds:0.0} ms (target 100 ms)"));
         Assert.True(drawn < TimeSpan.FromSeconds(10), $"Drawing took {drawn.TotalMilliseconds} ms.");
         Assert.True(filtered < TimeSpan.FromSeconds(3), $"Filtering took {filtered.TotalMilliseconds} ms.");
         Assert.True(selected < TimeSpan.FromSeconds(1), $"Selecting took {selected.TotalMilliseconds} ms.");

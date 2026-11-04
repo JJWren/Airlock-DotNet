@@ -87,6 +87,29 @@ public sealed class SyftToolStatusTests
         Assert.Equal(2, probes);
     }
 
+    // U6-NFR-11: the image's health check re-checks Syft every 30 seconds, and only a change of status is logged.
+    [Fact]
+    public async Task A_recheck_logs_only_a_change_of_status()
+    {
+        var present = true;
+        var locator = new SyftLocator(StandIn.Path, AppContext.BaseDirectory, null, path => present && File.Exists(path));
+        var probe = new SyftStatusProbe(
+            locator, new SyftProcessRunner(clock), new SyftEnvironment(null), TimeSpan.FromSeconds(30), clock, logger);
+
+        await probe.GetAsync(Test.Token).Within();
+        clock.Advance(TimeSpan.FromSeconds(31));
+        await probe.GetAsync(Test.Token).Within();
+        Assert.Equal(1, logger.Collector.Count);
+
+        present = false;
+        clock.Advance(TimeSpan.FromSeconds(31));
+        await probe.GetAsync(Test.Token).Within();
+        clock.Advance(TimeSpan.FromSeconds(31));
+        await probe.GetAsync(Test.Token).Within();
+        Assert.Equal(2, logger.Collector.Count);
+        Assert.Contains("Syft is not available", logger.Collector.LatestRecord.Message, StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task A_callers_cancellation_ends_only_its_own_wait()
     {

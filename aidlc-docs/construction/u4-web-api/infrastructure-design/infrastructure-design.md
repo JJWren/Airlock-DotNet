@@ -4,15 +4,17 @@
 
 How the host is reached, configured, observed and stopped. Airlock needs no cloud resources: one process, one port,
 local disk, and outbound HTTPS to NVD. The container itself — image, user, volumes, compose — is U6's; this document
-fixes what the application expects of it. The topology is in `deployment-architecture.md`.
+fixes what the application expects of it. The topology is in `deployment-architecture.md`. U6's NFR Design
+(2026-10-29) corrected the variable that sets the container's listening address, and put the container's
+data-protection keys on its volume.
 
 ## Port and listening addresses (Q-U4-I1)
 
 | How Airlock runs | Address | Set by |
 |---|---|---|
-| `dotnet run --project src/Airlock.Web` | `http://localhost:8080`, Development, opening the browser there | `Properties/launchSettings.json` (`applicationUrl`) |
+| `dotnet run --project src/Airlock.Web` | `http://localhost:8080`, Development, opening the browser there | `"Urls"` in `appsettings.json`, which outranks the `ASPNETCORE_URLS` that `Properties/launchSettings.json`'s `applicationUrl` sets; both name this address, and the browser opens it |
 | The published application started directly | `http://localhost:8080`, Production | `"Urls": "http://localhost:8080"` in `appsettings.json` |
-| The container | `http://+:8080`, every interface inside the container, so the port can be published | `ASPNETCORE_URLS` in the image (U6); an environment variable outranks `appsettings.json`. Without it the container would listen on its own loopback and be unreachable, so U6's smoke test checks it |
+| The container | `http://+:8080`, every interface inside the container, so the port can be published | `URLS` in the image (U6), which outranks `appsettings.json` as every unprefixed environment variable does. `ASPNETCORE_URLS` does not: `ASPNETCORE_` variables are host configuration, which `appsettings.json` overrides, so the container would listen on its own loopback and be unreachable (checked in U6's NFR Design). U6's smoke test checks it |
 | The host machine, for the container | `127.0.0.1:8080` by default, movable | The compose file (U6), through a port variable |
 
 Locally Airlock listens on loopback only, as Uvicorn does by default, so a server without authentication is not
@@ -37,7 +39,7 @@ reachable from the network unless an operator decides otherwise (`deployment-arc
 | 2 | `appsettings.json` | `Urls`, `AllowedHosts`, `Logging`, and from U5 `DisableStaticAssetNotFoundRuntimeFallback` | Shipped with the application. The last keeps the static files' development fallback, which a run from the build output would add, from turning the API's 405 into 404 (U5) |
 | 3 | `appsettings.{Environment}.json` | — | Not needed today; nothing differs between environments |
 | 4 | User-secrets, Development only | `Airlock:Nvd:ApiKey` | Where a developer keeps the NVD key: `dotnet user-secrets set Airlock:Nvd:ApiKey <key> --project src/Airlock.Web` |
-| 5 | Environment variables | `Airlock__Limits__MaxArtifactsPerScan=10`, `ASPNETCORE_URLS`, `AllowedHosts` | .NET's own convention, `__` for `:` |
+| 5 | Environment variables | `Airlock__Limits__MaxArtifactsPerScan=10`, `URLS`, `AllowedHosts` | .NET's own convention, `__` for `:`. `ASPNETCORE_`-prefixed variables are not here: they are host configuration, below `appsettings.json` (U6's NFR Design) |
 | 6 | The original's variable names | `NVD_API_KEY`, `SYFT_BINARY_PATH`, `LOG_LEVEL` | U3's `AddAirlockEnvironmentVariables` (IR-23); `AirlockHost` moves its source in front of the command line, because it appends at the end. `WebApplicationBuilder` holds two command-line sources — the host's, early, and the application's, last — so `ConfigurationOrder` puts it in front of the last one |
 | 7 | The command line | `--Airlock:Limits:MaxArtifactsPerScan=10` | Wins over everything |
 
@@ -51,10 +53,11 @@ The settings an operator is most likely to touch:
 | NVD API key | `Airlock:Nvd:ApiKey` | `NVD_API_KEY` |
 | Syft binary | `Airlock:Syft:BinaryPath` | `SYFT_BINARY_PATH` |
 | Console verbosity | `Logging:LogLevel:Default` | `LOG_LEVEL` |
-| Listening address | `Urls` | `ASPNETCORE_URLS` |
+| Listening address | `Urls` | `URLS` |
 | Host names answered | `AllowedHosts` | `AllowedHosts` |
 | Directories a scan may target | `Airlock:AllowedScanRoots:0`, `:1`, … | `Airlock__AllowedScanRoots__0`, … |
 | Staging root | `Airlock:Staging:Root` | `Airlock__Staging__Root` |
+| Data-protection keys' folder (added by U6; the image sets it) | `Airlock:DataProtection:KeysPath` | `Airlock__DataProtection__KeysPath` |
 | Limits, timeouts, retention | `Airlock:Limits:…`, `Airlock:Timeouts:…`, `Airlock:Retention:…` | `Airlock__Limits__…`, … |
 
 ## Environments
@@ -70,7 +73,8 @@ The settings an operator is most likely to touch:
 No ASP.NET Core health-check middleware is added. `GET /api/v2/system/health` (WR-17) serves the status pill, CI
 jobs and any container health check: it answers 200 whenever the process serves requests, and its body says `ONLINE`
 or `DEGRADED` with the checks. A container check therefore asks `http://localhost:8080/api/v2/system/health` and
-expects 200 (U6); readiness to scan is the body's `status`.
+expects 200 (U6); readiness to scan is the body's `status`. U6's image does so with `--health-probe`, a mode of
+`Airlock.Web` that builds no host.
 
 ## Logging
 
@@ -87,7 +91,9 @@ what `docker logs` shows.
 - **Data protection keys**, which Blazor uses for its circuits and antiforgery tokens, stay where ASP.NET Core puts
   them: the user's profile folder locally, the application user's home folder in the container, or memory when
   neither is writable, with a warning at startup. Airlock keeps no sessions or logins, so nothing depends on the keys
-  surviving a restart; an open tab simply reloads.
+  surviving a restart; an open tab simply reloads. In the container, U6 keeps them on the volume beside the staging
+  root: keys lost at every restart would make ASP.NET Core log an Error for each browser's antiforgery cookie issued
+  before it (U6's NFR Design). The image points `Airlock:DataProtection:KeysPath` there (U6's Infrastructure Design).
 
 ## Shutdown
 

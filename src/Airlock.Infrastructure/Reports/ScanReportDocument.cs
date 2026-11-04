@@ -170,10 +170,11 @@ internal sealed class ScanReportDocument(Scan scan, DateTimeOffset renderedAt) :
                     columns.RelativeColumn(2);
                     columns.RelativeColumn(1.2f);
                     columns.RelativeColumn(2.6f);
-                    columns.RelativeColumn(2.2f);
+                    // Build and Test: wide enough for a 16-character id such as CVE-2018-1000656, which 2.2 broke in two.
+                    columns.RelativeColumn(2.8f);
                     columns.RelativeColumn(1.4f);
                     columns.RelativeColumn(1.6f);
-                    columns.RelativeColumn(5);
+                    columns.RelativeColumn(4.4f);
                 });
                 table.Header(row =>
                 {

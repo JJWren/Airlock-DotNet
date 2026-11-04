@@ -163,7 +163,7 @@ followed scan ends, the session raises `ScanEnded`, and `MainLayout` navigates t
 ## Constraints handed to U6
 
 - The container image carries time-zone data and ICU (U5-NFR-09); a `chiseled` image without them would turn every
-  browser time zone into UTC.
+  browser time zone into UTC. U6 took the `chiseled-extra` image, which carries both (Q-U6-N1).
 - The compose file may set the container's host name, which Active Logs shows (UR-21).
 - The README credits MudBlazor (MIT) and the fonts (SIL OFL 1.1), and explains that the UI needs WebSockets through any
   reverse proxy.

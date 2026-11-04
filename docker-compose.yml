@@ -1,0 +1,39 @@
+# Airlock, from its published image or built from this copy, run hardened (DR-07 to DR-09, DR-29, U6-NFR-09).
+# `docker compose up` runs the release named by AIRLOCK_IMAGE_TAG; `docker compose up --build` builds this copy.
+# Settings beyond the five in .env.example go in docker-compose.override.yml, which Compose merges and Git ignores.
+name: airlock
+
+services:
+  airlock:
+    image: ghcr.io/jjwren/airlock-dotnet:${AIRLOCK_IMAGE_TAG:-latest}
+    build:
+      context: .
+    hostname: airlock
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m
+    ports:
+      - "127.0.0.1:${AIRLOCK_PORT:-8080}:8080"
+    environment:
+      NVD_API_KEY: ${NVD_API_KEY:-}
+      LOG_LEVEL: ${LOG_LEVEL:-Information}
+      Airlock__AllowedScanRoots__0: /uploads
+    volumes:
+      # The long syntax, so that a missing folder is an error rather than a new empty one (DR-08).
+      - type: bind
+        source: ${SCAN_UPLOAD_PATH:?Set SCAN_UPLOAD_PATH in .env to the folder Airlock may scan}
+        target: /uploads
+        read_only: true
+        bind:
+          create_host_path: false
+      # The staging root and the data-protection keys (U6-NFR-10).
+      - type: volume
+        source: airlock-data
+        target: /var/lib/airlock
+
+volumes:
+  airlock-data:

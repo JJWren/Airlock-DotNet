@@ -19,6 +19,10 @@ internal sealed class SyftStatusProbe(
     private Task<SbomToolStatus>? probe;
     private DateTimeOffset expires = DateTimeOffset.MinValue;
 
+    // U6-NFR-11: the last status logged. A re-check that finds the same logs nothing, so the image's health check, every
+    // 30 seconds, adds no line to the Live Log. Only one check runs at a time.
+    private string? logged;
+
     // IR-05: concurrent callers share one probe, and a caller's cancellation ends only its own wait.
     public Task<SbomToolStatus> GetAsync(CancellationToken cancellationToken)
     {
@@ -112,13 +116,28 @@ internal sealed class SyftStatusProbe(
 
         var version = VersionFrom(result.Output);
         var detail = version is null ? $"Syft at {location.Path}" : $"Syft {version} at {location.Path}";
-        logger.SyftFound(detail);
+        if (Changed(detail))
+        {
+            logger.SyftFound(detail);
+        }
+
         return new SbomToolStatus(true, version, detail);
     }
 
     private SbomToolStatus Unavailable(string detail)
     {
-        logger.SyftUnavailable(detail);
+        if (Changed(detail))
+        {
+            logger.SyftUnavailable(detail);
+        }
+
         return new SbomToolStatus(false, null, detail);
+    }
+
+    private bool Changed(string detail)
+    {
+        var changed = !string.Equals(logged, detail, StringComparison.Ordinal);
+        logged = detail;
+        return changed;
     }
 }

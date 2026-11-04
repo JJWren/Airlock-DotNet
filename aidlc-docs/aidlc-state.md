@@ -3,10 +3,9 @@
 **Project**: Airlock-DotNet — rebuild of github.com/JJWren/Airlock (master @ 0a62ba3) on .NET 10 LTS with a Blazor UI
 **Project type**: Greenfield target workspace; brownfield source system (remote repository)
 **Workflow path**: Full (decision N8)
-**Current phase**: CONSTRUCTION
-**Current stage**: U6 Delivery — Functional Design, starting (U5 Code Generation approved 2026-10-28T14:00:29Z and
-committed on `feature/u5-web-ui`)
-**Last updated**: 2026-10-28T14:00:29Z
+**Current phase**: OPERATIONS
+**Current stage**: Operations — the first push to `JJWren/Airlock-DotNet`, 2026-11-03; Build and Test approved 2026-11-02T14:34:31Z
+**Last updated**: 2026-11-04T15:08:57Z
 
 ## INCEPTION PHASE
 
@@ -30,15 +29,19 @@ committed on `feature/u5-web-ui`)
 | U3 Infrastructure | [x] | [x] | [x] | n/a | [x] |
 | U4 Web API | [x] | [x] | [x] | [x] | [x] |
 | U5 Web UI | [x] | [x] | [x] | n/a | [x] |
-| U6 Delivery | [ ] | [ ] | [ ] | [ ] | [ ] |
+| U6 Delivery | [x] | [x] | [x] | [x] | [x] |
 
-- [ ] Build and Test
+- [x] Build and Test — Standard depth; every planned check run, 8 defects found and fixed, 1,253 tests; approved
+      2026-11-02T14:34:31Z (`construction/build-and-test/`)
 
 Per-unit stage applicability is confirmed during Workflow Planning.
 
 ## OPERATIONS PHASE
 
-- [ ] Operations — placeholder
+- [ ] Operations — the first push, 2026-11-03: main, then feature/u6-delivery as a pull request into main; then CI,
+      CodeQL, Dependabot and the first release, as `construction/build-and-test/integration-test-instructions.md`
+      ("After the push") lists. CI's first two runs found defects 9 to 11, fixed on the pull request's branch
+      (`construction/build-and-test/build-and-test-summary.md`); the merge waits for CI to pass
 
 ## Skipped stages
 

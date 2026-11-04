@@ -1,0 +1,9 @@
+{
+  "codeCoverage": {
+    "Configuration": {
+      "CodeCoverage": {
+        "EnableStaticManagedInstrumentation": false
+      }
+    }
+  }
+}

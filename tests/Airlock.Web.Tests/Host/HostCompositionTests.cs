@@ -33,6 +33,7 @@ public sealed class HostCompositionTests
     [InlineData("Airlock:Limits:MaxArtifactsPerScan", "-1")]
     [InlineData("Airlock:Nvd:BaseUrl", "http://services.nvd.nist.gov/rest/json/cves/2.0")]
     [InlineData("Airlock:Staging:Root", "relative/staging")]
+    [InlineData("Airlock:DataProtection:KeysPath", "relative/keys")]
     public async Task An_invalid_option_stops_startup_naming_it(string key, string value)
     {
         using var staging = new TemporaryFolder();

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using Airlock.Application.Ports;
 using Airlock.Domain.Intelligence;
@@ -24,6 +25,7 @@ public sealed class PerformanceSmokeTests
         var refusal = await TimeAsync(() => client.PostAsync(Http.ScansUrl, Http.Requirements(), Test.Token));
         var health = await TimeAsync(() => client.GetAsync("/api/v2/system/health", Test.Token));
 
+        Measured($"a refusal before the body in {refusal.TotalMilliseconds:0.0} ms (target 100 ms); health in {health.TotalMilliseconds:0.0} ms (target 50 ms)");
         Assert.True(refusal < TimeSpan.FromSeconds(1), $"The refusal took {refusal.TotalMilliseconds} ms.");
         Assert.True(health < TimeSpan.FromMilliseconds(500), $"Health took {health.TotalMilliseconds} ms.");
     }
@@ -49,6 +51,7 @@ public sealed class PerformanceSmokeTests
 
         var read = await TimeAsync(() => client.GetAsync($"{Http.ScansUrl}/{id}", Test.Token));
 
+        Measured($"a 500-finding scan read in {read.TotalMilliseconds:0.0} ms (target 250 ms)");
         Assert.True(read < TimeSpan.FromMilliseconds(2_500), $"Reading the scan took {read.TotalMilliseconds} ms.");
     }
 
@@ -71,8 +74,13 @@ public sealed class PerformanceSmokeTests
         {
         }
 
+        Measured($"an event reached its client in {watch.Elapsed.TotalMilliseconds:0.0} ms (target 100 ms)");
         Assert.True(watch.Elapsed < TimeSpan.FromSeconds(1), $"The phase event took {watch.Elapsed.TotalMilliseconds} ms.");
     }
+
+    // Build and Test reads each measurement from the test results (refinement 1 of its plan).
+    private static void Measured(FormattableString measurement) =>
+        TestContext.Current.TestOutputHelper?.WriteLine("measured U4-NFR-08: " + measurement.ToString(CultureInfo.InvariantCulture));
 
     private static async Task<TimeSpan> TimeAsync(Func<Task<HttpResponseMessage>> request)
     {

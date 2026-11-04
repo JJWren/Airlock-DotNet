@@ -135,7 +135,8 @@
 ## 3. Non-functional requirements
 
 - **NFR-01 Platform** — .NET 10 LTS, C# 14, ASP.NET Core 10; Blazor Web App with global Interactive Server rendering;
-  one host and one container image. *(Q3, D3; ADR-0001)*
+  one host and one container image. Every build uses .NET 10's last SDK feature band, 4xx, which `global.json`
+  pins. *(Q3, D3; ADR-0001; Q-U6-I1)*
 - **NFR-02 Architecture** — Clean Architecture (Domain, Application, Infrastructure, Web) with inward-only
   dependencies enforced by ArchUnitNET tests; use cases are plain classes. *(Q16, N7; ADR-0004)*
 - **NFR-03 Security** — Fail closed (ADR-0002); input hardening (FR-02, FR-03); no authentication, documented as an
@@ -143,7 +144,8 @@
   and environment variables in containers. API endpoints take no antiforgery token (no cookies or credentials);
   instead, their `POST` endpoints refuse requests a browser marks as coming from another site (403), and Airlock
   answers only the host names in `AllowedHosts`, by default `localhost`, `127.0.0.1` and `[::1]`, against DNS
-  rebinding. *(Q-U4-3; ADR-0007)*
+  rebinding. The container runs as a non-root user on a chiseled image with no shell, with a read-only root filesystem
+  and no Linux capabilities. *(Q-U4-3; ADR-0007; Q-U6-N1 and U6 NFR Requirements)*
 - **NFR-04 Reliability** — App-wide NVD sliding-window limit of 50 requests per 30 seconds; retries with exponential
   backoff and jitter on 429, 5xx and timeouts, honouring `Retry-After`; per-attempt and total timeouts; Syft and scan
   timeouts; staging cleanup on every exit path.
@@ -156,11 +158,16 @@
   names follow GLOSSARY.md.
 - **NFR-09 Testability** — xUnit v3, NSubstitute, bUnit, WebApplicationFactory, ArchUnitNET; no network access in unit
   tests; Syft-dependent tests opt-in by category; a regression test for every fixed defect.
-- **NFR-10 Licensing** — Airlock is MIT-licensed; dependencies are MIT or Apache-2.0 except QuestPDF (Community
-  licence, free below USD 1M annual revenue), which is documented in the README.
-- **NFR-11 Delivery** — Git with `main` plus feature branches; GitHub Actions for build, test and Docker image build;
-  CodeQL for C#; Dependabot; a multi-stage Dockerfile and docker-compose with the `/uploads` mount; nothing is pushed
-  without the owner's explicit approval. *(Q18)*
+- **NFR-10 Licensing** — Airlock is MIT-licensed. Its dependencies are MIT, Apache-2.0 or BSD-3-Clause (Polly), except
+  QuestPDF (Community licence, free below USD 1M annual revenue), which is documented in the README.
+  `THIRD-PARTY-NOTICES.md` lists every component the published image redistributes, with its licence. *(Q13, Q18;
+  amended by U6 Functional Design, which found Polly's licence, and by Q-U6-2)*
+- **NFR-11 Delivery** — Git with `main` plus feature branches; GitHub Actions for build, test and Docker image build,
+  with no NVD secret (Q-U6-1); a version tag the owner pushes publishes the tested image to the GitHub Container
+  Registry (Q-U6-2), once Grype finds no fixable High or Critical vulnerability in it (Q-U6-N2), with signed build
+  provenance and an SBOM (Q-U6-N3); every action and base image pinned to a commit SHA or digest (Q-U6-N4); CodeQL for
+  C# and JavaScript; Dependabot; a multi-stage Dockerfile and docker-compose with the `/uploads` mount; nothing is
+  pushed without the owner's explicit approval. *(Q18; Q-U6-1, Q-U6-2, Q-U6-N2 to Q-U6-N4)*
 - **NFR-12 Usability and accessibility** — Standard MudBlazor components; every action reachable by keyboard; severity
   is never conveyed by colour alone (badges carry text); the pages meet WCAG 2.2 AA, contrast included (Q-U5-N1).
 
@@ -221,3 +228,10 @@
 | Q-U5-1 A path and staged artifacts together | FR-25 |
 | Q-U5-2 Every tab follows the active scan | FR-25, FR-28 |
 | Q-U5-N1 Contrast against the original's grey | FR-30, NFR-12 |
+| Q-U6-1 CI without an NVD secret | NFR-11 |
+| Q-U6-2 Publishing the image on version tags | NFR-10, NFR-11 |
+| Q-U6-N1 The chiseled runtime image | NFR-03, NFR-06 |
+| Q-U6-N2 Scanning the image for vulnerabilities | NFR-11 |
+| Q-U6-N3 Attestations for published images | NFR-11 |
+| Q-U6-N4 Pinning actions and images | NFR-11 |
+| Q-U6-I1 The .NET SDK feature band | NFR-01 |

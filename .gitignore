@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+# An operator's own compose settings (DR-09)
+docker-compose.override.yml
+
 # User-specific files
 *.rsuser
 *.suo

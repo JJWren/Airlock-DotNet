@@ -1,6 +1,7 @@
 using System.Net;
 using Airlock.Application.Ports;
 using Airlock.Web.Tests.Support;
+using Microsoft.Extensions.Time.Testing;
 
 namespace Airlock.Web.Tests.Endpoints;
 
@@ -50,5 +51,29 @@ public sealed class HealthEndpointTests
         }
 
         Assert.Equal(0, factory.Catalog.Lookups);
+    }
+
+    // U6-NFR-11: the image's health check asks every 30 seconds, so once Syft's status is known a health request logs
+    // nothing, not even when it re-checks Syft after the status cache's 30 seconds.
+    [Fact]
+    public async Task Health_requests_log_nothing_once_syfts_status_is_known()
+    {
+        var clock = new FakeTimeProvider(Test.StartTime);
+        await using var factory = new AirlockWebFactory(clock: clock, realAdapters: true);
+        using var client = factory.CreateClient();
+        using (var first = await client.GetAsync("/api/v2/system/health", Test.Token))
+        {
+            Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+        }
+
+        factory.Logs.Clear();
+        for (var i = 0; i < 3; i++)
+        {
+            clock.Advance(TimeSpan.FromSeconds(31));
+            using var response = await client.GetAsync("/api/v2/system/health", Test.Token);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        Assert.Empty(factory.Logs.GetSnapshot());
     }
 }

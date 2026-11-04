@@ -84,7 +84,8 @@
         await Js.DownloadTextAsync(UiFormat.LogFileName(now), text);
     }
 
-    // UR-20, UR-37: the focus returns to Emergency Stop when the dialog closes.
+    // UR-20, UR-37: the focus returns to Emergency Stop when the dialog closes, if it is still on the page; a scan that ends
+    // while the question is open takes the tab to its report, and the button leaves with the terminal (Build and Test).
     private async Task ConfirmStopAsync()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true, BackdropClick = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
@@ -102,7 +103,14 @@
 
         if (stopButton is not null)
         {
-            await stopButton.FocusAsync();
+            try
+            {
+                await stopButton.FocusAsync();
+            }
+            catch (JSException)
+            {
+                // The browser no longer has the button, so there is nothing to give the focus back to.
+            }
         }
     }
 }

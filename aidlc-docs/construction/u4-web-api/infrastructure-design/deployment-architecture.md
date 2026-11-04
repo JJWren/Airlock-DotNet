@@ -68,7 +68,8 @@ streams. A CI job on another machine is such a client.
 
 ## Handed to U6
 
-- **Image**: `ASPNETCORE_URLS=http://+:8080` (required: `appsettings.json` pins the loopback address), `EXPOSE 8080`, the
+- **Image**: `URLS=http://+:8080` (required: `appsettings.json` pins the loopback address, and outranks
+  `ASPNETCORE_URLS`, as U6's NFR Design found), `EXPOSE 8080`, the
   .NET image's non-root user, a writable staging root for that user, and Syft v1.55.0 in `bin/` next to the
   application.
 - **Compose**: publish `127.0.0.1:${AIRLOCK_PORT:-8080}:8080`, so the port can move without editing the file; take
@@ -77,6 +78,7 @@ streams. A CI job on another machine is such a client.
   is enough.
 - **Health check**: `GET http://localhost:8080/api/v2/system/health` expects 200; the .NET runtime image has no curl,
   so U6 chooses the command.
-- **Smoke test**: the container answers on the published port, which catches a missing `ASPNETCORE_URLS`.
+- **Smoke test**: the container answers on the published port, which catches a listening address left on the
+  container's loopback.
 - **README**: the address, the user-secrets command for the NVD key, the configuration table of
   `infrastructure-design.md`, and how to open Airlock to other machines safely.

@@ -116,11 +116,24 @@ Generation checkpoint approved.
 
 - **Purpose**: packaging, automation and the final documentation.
 - **Scope**: `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `.env.example`, `.github/workflows/ci.yml`,
-  `.github/workflows/codeql.yml`, `.github/dependabot.yml`, the complete `README.md`.
-- **Delivers**: a multi-stage image (`anchore/syft:v1.55.0` stage, SDK build, ASP.NET runtime, non-root user);
-  compose with the `/uploads` mount and a staging volume; CI that restores, builds, tests and builds the image;
-  CodeQL for C#; Dependabot for NuGet, Docker and GitHub Actions; README covering setup, configuration, the accepted
-  no-authentication risk, licensing (MIT, QuestPDF Community licence) and the S0 findings.
-- **Tests**: `docker compose up --build` smoke test (ONLINE with a key, a scan of `/uploads`); workflow files checked
-  for syntax.
+  `.github/workflows/codeql.yml`, `.github/workflows/release.yml` (Q-U6-2), `.github/dependabot.yml`,
+  `.github/zizmor.yml`, `.github/ci-tools/Dockerfile`, `.grype.yaml`, the scripts the workflows share (`scripts/ci/`)
+  and the smoke test's compose override and fixture (`tests/smoke/`), `licenses/`, `THIRD-PARTY-NOTICES.md`, the
+  complete `README.md`, and `tests/Airlock.Delivery.Tests`, the repository tests that keep these files consistent. U6
+  also moves `global.json` to SDK 10.0.403 (Q-U6-I1), gives U3's install scripts Syft's archive hashes, and adds two
+  small pieces to `Airlock.Web`: the `--health-probe` mode (Q-U6-N1) and the data-protection keys' setting.
+- **Delivers**: a multi-stage image (`anchore/syft:v1.55.0` stage, SDK build, a chiseled ASP.NET runtime with ICU and
+  time-zone data, the non-root user, a health probe with no shell; every image pinned by digest); compose with the
+  `/uploads` mount and a staging volume, running the container hardened, which runs the published image or builds the
+  working copy; CI that lints the workflows (actionlint, zizmor), restores, builds and tests on Linux and Windows with
+  the coverage targets enforced, then builds and smoke-tests the image — a scan with NVD unreachable included — and
+  scans it with Grype, with no NVD secret (Q-U6-1, Q-U6-N2); a release workflow that publishes the tested, scanned image
+  to the GitHub Container Registry with signed provenance and SBOM attestations when the owner pushes a version tag
+  (Q-U6-2, Q-U6-N3), verified before it is tagged; CodeQL for C# and JavaScript; Dependabot for NuGet, Docker, GitHub
+  Actions and the .NET SDK, staying on .NET 10 LTS, with every action, image and downloaded tool pinned (Q-U6-N4);
+  the third-party notices; README covering setup, configuration, the accepted no-authentication risk, the hardening,
+  troubleshooting, releasing and verifying a release, licensing (MIT, QuestPDF Community licence) and the S0 findings.
+- **Tests**: CI's image smoke test (keyless: DEGRADED, Syft in the image, the pages served, the scan refused, UID 1654;
+  then with NVD unreachable: a scan of `/uploads` ending Incomplete, and its PDF); Grype's scan; actionlint and zizmor;
+  the repository tests; in Build and Test, `docker compose up --build` with a key (ONLINE, a scan of `/uploads`).
 - **Provides**: the input to Build and Test.

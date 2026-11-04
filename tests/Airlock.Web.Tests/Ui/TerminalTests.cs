@@ -6,6 +6,7 @@ using Airlock.Web.Tests.Support;
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.JSInterop;
 
 namespace Airlock.Web.Tests.Ui;
 
@@ -163,6 +164,28 @@ public sealed partial class TerminalTests
         dialogs.FindAll(".mud-dialog button").Single(button => button.TextContent.Trim() == "Terminate").Click();
 
         await ui.UntilAsync(() => Assert.Contains("No active scan", snackbars.Markup, StringComparison.Ordinal));
+    }
+
+    // Build and Test (E7): the scan ended while the question was open and took the tab to its report, so Emergency Stop had
+    // left the page; returning the focus to it threw, which ended the circuit.
+    [Fact]
+    public async Task The_question_closing_once_emergency_stop_has_left_the_page_ends_nothing()
+    {
+        await using var ui = await ReadyAsync();
+        var (_, dialogs, _) = ui.RenderProviders();
+        var terminal = ui.Render<Terminal>();
+        var reserved = await ui.Services.GetRequiredService<StartScan>().ReserveAsync(Test.Token);
+        await using var reservation = reserved.Value!;
+        await ui.UntilAsync(() => Assert.False(StopButton(terminal).HasAttribute("disabled")));
+        StopButton(terminal).Click();
+        await ui.UntilAsync(() => Assert.NotEmpty(dialogs.FindAll(".mud-dialog button")));
+
+        // What the browser answers when the element is no longer on the page.
+        ui.JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true).SetException(new JSException("Unable to focus an invalid element."));
+        dialogs.FindAll(".mud-dialog button").Single(button => button.TextContent.Trim() == "Cancel").Click();
+
+        await ui.UntilAsync(() => Assert.Empty(dialogs.FindAll(".mud-dialog")));
+        Assert.False(ui.Renderer.UnhandledException.IsCompleted);
     }
 
     [Fact]

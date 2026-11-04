@@ -1,0 +1,151 @@
+# CI (DR-11 to DR-14, DR-28, DR-30): the workflow checks, the tests on Linux and Windows, and the image's smoke test and
+# scan. It reads no secret, so pull requests from forks get the same checks (Q-U6-1 = A). release.yml calls it with
+# image: false, since the release builds and tests the one image it publishes (DR-22).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      image:
+        description: Build, smoke-test and scan the image
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # DR-28, U6-NFR-03, U6-NFR-04: the workflows and the scripts, checked by the pinned linters.
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: actionlint
+        run: bash scripts/ci/run-tool.sh actionlint
+
+      - name: shellcheck
+        run: bash scripts/ci/run-tool.sh shellcheck scripts/install-tools.sh scripts/ci/*.sh
+
+      - name: zizmor
+        run: bash scripts/ci/run-tool.sh zizmor --config .github/zizmor.yml --format github .
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  # DR-12: build, test and coverage on both runners, with Syft's integration tests.
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            syft: bin/syft
+          - os: windows-2025
+            syft: bin/syft.exe
+    steps:
+      - name: Note the start
+        shell: bash
+        run: echo "AIRLOCK_JOB_STARTED=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Install Syft
+        if: runner.os == 'Linux'
+        run: sh scripts/install-tools.sh
+
+      - name: Install Syft
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/install-tools.ps1
+
+      - name: Build
+        run: dotnet build
+
+      - name: Test, with coverage
+        run: dotnet test --no-build --coverage --coverage-output-format cobertura --report-xunit-trx --report-xunit-trx-filename results.trx
+        env:
+          SYFT_BINARY_PATH: ${{ github.workspace }}/${{ matrix.syft }}
+
+      - name: Coverage against the targets
+        run: dotnet run scripts/ci/coverage.cs
+
+      - name: Summary
+        if: always()
+        run: dotnet run scripts/ci/summary.cs -- --tests TestResults
+
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-results-${{ matrix.os }}
+          path: TestResults/
+          retention-days: 14
+          if-no-files-found: ignore
+
+  # DR-13, DR-30: the image, built as the release builds it, then smoke-tested and scanned. Skipped only when
+  # release.yml passes image: false; toJSON tells that false from the empty input of a push or a pull request.
+  image:
+    name: Image
+    if: toJSON(inputs.image) != 'false'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Note the start
+        run: echo "AIRLOCK_JOB_STARTED=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: bash scripts/ci/build-image.sh load
+
+      - name: Smoke test
+        run: dotnet run scripts/ci/smoke-test.cs -- --image airlock-dotnet:smoke
+
+      - name: Scan
+        run: bash scripts/ci/scan-image.sh
+
+      - name: Summary
+        if: always()
+        run: dotnet run scripts/ci/summary.cs -- --image "$RUNNER_TEMP/airlock-ci"
+
+      - name: Keep the scan
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: image-scan
+          path: ${{ runner.temp }}/airlock-ci/*.json
+          retention-days: 14
+          if-no-files-found: ignore
