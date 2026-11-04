@@ -1165,3 +1165,27 @@ UI does NOT go through HTTP API (API tested separately), "Q4 — Is the reverse-
 **Context**: OPERATIONS — defects 9 and 10 fixed on feature/u6-delivery; CI to run again
 
 ---
+
+## Operations — Fix pushed; waiting for CI
+**Timestamp**: 2026-11-03T14:40:07Z
+**User Input**: "(none — continuing toward the merge)"
+**AI Response**: "Committed the fix and these records as 7335ca0, after the scan of the 48 added lines (its only matches: the versions 10.0.400, 10.0.11 and 10.0.14), and pushed feature/u6-delivery: bb3b3be..7335ca0. Read the pull request's checks once, from the app: 2 pass, 5 pending, none fail. Deleted this turn's scratch files (the CI logs, the Linux run's script and its copy of Syft) and a crash dump GNU grep had left in the working tree, which git ignores. The session does not watch CI, and the pull request's Auto-fix is off, so the merge waits for the owner's word that the checks are done. Asked: 'Check the pull request and merge it if green?' — Check and merge."
+**Context**: OPERATIONS — waiting for CI on 7335ca0
+
+---
+
+## Operations — Answer: check and merge
+**Timestamp**: 2026-11-04T14:49:36Z
+**User Input**: "Check and merge"
+**AI Response**: "Answer to 'Check the pull request and merge it if green?'. Read the pull request's checks once, from the app: 7 pass and 1 fails, Test (windows-2025), on CI's run 41655789965 on 7335ca0; CodeQL's run 41655789517 passed. Not green, so not merged: reading the failed job's log."
+**Context**: OPERATIONS — merge approved once green; Test (windows-2025) fails on 7335ca0
+
+---
+
+## Operations — CI's second run: a lost failure notice, fixed
+**Timestamp**: 2026-11-04T15:08:57Z
+**User Input**: "(none — continuing toward the merge)"
+**AI Response**: "Test (windows-2025) failed in ScanSessionTests.A_failed_scan_brings_its_reason, which waited 10 s for the failed scan's notice and found none; it had passed on Windows on bb3b3be and on Ubuntu both times, and neither earlier fix touches it. Cause (defect 11), in ScanCoordinator.WatchActiveAsync: each watcher of the active slot had a channel of one that dropped the oldest change, so a watcher that read late heard only the latest, against AR-26 ('Every change of the active slot ... is pushed to every watcher'). A tab's ScanSession follows a scan when the slot's feed names it; when its loop read late, a scan's reservation, start and end arrived as the slot freed alone, the scan was never followed, and a scan that failed at once never showed its reason. Feedback loop: a throwaway bUnit test, tagged DEBUG-r4c3, repeated the scenario 300 times with every core kept busy and recorded the slot states the session saw: the reason was lost in 271 runs, 266 seeing the slot idle twice and 5 seeing it held, then idle. Fix: each watcher keeps up to 64 changes (ScanCoordinator.WatcherCapacity), and only beyond that loses the oldest, so memory stays bounded. Regression test: StartScanTests.A_watcher_that_reads_late_still_hears_every_change_in_order makes a scan's four changes before reading any; before the fix it read the running state and then idle, the reserved and receiving states lost, and after it passes. Under the same load the loop then brought the reason in 300 of 300 runs, then in 1,000 of 1,000. Removed the throwaway test (no DEBUG-r4c3 left). The whole suite passed on Windows (1,254 tests; 9 skipped, the 3 by design and Syft's 6, as that shell had no Syft) and coverage met every target. build-and-test-summary.md records defect 11. Committing these on feature/u6-delivery after a scan of the added lines, and pushing: CI and CodeQL run again."
+**Context**: OPERATIONS — defect 11 fixed on feature/u6-delivery; CI to run again
+
+---

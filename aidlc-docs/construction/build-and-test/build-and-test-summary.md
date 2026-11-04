@@ -3,8 +3,8 @@
 **Stage**: CONSTRUCTION — Build and Test (Standard depth)
 **Plan**: `construction/plans/build-and-test-plan.md` (approved 2026-10-30T16:42:36Z)
 **Ran**: 2026-10-30 (the steps needing no key) and 2026-11-02 (the keyed steps) · **Branch**: `feature/u6-delivery`, on
-the U6 commits `19cdae4` and `28c7a36`; this stage's changes are in `542f1d6` and `58c0c1e`, and defects 9 and 10, found
-by CI's first run on 2026-11-03, after them
+the U6 commits `19cdae4` and `28c7a36`; this stage's changes are in `542f1d6` and `58c0c1e`, and defects 9 to 11, found
+by CI's first two runs on 2026-11-03, after them
 
 ## Result
 
@@ -124,6 +124,7 @@ protocol) measured them, and the pane confirmed U5-NFR-04 once visible (68, 231 
 | 8 | E7 | A scan ending while Emergency Stop's question was open took the tab to its report; returning the focus to the button, no longer on the page, threw and ended the circuit | The focus returns only while the button is on the page | `TerminalTests`, which failed before |
 | 9 | CI's first run, Ubuntu | Three architecture rules failed: on Linux the coverage tool instruments statically by default, rewriting `Airlock.Domain.dll` and `Airlock.Application.dll` on disk, with references to `netstandard` and to its tracker, before the rules read them. Windows instruments in memory, so D1 never saw it | `testconfig.json` turns static instrumentation off in `Airlock.Architecture.Tests` | The three rules: with static instrumentation on, they failed on Windows and in a Linux container as on Ubuntu; with it off, all 68 pass |
 | 10 | CI's first run, Windows | The problems page's test found no heading: the runner checks files out with CRLF, and the heading pattern's `$` matches only before `\n`. The working copy D1 used is LF | The pattern allows a `\r` before the line's end | `ProblemDetailsTests`, which failed on a CRLF copy of the page before the fix |
+| 11 | CI's second run, Windows | A tab could miss a scan that ended at once, and with it a failed scan's reason (`ScanSessionTests` waited 10 s for it). The active slot's feed kept one change per watcher and dropped the older ones, against AR-26, so a tab's loop that read late saw only the slot freed. Under CPU load the reason was lost in 271 of 300 runs | Each watcher keeps up to 64 changes, a scan making four or more | `A_watcher_that_reads_late_still_hears_every_change_in_order`, which failed before; under the same load the reason came in 1,300 of 1,300 runs |
 
 Fixes 1 to 8 were checked again in the rebuilt image. Fixes 9 and 10 change only the tests. With them, CI's test step
 and coverage check passed on Windows (1,253 tests, 9 skipped, Syft's among them as that shell had no Syft). In a Linux
@@ -131,7 +132,8 @@ container with no network (SDK 10.0.400, the packages from this machine's NuGet 
 rules passed and coverage met every target: Domain 100.0 / 99.3 %, Application 97.1 / 94.7 %, Infrastructure
 93.3 / 84.7 %, Web 96.3 / 86.5 % (lines / branches). Three other tests failed there only from the container: the SDK
 pin and the notices, as its SDK is 10.0.400 with ASP.NET Core 10.0.11, and Syft's cancellation, as the folder it scans,
-NuGet's cache, was empty there and Syft finished first. GitHub's Ubuntu run had passed all three.
+NuGet's cache, was empty there and Syft finished first. GitHub's Ubuntu run had passed all three. Fix 11 changes
+`ScanCoordinator`; with it the whole suite passed on Windows (1,254 tests) and coverage met every target.
 
 ## Observations, not changed
 
@@ -173,8 +175,8 @@ NuGet's cache, was empty there and Syft finished first. GitHub's Ubuntu run had 
 ## What is left
 
 - **After the push** (`integration-test-instructions.md`, "After the push"): CI's first run, on 2026-11-03, failed only
-  on defects 9 and 10, with Lint, Image and CodeQL passing; then CI on their fix, the merge, Dependabot, and the first
-  release with its attestations.
+  on defects 9 and 10, with Lint, Image and CodeQL passing, and its second, on their fix, only on defect 11; then CI on
+  its fix, the merge, Dependabot, and the first release with its attestations.
 - **This machine's clock** (observation 1): the owner may switch the WSL2 virtual machine's clock source; Airlock needs
   no change.
 - **The image scan's acceptance** of the findings in Syft's binary ends on 2026-11-30 (`.grype.yaml`).
@@ -187,5 +189,5 @@ NuGet's cache, was empty there and Syft finished first. GitHub's Ubuntu run had 
 - Tests: `DockerfileTests`, `StylesheetTests` (new), `UiAccessibilityTests`, `TerminalTests`, `ScanReportRendererTests`,
   and the performance tests' measurements with the new `Airlock.Domain.Tests/Quality/PerformanceSmokeTests.cs`.
 - `aidlc-docs/construction/build-and-test/` (these five documents), the plan, `aidlc-state.md` and `audit.md`.
-- After the push, defects 9 and 10: `tests/Airlock.Architecture.Tests/testconfig.json` and its project file, and
-  `ProblemDetailsTests`.
+- After the push, defects 9 to 11: `tests/Airlock.Architecture.Tests/testconfig.json` and its project file,
+  `ProblemDetailsTests`, and `src/Airlock.Application/Scanning/ScanCoordinator.cs` with `StartScanTests`.

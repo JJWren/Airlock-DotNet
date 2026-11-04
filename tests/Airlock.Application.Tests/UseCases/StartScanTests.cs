@@ -136,6 +136,26 @@ public sealed class StartScanTests
         Assert.Equal(ActiveScanState.Idle, await NextAsync(states));
     }
 
+    // A tab's loop reads late under load: a whole scan can begin and end before its next read.
+    [Fact]
+    public async Task A_watcher_that_reads_late_still_hears_every_change_in_order()
+    {
+        using var harness = new ScanHarness();
+        harness.Sbom.BlocksUntilCancelled(FakesManifests);
+        await using var states = harness.WatchActiveScan.SubscribeAsync(harness.Token).GetAsyncEnumerator(harness.Token);
+        Assert.Equal(ActiveScanState.Idle, await NextAsync(states));
+
+        await using var reservation = await harness.ReserveAsync();
+        Assert.True((await AddAsync(reservation, "requirements.txt", harness.Token)).IsSuccess);
+        Assert.True((await reservation.StartAsync(null, harness.Token)).IsSuccess);
+        await harness.EmergencyStop.ExecuteAsync(harness.Token);
+
+        Assert.Equal(new ActiveScanState(reservation.Id, false), await NextAsync(states));
+        Assert.Equal(new ActiveScanState(reservation.Id, true), await NextAsync(states));
+        Assert.Equal(new ActiveScanState(reservation.Id, false), await NextAsync(states));
+        Assert.Equal(ActiveScanState.Idle, await NextAsync(states));
+    }
+
     private const string FakesManifests = Fakes.FakeSbomGenerator.Manifests;
 
     private static async Task<Outcome<Airlock.Domain.Targets.Artifact>> AddAsync(

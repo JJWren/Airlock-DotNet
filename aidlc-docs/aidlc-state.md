@@ -5,7 +5,7 @@
 **Workflow path**: Full (decision N8)
 **Current phase**: OPERATIONS
 **Current stage**: Operations — the first push to `JJWren/Airlock-DotNet`, 2026-11-03; Build and Test approved 2026-11-02T14:34:31Z
-**Last updated**: 2026-11-03T14:37:46Z
+**Last updated**: 2026-11-04T15:08:57Z
 
 ## INCEPTION PHASE
 
@@ -40,7 +40,7 @@ Per-unit stage applicability is confirmed during Workflow Planning.
 
 - [ ] Operations — the first push, 2026-11-03: main, then feature/u6-delivery as a pull request into main; then CI,
       CodeQL, Dependabot and the first release, as `construction/build-and-test/integration-test-instructions.md`
-      ("After the push") lists. CI's first run found two test defects, 9 and 10, fixed on the pull request's branch
+      ("After the push") lists. CI's first two runs found defects 9 to 11, fixed on the pull request's branch
       (`construction/build-and-test/build-and-test-summary.md`); the merge waits for CI to pass
 
 ## Skipped stages

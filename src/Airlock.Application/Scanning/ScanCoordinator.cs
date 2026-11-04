@@ -24,6 +24,9 @@ public sealed class ScanCoordinator(
     TimeProvider timeProvider,
     ILogger<ScanCoordinator> logger)
 {
+    /// <summary>The slot changes a watcher can fall behind by; a scan makes four or more (AR-26).</summary>
+    internal const int WatcherCapacity = 64;
+
     private readonly AirlockOptions settings = options.Value;
     private readonly Lock gate = new();
     private readonly List<Channel<ActiveScanState>> watchers = [];
@@ -44,8 +47,10 @@ public sealed class ScanCoordinator(
 
     public async IAsyncEnumerable<ActiveScanState> WatchActiveAsync([EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        // AR-26: a watcher that reads late, as a tab's loop does under load, still hears a whole scan's changes; one that
+        // falls WatcherCapacity changes behind loses the oldest, so memory stays bounded.
         var channel = Channel.CreateBounded<ActiveScanState>(
-            new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true });
+            new BoundedChannelOptions(WatcherCapacity) { FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true });
         lock (gate)
         {
             watchers.Add(channel);
