@@ -24,7 +24,7 @@ COPY licenses/ /app/licenses/
 RUN chmod -R u=rwX,go=rX /app
 
 # Chiseled Ubuntu 24.04 with ICU and time-zone data, no shell and no package manager (Q-U6-N1).
-FROM mcr.microsoft.com/dotnet/aspnet:10.0.14-noble-chiseled-extra@sha256:9b755ea799ae649141a073e30d8b62d8095a5465af2b7694d17866e8c05131d8 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.14-noble-chiseled-extra@sha256:a9298ccc39c6258ae71228479e2f3f8d2ceb6639a9927262a4b0ff7d319a0e7e AS runtime
 ARG VERSION
 ARG REVISION
 ARG CREATED
