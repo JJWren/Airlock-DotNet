@@ -2,7 +2,7 @@
 # U6-NFR-01), and the runtime stage runs nothing: the chiseled image has no shell (U6-NFR-08).
 
 # Syft v1.55.0, Anchore's own image; its version is also in the install scripts and the README (DR-04).
-FROM ghcr.io/anchore/syft:v1.55.0@sha256:4cc92b64ca74ffca4c94d4c8fcc01f217731375300be14d0b6eeb2e82eaa110a AS syft
+FROM ghcr.io/anchore/syft:v1.57.1@sha256:03215d0e98b661d0ecbc8575dbc14d65be1743b5de5df6410aecb7e80f95b060 AS syft
 
 # The SDK that global.json names (Q-U6-I1).
 FROM mcr.microsoft.com/dotnet/sdk:10.0.403-noble@sha256:de4fe90a98845d75910b9769662465c84de1a934665c431279d1382b2bddc02b AS build
